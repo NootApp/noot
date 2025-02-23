@@ -2,6 +2,11 @@ use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
 };
+//use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
+use std::thread;
+
+
+pub mod types;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -11,6 +16,23 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    
+
+
+
+    //thread::spawn(|| {
+    //    log::debug!("Spawning RPC thread");
+    //    let mut client = DiscordIpcClient::new("1343225099834101810").unwrap();
+    //
+    //    client.connect().unwrap();
+    //    client.set_activity(activity::Activity::new()
+    //        .state("Idle")
+    //        .details("bar")
+    //        .timestamps(activity::Timestamps::new().start(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis()))
+    //    ).unwrap();
+    //    //client.close()?;
+    //});
+
     // This should be called as early in the execution of the app as possible
     //#[cfg(debug_assertions)] // only enable instrumentation in development builds
     //let devtools = tauri_plugin_devtools::init();

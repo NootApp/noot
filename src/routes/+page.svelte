@@ -19,7 +19,7 @@ async function greet(event: Event) {
 </script>
 
 <main class="container">
-  <TitleBar />
+  <TitleBar widgets={["clock"]} />
   <SideBar />
 
 </main>
@@ -43,7 +43,7 @@ async function greet(event: Event) {
 
 .container {
   margin: 0;
-  padding-top: 10vh;
+  padding-top: 5px;
 }
 
 
