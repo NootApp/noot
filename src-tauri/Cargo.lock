@@ -2744,6 +2744,7 @@ dependencies = [
  "json5",
  "log",
  "serde",
+ "serde_derive",
  "serde_json",
  "tauri",
  "tauri-build",

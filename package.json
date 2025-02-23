@@ -24,6 +24,7 @@
     "@tauri-apps/plugin-os": "^2.2.0",
     "@tauri-apps/plugin-positioner": "^2.2.0",
     "@tauri-apps/plugin-process": "^2.2.0",
+    "@tauri-apps/plugin-sql": "^2.2.0",
     "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-upload": "^2.2.1",
     "@tauri-apps/plugin-websocket": "^2.3.0",
