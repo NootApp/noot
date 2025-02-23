@@ -1,9 +1,4 @@
-use tauri::{
-    menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
-};
 //use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
-use std::thread;
 
 pub mod types;
 pub mod filesystem;

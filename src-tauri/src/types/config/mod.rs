@@ -14,15 +14,13 @@ impl Config {
         let mut cfg_path = cfg_dir.unwrap();
         cfg_path.push("cfg.json");
 
-        let mut contents = String::new();
-
         if !std::fs::exists(&cfg_path).unwrap() {
-            contents = DEFAULT_CONFIG_STRING.to_string();
+            return json5::from_str(DEFAULT_CONFIG_STRING).unwrap();
         } else {
-            contents = std::fs::read_to_string(cfg_path).unwrap();
+            let contents = std::fs::read_to_string(cfg_path).unwrap();
+            json5::from_str(&contents).unwrap()
         }
 
-        json5::from_str(&contents).unwrap()
     }
 
     pub fn save_to_disk(&self) -> Result<(), std::io::Error> {
