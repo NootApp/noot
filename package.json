@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "lc": "cloc src src-tauri --exclude-dir=target"
   },
   "license": "MIT",
   "dependencies": {
@@ -23,6 +24,10 @@
     "@tauri-apps/plugin-os": "^2.2.0",
     "@tauri-apps/plugin-positioner": "^2.2.0",
     "@tauri-apps/plugin-process": "^2.2.0",
+    "@tauri-apps/plugin-store": "^2.2.0",
+    "@tauri-apps/plugin-upload": "^2.2.1",
+    "@tauri-apps/plugin-websocket": "^2.3.0",
+    "@tauri-apps/plugin-window-state": "^2.2.1",
     "tauri-plugin-clipboard-api": "^2.1.11"
   },
   "devDependencies": {
