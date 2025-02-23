@@ -1,2 +1,2 @@
 [unstable]
-# check-cfg = true
+check-cfg = true

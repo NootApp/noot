@@ -1,6 +1,6 @@
 use tauri::{
-  menu::{Menu, MenuItem},
-  tray::TrayIconBuilder,
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
 };
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -15,7 +15,7 @@ pub fn run() {
     //#[cfg(debug_assertions)] // only enable instrumentation in development builds
     //let devtools = tauri_plugin_devtools::init();
 
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_store::Builder::new().build());
     //log::info!("Noot, starting...");
     //#[cfg(debug_assertions)]
     //{
@@ -23,13 +23,14 @@ pub fn run() {
     //    builder = builder.plugin(devtools);
     //}
 
-    builder = builder.plugin(tauri_plugin_log::Builder::new().build())
-        //.plugin(tauri_plugin_window_state::Builder::new().build())
-        //.plugin(tauri_plugin_websocket::init())
+    builder = builder
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_window_state::Builder::new().build())
+        .plugin(tauri_plugin_websocket::init())
         //.plugin(tauri_plugin_updater::Builder::new().build())
-        //.plugin(tauri_plugin_upload::init())
+        .plugin(tauri_plugin_upload::init())
         //.plugin(tauri_plugin_stronghold::Builder::new(|pass| todo!()).build())
-        //.plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
         //.plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_positioner::init())
@@ -50,15 +51,16 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![greet])
         .setup(|app| {
-            let tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
-                .build(app)?;
-        //    #[cfg(debug_assertions)] // only include this code on debug builds
-        //    {   
-        //        app.g
-        //        let window = app.get_webview_window("main").unwrap();
-        //        window.open_devtools();
-        //    }
+            // NOTE: Tray icons seem to cause a panic on my system
+            //let tray = TrayIconBuilder::new()
+            //    .icon(app.default_window_icon().unwrap().clone())
+            //    .build(app)?;
+            //    #[cfg(debug_assertions)] // only include this code on debug builds
+            //    {
+            //        app.g
+            //        let window = app.get_webview_window("main").unwrap();
+            //        window.open_devtools();
+            //    }
             Ok(())
         })
         .run(tauri::generate_context!())
