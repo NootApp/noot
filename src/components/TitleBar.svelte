@@ -6,31 +6,37 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const appWindow = getCurrentWindow();
 
-document
-  .getElementById('titlebar-minimize')
-  ?.addEventListener('click', () => appWindow.minimize());
-document
-  .getElementById('titlebar-maximize')
-  ?.addEventListener('click', () => appWindow.toggleMaximize());
-document
-  .getElementById('titlebar-close')
-  ?.addEventListener('click', () => appWindow.close());
+async function minimize() {
+  console.log("Minimizing");
+  await appWindow.isMinimized() ? appWindow.unminimize() : appWindow.minimize();
+}
+
+async function maximize() {
+  console.log("Maximizing");
+
+  await appWindow.isMaximized() ? appWindow.unmaximize() : appWindow.maximize();
+}
+
+async function close() {
+  console.log("Closing");
+  await appWindow.close();
+}
 </script>
 
 <div data-tauri-drag-region class="titlebar">
-  <div class="titlebar-button" id="titlebar-minimize">
+  <div class="titlebar-button" on:click={minimize} id="titlebar-minimize">
     <img
       src="/icons/mdi--window-minimize.svg"
       alt="minimize"
     />
   </div>
-  <div class="titlebar-button" id="titlebar-maximize">
+  <div class="titlebar-button" on:click={maximize} id="titlebar-maximize">
     <img
       src="/icons/mdi--window-maximize.svg"
       alt="maximize"
     />
   </div>
-  <div class="titlebar-button" id="titlebar-close">
+  <div class="titlebar-button" on:click={close} id="titlebar-close">
     <img src="/icons/mdi--close.svg" alt="close" />
   </div>
 </div>

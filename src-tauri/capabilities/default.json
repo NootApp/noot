@@ -9,6 +9,9 @@
     "core:default",
     "core:window:default",
     "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-close",
     "core:app:allow-default-window-icon",
     "log:default",
     "notification:default",
@@ -16,6 +19,9 @@
     "deep-link:default",
     "opener:default",
     "os:default",
-    "process:default"
+    "process:default",
+    "store:default",
+    "upload:default",
+    "websocket:default"
   ]
 }

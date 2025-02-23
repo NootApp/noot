@@ -17,6 +17,10 @@
     "opener:default",
     "os:default",
     "positioner:default",
-    "process:default"
+    "process:default",
+    "store:default",
+    "upload:default",
+    "websocket:default",
+    "window-state:default"
   ]
 }
