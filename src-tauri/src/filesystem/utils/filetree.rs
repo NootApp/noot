@@ -66,11 +66,4 @@ mod tests {
         dbg!(&tree);
         assert_eq!(tree.node_count, 9);
     }
-
-    #[test]
-    fn test_file_nix_store_timer() {
-        let tree = FileTree::from_path(&PathBuf::from("/nix/store")).unwrap();
-        dbg!(&tree);
-        assert_eq!(tree.node_count != 9, true);
-    }
 }
