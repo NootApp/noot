@@ -2,7 +2,6 @@ use std::thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Mutex, Arc};
 use discord_rich_presence::{DiscordIpcClient, DiscordIpc, activity::*};
-use serde;
 use serde_derive::Deserialize;
 use lazy_static::lazy_static;
 use chrono::{Utc, DateTime};
@@ -76,6 +75,7 @@ pub fn workspace_to_status<'a>(ws: WorkspaceForStatus, client: &mut DiscordIpcCl
 
     if ws.configuration.rpc.show_file_in_status && ws.editors.len() > 0 {
         details = format!("{} | {}", ws.editors[0].name, ws.name);
+        
     }
 
 
@@ -94,19 +94,16 @@ pub fn workspace_to_status<'a>(ws: WorkspaceForStatus, client: &mut DiscordIpcCl
 pub fn start_rich_presence() {
     println!("Sending RPC start command");
 
-    dbg!(CHANNEL.0.send(RpcCommand::Start));
+    CHANNEL.0.send(RpcCommand::Start).unwrap();
     println!("RPC start command sent");
 }
 
 #[tauri::command]
 pub fn set_rich_presence_activity(ws: String) {
-
-    println!("Received payload: {:?}", &ws);
-
+    println!("Applying activity update");
     let result = serde_json::from_str(&ws);
 
     if result.is_ok() {
-        println!("\x1b42mWORKSPACE PARSE WAS GOOD - NO PANIC\x1b[0m");
         CHANNEL.0.send(RpcCommand::Set(result.unwrap())).unwrap();
     } else {
         println!("{:?}",result.unwrap_err());
@@ -117,7 +114,6 @@ pub fn start_rpc_thread() {
     println!("Spawning RPC thread");
 
     let receiver = CHANNEL.1.clone();
-    let sender = CHANNEL.0.clone();
 
     thread::spawn(move || {
         println!("Starting RPC thread");
@@ -126,7 +122,6 @@ pub fn start_rpc_thread() {
         
         let mut bl = false;
 
-        sender.send(RpcCommand::Report).unwrap();
 
         while !bl {
             let guard = receiver.lock();
@@ -160,8 +155,7 @@ pub fn start_rpc_thread() {
                 },
                 RpcCommand::Set(ws) => {
                     println!("Setting activity to below struct");
-                    dbg!(&ws);
-                    let activity = workspace_to_status(ws, &mut client);
+                    workspace_to_status(ws, &mut client);
                 }
                 _ => {
                     println!("Unrecognized RPC request");

@@ -47,6 +47,23 @@ impl FileTree {
 
         Ok(tree)
     }
+
+    pub fn from_path_str<A: Into<String>>(path: A) -> Result<FileTree, std::io::Error> {
+        let pathbuf = PathBuf::from(path.into());
+        FileTree::from_path(&pathbuf)
+    }
+}
+
+#[tauri::command]
+pub fn list_working_directory(wd: String) -> (Option<FileTree>, Option<String>) {
+    let outcome = FileTree::from_path_str(wd);
+    if outcome.is_ok() {
+        (Some(outcome.unwrap()), None)
+    } else {
+        let e = outcome.unwrap_err();
+        let msg = e.to_string();
+        (None, Some(msg))
+    }
 }
 
 #[cfg(test)]

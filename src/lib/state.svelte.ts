@@ -1,36 +1,29 @@
-export const appState = $state({
+export let appState = $state({
   title: "Noot",
   version: "unknown",
   arch: "unknown",
   startTime: new Date()
 });
 export const themeState = $state({});
-export const workspace: WorkspaceState = $state({
-  name: "Default Workspace",
-  path: "N/A",
-  lastChange: new Date(),
-  configuration: {
-    plugins: [],
-    flavor: 0,
-    rpc: {
-      enable: true,
-      showFileInStatus: true,
-      showTimeInStatus: true,
-    }
-  },
-  editors: [
-    {
-      file: 'README.md',
-      name: 'README',
-      opened: new Date(),
-      changed: new Date(),
-      hasPendingChanges: false,
-      content: ""
-    }
-  ]
+export const wsmanifest: WorkspaceManifest = $state({});
+export const workspace: WorkspaceState = $state({});
 
-})
+export enum WorkspaceManifestFormatVersion {
+  V001 = "V001"
+}
 
+export interface WorkspaceManifestList {
+  format: WorkspaceManifestFormatVersion,
+  "last-opened": String,
+  workspaces: WorkspaceManifest[]
+}
+
+export interface WorkspaceManifest {
+  id: string,
+  "display-name": string,
+  "disk-path": string,
+  "last-accessed": string
+}
 
 export enum MarkdownFlavor {
   Default = 0,
@@ -61,4 +54,17 @@ export interface Editor {
   changed: Date,
   hasPendingChanges: boolean,
   content: string
+}
+
+
+
+export function setWorkspaceState(wss: WorkspaceState) {
+  for (const [k,v] of Object.entries(wss)) {
+    // @ts-ignore: This shouldn't pose an issue but typescript wants to whine regardless.
+    wsmanifest[k] = v;
+  }
+
+  wsmanifest["last-accessed"] = new Date();
+
+  globalThis.dispatchEvent(new Event("workspace-change"));
 }

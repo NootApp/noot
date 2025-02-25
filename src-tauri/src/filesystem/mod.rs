@@ -1,2 +1,2 @@
-mod watcher;
-mod utils;
+pub mod watcher;
+pub mod utils;

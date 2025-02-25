@@ -16,10 +16,7 @@ pub struct Config {
 const DEFAULT_CONFIG_STRING: &'static str = "{\"workspace\": \"NONE\", \"rpc\": false}";
 
 lazy_static! {
-    pub static ref GLOBAL_CONFIG: Arc<Mutex<Config>> = {
-        let mut cfg = Config::load_from_disk();
-        Arc::new(Mutex::new(cfg))
-    };
+    pub static ref GLOBAL_CONFIG: Arc<Mutex<Config>> = Arc::new(Mutex::new(Config::load_from_disk()));
 }
 
 pub fn save_global() -> Result<(), std::io::Error> {

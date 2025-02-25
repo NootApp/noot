@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import TitleBar from "../components/TitleBar.svelte";
 import { onMount } from "svelte";
 import { listen } from "@tauri-apps/api/event";
-import { workspace } from "$lib/state.svelte";
+import { wsmanifest, setWorkspaceState } from "$lib/state.svelte";
 
 // Intermediate type to log event notifications to the console (used for ping-ponging events into the logfile)
 type EventNotification = {
@@ -24,7 +24,10 @@ listen<EventNotification>('event-stream', (event) => {
 onMount(async () => {
   console.debug("Event: mount - Starting workspace load");
   const config = await invoke("get_app_config");
-  console.log(JSON.stringify(config))
+
+  const rwsp = await invoke("get_workspace_config");
+  const active_workspace = await invoke("get_active_workspace");
+  setWorkspaceState(active_workspace);
   if(config.rpc && workspace.configuration.rpc.enable) {
     console.log("Enabling rpc");
     await invoke("start_rich_presence");

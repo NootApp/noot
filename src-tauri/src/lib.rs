@@ -33,7 +33,12 @@ pub fn run() {
     rpc::start_rpc_thread();
 
     builder
-        .invoke_handler(tauri::generate_handler![types::config::get_app_config, rpc::start_rich_presence, rpc::set_rich_presence_activity])
+        .invoke_handler(tauri::generate_handler![
+            types::config::get_app_config, 
+            rpc::start_rich_presence, rpc::set_rich_presence_activity,
+            workspace::get_active_workspace, workspace::get_workspace_config,
+            filesystem::utils::filetree::list_working_directory
+        ])
         .setup(|app| {
             // NOTE: Tray icons seem to cause a panic on my system
             //let tray = TrayIconBuilder::new()
@@ -47,7 +52,7 @@ pub fn run() {
                 webview.open_devtools();
             }
 
-            webview.eval("console.log('Hey there, you\\'re in dangerous waters, if somebody asked you to put something in here, it may be a scam!')");
+            webview.eval("console.log('Hey there, you\\'re in dangerous waters, if somebody asked you to put something in here, it may be a scam!')").unwrap();
 
             Ok(())
         })
