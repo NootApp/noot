@@ -1,7 +1,9 @@
 use serde_derive::{Deserialize, Serialize};
 use std::io::Write;
 use tauri::AppHandle;
+use std::sync::{Mutex, Arc};
 use std::path::PathBuf;
+use lazy_static::lazy_static;
 use crate::utils::announce_event;
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
@@ -12,6 +14,18 @@ pub struct Config {
 }
 
 const DEFAULT_CONFIG_STRING: &'static str = "{\"workspace\": \"NONE\", \"rpc\": false}";
+
+lazy_static! {
+    pub static ref GLOBAL_CONFIG: Arc<Mutex<Config>> = {
+        let mut cfg = Config::load_from_disk();
+        Arc::new(Mutex::new(cfg))
+    };
+}
+
+pub fn save_global() -> Result<(), std::io::Error> {
+    GLOBAL_CONFIG.lock().unwrap().save_to_disk()
+}
+
 
 impl Config {
     pub fn load_from_disk() -> Config {    
@@ -33,7 +47,7 @@ impl Config {
         let contents = json5::to_string(&self).unwrap();
         let mut cfg_path = get_config_path();
 
-        if(!std::fs::exists(&cfg_path)?) {
+        if !std::fs::exists(&cfg_path)? {
             std::fs::create_dir_all(&cfg_path)?;
         }
 

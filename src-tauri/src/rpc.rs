@@ -2,7 +2,6 @@ use std::thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::{Mutex, Arc};
 use discord_rich_presence::{DiscordIpcClient, DiscordIpc, activity::*};
-use tauri::AppHandle;
 use serde;
 use serde_derive::Deserialize;
 use lazy_static::lazy_static;
@@ -66,32 +65,28 @@ pub struct EditorFile {
     pub content: String
 }
 
-pub fn workspace_to_status<'a>(ws: WorkspaceForStatus) -> Activity<'a> {
+pub fn workspace_to_status<'a>(ws: WorkspaceForStatus, client: &mut DiscordIpcClient) -> () {
     let mut a = Activity::new().activity_type(ActivityType::Playing);
+    let mut state = String::from("Idling");
+    let mut details = String::from("No files open");
+    
 
-    a = a.state("Idle")
-        .details("bar")
+
+
+
+    if ws.configuration.rpc.show_file_in_status && ws.editors.len() > 0 {
+        details = format!("{} | {}", ws.editors[0].name, ws.name);
+    }
+
+
+    a = a.state(state.as_str())
+        .details(details.as_str())
         .timestamps(
             Timestamps::new()
-                .start(
-                    i64::try_from(
-                        std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .unwrap()
-                            .as_millis()
-                    )
-                        .unwrap()
-                )
-        );
+                .start(ws.last_change.to_utc().timestamp())
+            );
 
-
-    //if ws.configuration.rpc.show_file_in_status {
-    //   
-    //}
-
-
-
-    a
+    client.set_activity(a).unwrap()
 }
 
 
@@ -161,12 +156,12 @@ pub fn start_rpc_thread() {
                     println!("Clearing activity and shutting down discord IPC connection");
                     client.clear_activity().unwrap();
                     client.close().unwrap();
+                    bl = true
                 },
                 RpcCommand::Set(ws) => {
                     println!("Setting activity to below struct");
                     dbg!(&ws);
-                    let activity = workspace_to_status(ws);
-                    client.set_activity(activity).unwrap();
+                    let activity = workspace_to_status(ws, &mut client);
                 }
                 _ => {
                     println!("Unrecognized RPC request");

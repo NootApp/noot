@@ -5,9 +5,11 @@ pub mod types;
 pub mod utils;
 pub mod filesystem;
 pub mod rpc;
+pub mod workspace;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build());
 
