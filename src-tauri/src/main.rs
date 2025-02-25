@@ -2,5 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    noot_lib::run()
+    noot_lib::run();
+
+    noot_lib::rpc::shutdown_rpc();
 }

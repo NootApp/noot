@@ -6,96 +6,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tauri + SvelteKit + Typescript App</title>
     %sveltekit.head%
-    <link rel="stylesheet" href="/fonts/NotoSansLiving-Regular.ttf" />
     <style>
-      .noto-sans-900 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 900;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    @font-face {
+      font-family: 'Noto Sans';
+      src: url('/fonts/NotoSansLiving-Regular.ttf');
+    }
 
-      .noto-sans-800 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 800;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-900 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 900;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
-      .noto-sans-700 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 700;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-800 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 800;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
-      .noto-sans-600 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 600;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-700 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 700;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
-
-      .noto-sans-500 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 500;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-600 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 600;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
 
-      .noto-sans-400 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 400;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
-
-      .noto-sans-300 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 300;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-500 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 500;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
 
-      .noto-sans-200 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 200;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-400 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
+
+    .noto-sans-300 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 300;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
 
-      .noto-sans-100 {
-        font-family: "Noto Sans", serif;
-        font-optical-sizing: auto;
-        font-weight: 100;
-        font-style: normal;
-        font-variation-settings:
-          "wdth" 100;
-      }
+    .noto-sans-200 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 200;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
 
-      * {
-        font-family: "Noto Sans", serif;
-      }
+
+    .noto-sans-100 {
+      font-family: "Noto Sans", serif;
+      font-optical-sizing: auto;
+      font-weight: 100;
+      font-style: normal;
+      font-variation-settings:
+        "wdth" 100;
+    }
+
+    * {
+      font-family: "Noto Sans", serif;
+    }
     </style>
   </head>
   <body data-sveltekit-preload-data="hover">

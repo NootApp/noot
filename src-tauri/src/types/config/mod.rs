@@ -1,13 +1,17 @@
 use serde_derive::{Deserialize, Serialize};
 use std::io::Write;
+use tauri::AppHandle;
 use std::path::PathBuf;
+use crate::utils::announce_event;
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub struct Config {
     pub workspace: String,
+    pub rpc: bool,
 }
 
-const DEFAULT_CONFIG_STRING: &'static str = "{\"workspace\": \"NONE\"}";
+const DEFAULT_CONFIG_STRING: &'static str = "{\"workspace\": \"NONE\", \"rpc\": false}";
 
 impl Config {
     pub fn load_from_disk() -> Config {    
@@ -89,4 +93,20 @@ mod tests {
         cfg.save_to_disk();
         assert_ne!(cfg.workspace, cfg2.workspace);
     }
+}
+
+#[tauri::command]
+pub fn get_app_config(app: AppHandle) -> Config {
+    // Load the config file
+    let config = Config::load_from_disk();
+
+    if config.workspace == "NONE" {
+        log::info!("Workspace unset - Maybe Fresh Install");
+    } else {
+        log::info!("Workspace set - {}", config.workspace);
+    }
+    
+    announce_event(app, "state.config.loaded", Some("Loading the configuration file successfully"), true);
+    
+    config
 }

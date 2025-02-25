@@ -1,21 +1,39 @@
 <script lang="ts">
-import { rebindConsole } from "$lib/console";
 import { invoke } from "@tauri-apps/api/core";
 import SideBar from "../components/SideBar.svelte";
 import TitleBar from "../components/TitleBar.svelte";
-import { configureTrayIcon } from "../lib/tray-app";
 import { onMount } from "svelte";
+import { listen } from "@tauri-apps/api/event";
+import { workspace } from "$lib/state.svelte";
 
-rebindConsole()
-
-let name = $state("");
-let greetMsg = $state("");
-
-async function greet(event: Event) {
-  event.preventDefault();
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg = await invoke("greet", { name });
+// Intermediate type to log event notifications to the console (used for ping-ponging events into the logfile)
+type EventNotification = {
+  name: string,
+  ctx?: string,
+  ok: boolean
 }
+
+listen<EventNotification>('event-stream', (event) => {
+  if(!event.payload.ctx && event.payload.ok) return console.debug('Event triggered: ', event.payload.name, event.payload.ctx);
+  if(!event.payload.ctx && !event.payload.ok) return console.error('Event failed: ', event.payload.name, event.payload.ctx);
+  if(event.payload.ok) return console.debug('Event triggered: ', event.payload.name, event.payload.ctx);
+  console.error('Event failed: ', event.payload.name, event.payload.ctx);
+})
+
+onMount(async () => {
+  console.debug("Event: mount - Starting workspace load");
+  const config = await invoke("get_app_config");
+  console.log(JSON.stringify(config))
+  if(config.rpc && workspace.configuration.rpc.enable) {
+    console.log("Enabling rpc");
+    await invoke("start_rich_presence");
+
+    console.log("Setting status");
+    console.debug(workspace);
+    await invoke("set_rich_presence_activity", {ws: JSON.stringify(workspace)});
+  }
+})
+
 </script>
 
 <main class="container">

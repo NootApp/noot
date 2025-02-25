@@ -668,8 +668,10 @@ checksum = "7e36cc9d416881d2e24f9a963be5fb1cd90966419ac844274161d10488b3e825"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
 
@@ -2739,9 +2741,11 @@ checksum = "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
 name = "noot"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "dirs 6.0.0",
  "discord-rich-presence",
  "json5",
+ "lazy_static",
  "log",
  "serde",
  "serde_derive",
