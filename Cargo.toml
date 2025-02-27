@@ -1,0 +1,11 @@
+[package]
+name = "noot"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+iced = {version = "0.13.1", features = ["debug", "tokio", "highlighter"]}
+# winit = {version ="0.30.9", default-features = false, features = [
+#   "rwh_06", "wayland", "wayland-csd-adwaita", "x11", "ahash", "memmap2", "sctk", "wayland-backend", "wayland-client", "wayland-protocols", "wayland-protocols-plasma", "sctk-adwaita", "bytemuck", "percent-encoding", "x11-dl", "x11rb"
+# ]}
+tokio = { version = "1.43.0", features = ["fs", "full"] }
