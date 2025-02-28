@@ -4,8 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = {version = "0.13.1", features = ["debug", "tokio", "highlighter"]}
-# winit = {version ="0.30.9", default-features = false, features = [
-#   "rwh_06", "wayland", "wayland-csd-adwaita", "x11", "ahash", "memmap2", "sctk", "wayland-backend", "wayland-client", "wayland-protocols", "wayland-protocols-plasma", "sctk-adwaita", "bytemuck", "percent-encoding", "x11-dl", "x11rb"
-# ]}
+iced = {version = "0.13.1", features = ["debug", "tokio", "highlighter", "image"] }
 tokio = { version = "1.43.0", features = ["fs", "full"] }
+serde = { version = "1", features = ["derive"] }
+serde_derive = "1"
+serde_json = "1"
+discord-rich-presence = "0.2.5"
+dirs = "6.0.0"
+json5 = "0.4.1"
+lazy_static = "1.5.0"
+chrono = { version = "0.4.39", features = ["serde"] }
+toml = "0.8.20"
+nanoid = "0.4"

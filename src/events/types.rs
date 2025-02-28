@@ -17,6 +17,11 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    CreateNewWorkspace,
+    
+    
+    
+    
     ActionPerformed(text_editor::Action),
     ThemeSelected(highlighter::Theme),
     WordWrapToggled(bool),
