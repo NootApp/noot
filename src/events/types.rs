@@ -18,10 +18,13 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub enum Message {
     CreateNewWorkspace,
-    
-    
-    
-    
+
+    /// Emitted when the content of a form element changes.
+    /// Contains the ID of the form field which was changed, as well as the new content
+    FormContentChanged(String, String),
+
+
+
     ActionPerformed(text_editor::Action),
     ThemeSelected(highlighter::Theme),
     WordWrapToggled(bool),
