@@ -5,10 +5,17 @@ use crate::events::types::Message;
 use log::{info, debug, trace, warn, error};
 use std::sync::Mutex;
 use discord_rich_presence::activity::{Activity, ActivityType};
+use iced::widget::text::Rich;
+use crate::subsystems::discord::config::RichPresenceConfig;
+
+pub mod config;
+
 
 #[derive(Debug)]
 pub struct RichPresence {
-    client: DiscordIpcClient
+    client: DiscordIpcClient,
+    inner_config: Mutex<RichPresenceConfig>,
+    workspace_config: Mutex<RichPresenceConfig>,
 }
 
 
@@ -21,6 +28,18 @@ impl RichPresence {
     pub fn new() -> RichPresence {
         RichPresence {
             client: DiscordIpcClient::new("1343225099834101810").unwrap(),
+            inner_config: Mutex::new(RichPresenceConfig {
+                enable: false,
+                client_id: None,
+                enable_idle: false,
+                show_current_workspace: false,
+            }),
+            workspace_config: Mutex::new(RichPresenceConfig {
+                enable: false,
+                client_id: None,
+                enable_idle: false,
+                show_current_workspace: false,
+            }),
         }
     }
 

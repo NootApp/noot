@@ -11,7 +11,6 @@ serde_derive = "1"
 serde_json = "1"
 discord-rich-presence = "0.2.5"
 dirs = "6.0.0"
-json5 = "0.4.1"
 lazy_static = "1.5.0"
 chrono = { version = "0.4.39", features = ["serde"] }
 toml = "0.8.20"
@@ -19,3 +18,8 @@ nanoid = "0.4"
 log = "0.4.26"
 pretty_env_logger = "0.5.0"
 env_logger = "0.11.6"
+git-version = "0.3.9"
+hashbrown = { version = "0.15.2", features = ["serde"] }
+num_cpus = "1.16.0"
+cocoon = "0.4.3"
+bitflags = { version = "2.9.0", features = ["serde"] }

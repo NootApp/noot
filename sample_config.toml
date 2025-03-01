@@ -1,3 +1,5 @@
+last-open = "091ZqEwsFMsDuyQ6"
+
 [rpc]
 enable = true
 client-id = "1343225099834101810"
@@ -6,5 +8,18 @@ enable-idle = true
 
 
 [[workspace]]
-name = "default"
-store = "git://"
+id = "091ZqEwsFMsDuyQ6"
+name = "Default Workspace"
+store = "git://git@github.com:NootApp/sample-workspace.git"
+local-path = ":WSP_DIR:/default"
+cd = "2025-03-01T17:16:18.383Z"
+le = "2025-03-01T17:16:18.383Z"
+
+[workspace.backup-strategy]
+permit-remotes = ["origin"]
+
+[workspace.rpc]
+enable = false
+enable-idle = false
+show-current-file = false
+show-workspace-name = false

@@ -1,3 +1,6 @@
+//! Welcome to the Noot docs.
+//! If you're reading this, congrats, you're probably more invested
+//! than you should be
 use std::env;
 use iced::{window, Size, Task};
 use std::path::PathBuf;
@@ -16,19 +19,19 @@ mod views;
 mod filesystem;
 mod components;
 mod subsystems;
+mod build_meta;
+
 
 #[tokio::main]
 async fn main() -> iced::Result {
+    // This is definitely safe :|
     unsafe {
         env::set_var("NOOT_LOG", "debug");
     }
-
-
     pretty_env_logger::init_custom_env("NOOT_LOG");
-    // formatted_timed_builder()
-    //     .target(Target::Stdout)
-    //     .parse_filters("with_builder_1=trace")
-    //     .init();
+
+
+
     debug!("Starting noot runtime");
     iced::application("Noot", Noot::update, Noot::view)
         .theme(Noot::theme)
@@ -57,15 +60,23 @@ async fn main() -> iced::Result {
 }
 
 
-
+/// The runtime struct that manages the whole app flow
 #[derive(Debug)]
 struct Noot<'a> {
+    /// the current application theme
     theme: highlighter::Theme,
+
+    /// the current application viewport
     viewport: ViewPort<'a>,
+
+    /// the currently loaded configuration (if one is present)
     config: Option<Config>,
 }
 
-
+/// This is a temporary struct used to keep the compiler happy
+/// <div class="warning">
+/// This is not to be used as a reference
+/// </div>
 #[derive(Debug)]
 struct EditorWorkspace {
     file: Option<PathBuf>,
@@ -106,7 +117,10 @@ impl <'a> Noot<'a> {
                 self.config = Some(cfg.clone());
                 let mut rpc = RPC_CLIENT.lock().unwrap();
 
-                if cfg.rpc {
+                
+                
+                
+                if cfg.rpc.enable {
                     rpc.connect();
                 } else {
                     rpc.disconnect();
