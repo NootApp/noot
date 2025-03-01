@@ -1,0 +1,10 @@
+[rpc]
+enable = true
+client-id = "1343225099834101810"
+enable-idle = true
+
+
+
+[[workspace]]
+name = "default"
+store = "git://"

@@ -1,16 +1,35 @@
+use std::env;
 use iced::{window, Size, Task};
 use std::path::PathBuf;
 use iced::widget::{text_editor, tooltip, row, text, button, center, self, column, container, horizontal_space, pick_list, Container};
 use iced::highlighter;
 use iced::window::icon;
+#[macro_use]
+extern crate log;
+use pretty_env_logger::env_logger::Target;
+use crate::events::types::Message;
+use crate::filesystem::config::Config;
+use crate::subsystems::discord::RPC_CLIENT;
 
 mod events;
 mod views;
-
+mod filesystem;
 mod components;
+mod subsystems;
 
 #[tokio::main]
 async fn main() -> iced::Result {
+    unsafe {
+        env::set_var("NOOT_LOG", "debug");
+    }
+
+
+    pretty_env_logger::init_custom_env("NOOT_LOG");
+    // formatted_timed_builder()
+    //     .target(Target::Stdout)
+    //     .parse_filters("with_builder_1=trace")
+    //     .init();
+    debug!("Starting noot runtime");
     iced::application("Noot", Noot::update, Noot::view)
         .theme(Noot::theme)
         .window(window::Settings {
@@ -42,7 +61,8 @@ async fn main() -> iced::Result {
 #[derive(Debug)]
 struct Noot<'a> {
     theme: highlighter::Theme,
-    viewport: ViewPort<'a>
+    viewport: ViewPort<'a>,
+    config: Option<Config>,
 }
 
 
@@ -65,20 +85,35 @@ enum ViewPort<'a> {
 
 impl <'a> Noot<'a> {
     fn new() -> (Self, Task<events::types::Message>) {
+        debug!("Creating Noot runtime");
         (
             Self {
                 theme: highlighter::Theme::SolarizedDark,
                 viewport: ViewPort::LandingView(
                     views::landing::LandingView::new()
-                )
+                ),
+                config: None,
             },
-            Task::none()
+            Task::perform(Config::load_from_disk(), Message::ConfigLoaded)
         )
     }
 
-    fn update(&mut self, message: events::types::Message) -> Task<events::types::Message> {
+    fn update(&mut self, message: Message) -> Task<events::types::Message> {
+        debug!("Received message: {:?}", message);
         match message {
+            Message::ConfigLoaded(cfg) => {
+                info!("Config loaded");
+                self.config = Some(cfg.clone());
+                let mut rpc = RPC_CLIENT.lock().unwrap();
+
+                if cfg.rpc {
+                    rpc.connect();
+                } else {
+                    rpc.disconnect();
+                }
+            },
             _ => {
+                warn!("Received an unknown message payload");
                 dbg!(message);
             }
         }
@@ -108,24 +143,3 @@ impl <'a> Noot<'a> {
         }
     }
 }
-
-
-// fn action<'a, Message: Clone + 'a>(
-//     content: impl Into<iced::Element<'a, Message>>,
-//     label: &'a str,
-//     on_press: Option<Message>,
-// ) -> iced::Element<'a, Message> {
-//     let action = button(center(content).width(30));
-//
-//     if let Some(on_press) = on_press {
-//         tooltip(
-//             action.on_press(on_press),
-//             label,
-//             tooltip::Position::FollowCursor,
-//         )
-//             .style(container::rounded_box)
-//             .into()
-//     } else {
-//         action.style(button::secondary).into()
-//     }
-// }

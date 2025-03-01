@@ -13,11 +13,13 @@ use std::ffi;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-
+use crate::filesystem::config::Config;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    CreateNewWorkspace,
+    /// 
+    ConfigLoaded(Config),
+    // CreateNewWorkspace,
 
     /// Emitted when the content of a form element changes.
     /// Contains the ID of the form field which was changed, as well as the new content
@@ -25,14 +27,14 @@ pub enum Message {
 
 
 
-    ActionPerformed(text_editor::Action),
-    ThemeSelected(highlighter::Theme),
-    WordWrapToggled(bool),
-    NewFile,
-    OpenFile,
-    FileOpened(Result<(PathBuf, Arc<String>), Error>),
-    SaveFile,
-    FileSaved(Result<PathBuf, Error>),
+    // ActionPerformed(text_editor::Action),
+    // ThemeSelected(highlighter::Theme),
+    // WordWrapToggled(bool),
+    // NewFile,
+    // OpenFile,
+    // FileOpened(Result<(PathBuf, Arc<String>), Error>),
+    // SaveFile,
+    // FileSaved(Result<PathBuf, Error>),
 }
 
 
