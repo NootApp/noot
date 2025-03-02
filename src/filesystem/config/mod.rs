@@ -84,28 +84,30 @@ pub fn get_config_path() -> PathBuf {
     return cfg_path;
 }
 
-//
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[tokio::test]
-//     async fn test_config_read_from_disk() {
-//         let cfg = Config::load_from_disk().await;
-//
-//         assert_eq!(cfg.workspaces.len(), 1);
-//     }
-//
-//
-//     #[tokio::test]
-//     async fn test_config_save_to_disk() {
-//         let mut cfg = Config::load_from_disk().await;
-//         cfg.workspaces = "testing".to_string();
-//         cfg.save_to_disk().await.unwrap();
-//         let cfg2 = Config::load_from_disk().await;
-//         assert_eq!(cfg2.workspace, cfg.workspace);
-//         cfg.workspace = "NONE".to_string();
-//         cfg.save_to_disk().await.unwrap();
-//         assert_ne!(cfg.workspace, cfg2.workspace);
-//     }
-// }
+
+#[cfg(test)]
+mod tests {
+    use std::thread::current;
+    use nanoid::nanoid;
+    use super::*;
+
+    #[tokio::test]
+    async fn test_config_read_from_disk() {
+        let cfg = Config::load_from_disk().await;
+
+        assert_eq!(cfg.workspaces.len(), 1);
+    }
+
+
+    #[tokio::test]
+    async fn test_config_save_to_disk() {
+        let mut cfg = Config::load_from_disk().await;
+        
+        let new_workspace_id = nanoid!(10);
+        
+        cfg.last_open = Some(new_workspace_id.clone());
+        cfg.save_to_disk().await.unwrap();
+        let cfg2 = Config::load_from_disk().await;
+        assert_eq!(cfg2.last_open, Some(new_workspace_id));
+    }
+}

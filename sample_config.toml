@@ -14,6 +14,7 @@ store = "git://git@github.com:NootApp/sample-workspace.git"
 local-path = ":WSP_DIR:/default"
 cd = "2025-03-01T17:16:18.383Z"
 le = "2025-03-01T17:16:18.383Z"
+flags = 0
 
 [workspace.backup-strategy]
 permit-remotes = ["origin"]

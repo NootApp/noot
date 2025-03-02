@@ -24,6 +24,9 @@ mod build_meta;
 
 #[tokio::main]
 async fn main() -> iced::Result {
+
+
+
     // This is definitely safe :|
     unsafe {
         env::set_var("NOOT_LOG", "debug");
@@ -31,6 +34,12 @@ async fn main() -> iced::Result {
     pretty_env_logger::init_custom_env("NOOT_LOG");
 
 
+
+    subsystems::crypto::perform_startup_checks().unwrap();
+
+    debug!("{:?}", build_meta::VERSION);
+
+    return Ok(());
 
     debug!("Starting noot runtime");
     iced::application("Noot", Noot::update, Noot::view)
