@@ -1,13 +1,19 @@
-use keyring::Entry;
 use hmac::{Hmac, Mac};
+use keyring::Entry;
 use pbkdf2::pbkdf2;
 use rand::RngCore;
-use sha2::Sha512;
-use secp256k1::{SecretKey, PublicKey, Secp256k1, Scalar};
 use secp256k1::constants::SECRET_KEY_SIZE;
+use secp256k1::{PublicKey, Scalar, Secp256k1, SecretKey};
+use sha2::Sha512;
 use zeroize::Zeroize;
 
 const HARDENED_OFFSET: u32 = 0x80000000;
+
+// Use a much lower iteration count on dev builds to provide some security whilst being fast
+#[cfg(debug_assertions)]
+const PBKDF2_ITERATIONS: u32 = 10_000;
+
+#[cfg(not(debug_assertions))]
 const PBKDF2_ITERATIONS: u32 = 310_000;
 const SALT: &[u8] = include_bytes!("../../../salt-secret.bin");
 
@@ -21,7 +27,10 @@ struct ExtendedSecretKey {
 impl ExtendedSecretKey {
     /// Creates a new `ExtendedSecretKey`.
     fn new(secret_key: [u8; SECRET_KEY_SIZE], chain_code: [u8; 32]) -> Self {
-        Self { secret_key, chain_code }
+        Self {
+            secret_key,
+            chain_code,
+        }
     }
 }
 
@@ -38,16 +47,12 @@ impl Drop for ExtendedSecretKey {
     }
 }
 
-
-
-
 /// check for the presence of the primary encryption key within the OS secure storage
 /// on macOS this may be the M series "Secure Enclave"
 /// on Windows this could be the TPM
 /// on Linux this is provided by the OS itself
 pub fn perform_startup_checks() -> keyring::Result<()> {
     debug!("Performing cryptography startup checks");
-
 
     let primary = Entry::new("com.nootapp", "primary")?;
     let primary_chain = Entry::new("com.nootapp", "primaryChain")?;
@@ -57,7 +62,9 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
     if primary.get_secret().is_err() {
         let err = primary.get_secret().unwrap_err();
 
-        if err.to_string() == String::from("No matching entry found in secure storage") {
+        if err.to_string()
+            == String::from("No matching entry found in secure storage")
+        {
             debug!("No matching entry found in secure storage");
             debug!("Generating new master cryptographic key");
 
@@ -65,7 +72,8 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
             let mut rng = rand::rng();
             rng.fill_bytes(&mut seed);
 
-            let master_secret_key_outcome = derive_master_extended_secret_key(&seed);
+            let master_secret_key_outcome =
+                derive_master_extended_secret_key(&seed);
 
             if !master_secret_key_outcome.is_ok() {
                 error!("{:?}", master_secret_key_outcome.unwrap_err());
@@ -78,7 +86,10 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
 
             debug!("Generating new master public key");
             let secp = Secp256k1::new();
-            let master_pubkey = PublicKey::from_secret_key(&secp, &SecretKey::from_slice(&master_key.secret_key).unwrap());
+            let master_pubkey = PublicKey::from_secret_key(
+                &secp,
+                &SecretKey::from_slice(&master_key.secret_key).unwrap(),
+            );
 
             primary.set_secret(&master_key.secret_key)?;
             primary_chain.set_secret(&master_key.chain_code)?;
@@ -90,12 +101,10 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
             error!("{:?}", err.to_string());
             return Err(err.into());
         }
-
     }
 
     Ok(())
 }
-
 
 // !=========== CAUTION ============!
 // All code below this point was sourced from a blogpost on medium.com
@@ -106,13 +115,13 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
 // I will not take responsibility for any data compromised as a result of inadequate protections offered by the code below
 // USE AT YOUR OWN PERIL
 
-
 /// Derives the master extended secret key using HMAC-SHA-512.
 ///
 /// # Arguments
 /// - `seed`: A secure random seed (16 to 64 bytes).
-fn derive_master_extended_secret_key(seed: &[u8]) -> Result<ExtendedSecretKey, &'static str> {
-
+fn derive_master_extended_secret_key(
+    seed: &[u8],
+) -> Result<ExtendedSecretKey, &'static str> {
     let mut master_seed_bytes = [0u8; 64];
     let _ = pbkdf2::<Hmac<Sha512>>(
         seed,
@@ -121,12 +130,9 @@ fn derive_master_extended_secret_key(seed: &[u8]) -> Result<ExtendedSecretKey, &
         &mut master_seed_bytes,
     );
 
-
     if master_seed_bytes.len() != 64 {
         return Err("Seed must be exactly 64 bytes");
     }
-
-
 
     let mut mac = Hmac::<Sha512>::new_from_slice(b"Crypto seed")
         .map_err(|_| "HMAC initialization failed")?;
@@ -183,7 +189,8 @@ fn derive_child_extended_secret_key(
     mac.update(&index.to_be_bytes());
     let result = mac.finalize().into_bytes();
 
-    let (secret_key_tweak_bytes, chain_code_bytes) = result.split_at(SECRET_KEY_SIZE);
+    let (secret_key_tweak_bytes, chain_code_bytes) =
+        result.split_at(SECRET_KEY_SIZE);
 
     let mut secret_key_tweak = [0u8; SECRET_KEY_SIZE];
     let mut new_chain_code = [0u8; 32];
@@ -197,10 +204,14 @@ fn derive_child_extended_secret_key(
     let parent_sk = SecretKey::from_slice(&parent.secret_key)
         .map_err(|_| "Invalid parent secret key")?;
 
-    let child_sk = parent_sk.add_tweak(&tweak)
+    let child_sk = parent_sk
+        .add_tweak(&tweak)
         .map_err(|_| "Invalid resulting secret key")?;
 
-    Ok(ExtendedSecretKey::new(child_sk.secret_bytes(), new_chain_code))
+    Ok(ExtendedSecretKey::new(
+        child_sk.secret_bytes(),
+        new_chain_code,
+    ))
 }
 
 /// Derives a child public key from an extended public key.
@@ -233,7 +244,8 @@ fn derive_child_public_key(
         .map_err(|_| "Invalid tweak value")?;
 
     let secp = Secp256k1::new();
-    let child_pubkey = parent_pubkey.add_exp_tweak(&secp, &tweak)
+    let child_pubkey = parent_pubkey
+        .add_exp_tweak(&secp, &tweak)
         .map_err(|_| "Invalid resulting public key")?;
 
     Ok(child_pubkey)

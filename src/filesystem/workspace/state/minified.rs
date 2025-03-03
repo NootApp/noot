@@ -1,8 +1,8 @@
-use std::path::PathBuf;
+use crate::filesystem::workspace::state::{ResolverMethod, Screen};
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
-use crate::filesystem::workspace::state::{ResolverMethod, Screen};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {

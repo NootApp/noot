@@ -1,15 +1,10 @@
-use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
-use iced::Task;
-use lazy_static::lazy_static;
-use crate::events::types::Message;
-use log::{info, debug, trace, warn, error};
-use std::sync::Mutex;
-use discord_rich_presence::activity::{Activity, ActivityType};
-use iced::widget::text::Rich;
 use crate::subsystems::discord::config::RichPresenceConfig;
+use discord_rich_presence::activity::{Activity, ActivityType};
+use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
 pub mod config;
-
 
 #[derive(Debug)]
 pub struct RichPresence {
@@ -18,11 +13,10 @@ pub struct RichPresence {
     workspace_config: Mutex<RichPresenceConfig>,
 }
 
-
-lazy_static!(
-    pub static ref RPC_CLIENT: Mutex<RichPresence> = Mutex::new(RichPresence::new());
-);
-
+lazy_static! {
+    pub static ref RPC_CLIENT: Mutex<RichPresence> =
+        Mutex::new(RichPresence::new());
+}
 
 impl RichPresence {
     pub fn new() -> RichPresence {
@@ -33,12 +27,14 @@ impl RichPresence {
                 client_id: None,
                 enable_idle: false,
                 show_current_workspace: false,
+                show_current_file: false,
             }),
             workspace_config: Mutex::new(RichPresenceConfig {
                 enable: false,
                 client_id: None,
                 enable_idle: false,
                 show_current_workspace: false,
+                show_current_file: false,
             }),
         }
     }
@@ -51,11 +47,13 @@ impl RichPresence {
             error!("{:?}", con_res.err().unwrap());
         } else {
             info!("Connected to Discord");
-            self.client.set_activity(
-                Activity::new()
-                    .activity_type(ActivityType::Playing)
-                    .state("Idling")
-            ).unwrap();
+            self.client
+                .set_activity(
+                    Activity::new()
+                        .activity_type(ActivityType::Playing)
+                        .state("Idling"),
+                )
+                .unwrap();
         }
     }
 
@@ -70,6 +68,3 @@ impl RichPresence {
         }
     }
 }
-
-
-

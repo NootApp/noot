@@ -1,47 +1,40 @@
 //! Welcome to the Noot docs.
 //! If you're reading this, congrats, you're probably more invested
 //! than you should be
-use std::env;
-use iced::{window, Size, Task};
-use std::path::PathBuf;
-use iced::widget::{text_editor, tooltip, row, text, button, center, self, column, container, horizontal_space, pick_list, Container};
 use iced::highlighter;
+use iced::widget::{
+    container, horizontal_space,
+    pick_list, row, text, text_editor, tooltip,
+};
 use iced::window::icon;
+use iced::{Size, Task, window};
+use std::env;
+use std::path::PathBuf;
 #[macro_use]
 extern crate log;
-use pretty_env_logger::env_logger::Target;
 use crate::events::types::Message;
 use crate::filesystem::config::Config;
 use crate::subsystems::discord::RPC_CLIENT;
+use crate::filesystem::workspace::state::WorkspaceState;
 
-mod events;
-mod views;
-mod filesystem;
-mod components;
-mod subsystems;
 mod build_meta;
-
+mod components;
+mod events;
+mod filesystem;
+mod subsystems;
+mod views;
 
 #[tokio::main]
 async fn main() -> iced::Result {
-
-
-
     // This is definitely safe :|
     unsafe {
         env::set_var("NOOT_LOG", "debug");
     }
     pretty_env_logger::init_custom_env("NOOT_LOG");
 
-
-
-    subsystems::crypto::perform_startup_checks().unwrap();
-
     debug!("{:?}", build_meta::VERSION);
 
-    return Ok(());
-
-    debug!("Starting noot runtime");
+    debug!("Starting Noot runtime");
     iced::application("Noot", Noot::update, Noot::view)
         .theme(Noot::theme)
         .window(window::Settings {
@@ -54,11 +47,20 @@ async fn main() -> iced::Result {
             decorations: true,
             transparent: false,
             level: Default::default(),
-            icon: Some(icon::from_file_data(include_bytes!("../static/favicon.png").as_slice(), None).unwrap()),
+            icon: Some(
+                icon::from_file_data(
+                    include_bytes!("../static/favicon.png").as_slice(),
+                    None,
+                )
+                .unwrap(),
+            ),
             platform_specific: Default::default(),
             exit_on_close_request: true,
         })
-        .font(include_bytes!("../static/fonts/Roboto-VariableFont_wdth,wght.ttf").as_slice())
+        .font(
+            include_bytes!("../static/fonts/Roboto-VariableFont_wdth,wght.ttf")
+                .as_slice(),
+        )
         .default_font(iced::Font {
             family: iced::font::Family::Monospace,
             weight: iced::font::Weight::Normal,
@@ -67,7 +69,6 @@ async fn main() -> iced::Result {
         })
         .run_with(Noot::new)
 }
-
 
 /// The runtime struct that manages the whole app flow
 #[derive(Debug)]
@@ -88,53 +89,85 @@ struct Noot<'a> {
 /// </div>
 #[derive(Debug)]
 struct EditorWorkspace {
-    file: Option<PathBuf>,
-    content: text_editor::Content,
-    theme: highlighter::Theme,
-    word_wrap: bool,
-    is_loading: bool,
-    is_dirty: bool,
+    pub file: Option<PathBuf>,
+    pub content: text_editor::Content,
+    pub theme: highlighter::Theme,
+    pub word_wrap: bool,
+    pub is_loading: bool,
+    pub is_dirty: bool,
 }
 
 #[derive(Debug)]
 enum ViewPort<'a> {
-    WorkspaceView(EditorWorkspace),
+    LoadingView,
+    WorkspaceView(WorkspaceState),
     LandingView(views::landing::LandingView<'a>),
-    SettingsView
+    SettingsView,
 }
 
-impl <'a> Noot<'a> {
-    fn new() -> (Self, Task<events::types::Message>) {
+impl<'a> Noot<'a> {
+    fn new() -> (Self, Task<Message>) {
         debug!("Creating Noot runtime");
         (
             Self {
                 theme: highlighter::Theme::SolarizedDark,
-                viewport: ViewPort::LandingView(
-                    views::landing::LandingView::new()
-                ),
+                viewport: ViewPort::LoadingView,
                 config: None,
             },
-            Task::perform(Config::load_from_disk(), Message::ConfigLoaded)
+            Task::perform(Config::load_from_disk(), Message::ConfigLoaded),
         )
     }
 
-    fn update(&mut self, message: Message) -> Task<events::types::Message> {
+    fn update(&mut self, message: Message) -> Task<Message> {
         debug!("Received message: {:?}", message);
         match message {
             Message::ConfigLoaded(cfg) => {
                 info!("Config loaded");
                 self.config = Some(cfg.clone());
+
+                let _outcome =
+                    subsystems::crypto::perform_startup_checks().unwrap();
+
+                debug!("Checking for previous workspaces");
+
+                if let Some(prev_wsp) = cfg.last_open {
+                    debug!("Previous workspace referenced, checking manifests");
+                    let workspace_manifest = cfg.workspaces.iter().filter(|p| {
+                        debug!("Checking workspace {} ({} - {})", p.name, p.id, &prev_wsp);
+                        if p.id == prev_wsp {
+                            info!("Previous workspace {} ({})", p.name, prev_wsp);
+                            return true
+                        }
+                        warn!("Workspace does not match");
+                        false
+                    }).next();
+
+                    if let Some(workspace_manifest) = workspace_manifest {
+                        debug!("Workspace manifest found - Attempting to load");
+                        return Task::perform(WorkspaceState::open_workspace_from_manifest(workspace_manifest.clone()), Message::WorkspaceLoaded);
+                    } else {
+                        warn!("Workspace manifest not found - Defaulting to LandingView");
+                    }
+
+                } else {
+                    self.viewport =
+                        ViewPort::LandingView(views::landing::LandingView::new());
+                }
+
+                debug!("Checking RPC permissions");
+
                 let mut rpc = RPC_CLIENT.lock().unwrap();
 
-                
-                
-                
                 if cfg.rpc.enable {
+                    debug!("RPC is enabled in the config");
                     rpc.connect();
                 } else {
+                    debug!("RPC is not enabled in the config");
                     rpc.disconnect();
                 }
-            },
+
+                debug!("Config load finished...")
+            }
             _ => {
                 warn!("Received an unknown message payload");
                 dbg!(message);
@@ -154,15 +187,14 @@ impl <'a> Noot<'a> {
 
     fn view(&self) -> iced::Element<events::types::Message> {
         match &self.viewport {
+            ViewPort::LoadingView => {
+                container(text("Loading... Please Wait.")).into()
+            }
             ViewPort::WorkspaceView(editor) => {
                 container(text("Not Implemented")).into()
-            },
-            ViewPort::LandingView(view) => {
-                view.view(&self)
             }
-            ViewPort::SettingsView => {
-                container(text("Not Implemented")).into()
-            }
+            ViewPort::LandingView(view) => view.view(&self),
+            ViewPort::SettingsView => container(text("Not Implemented")).into(),
         }
     }
 }

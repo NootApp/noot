@@ -1,9 +1,8 @@
+use crate::events::types::Message;
 use iced::Element;
 use iced::widget::container;
-use iced::widget::{text, text_input, column, row};
+use iced::widget::{column, row, text, text_input};
 use nanoid::nanoid;
-use crate::events::types::Message;
-
 
 #[derive(Debug, Clone)]
 pub struct TextInput<'a> {
@@ -11,16 +10,18 @@ pub struct TextInput<'a> {
     pub label: String,
     pub placeholder: Option<&'a str>,
     pub value: &'a str,
-    pub obfuscated: bool
+    pub obfuscated: bool,
 }
 
 #[derive(Debug, Clone)]
-pub enum TextInputChanged {
-    
-}
+pub enum TextInputChanged {}
 
-impl <'a> TextInput<'a> {
-    pub fn new<S: Into<String>, V: Into<&'a str>>(label: S, value: V, obfuscated: bool) -> TextInput<'a> {
+impl<'a> TextInput<'a> {
+    pub fn new<S: Into<String>, V: Into<&'a str>>(
+        label: S,
+        value: V,
+        obfuscated: bool,
+    ) -> TextInput<'a> {
         TextInput {
             field_id: nanoid!(),
             label: label.into(),
@@ -46,21 +47,20 @@ impl <'a> TextInput<'a> {
     }
 
     pub fn view(&self) -> Element<Message> {
-        container(
-            column![
-                text(self.label.clone()),
-                self.text_input()
-            ]
-        ).into()
+        container(column![text(self.label.clone()), self.text_input()]).into()
     }
 
     pub fn text_input(&self) -> Element<Message> {
-        match self.placeholder{
-            Some(v) => iced::widget::text_input::TextInput::new(v, self.value).into(),
-            None => iced::widget::text_input::TextInput::new("", self.value).on_input(move |c: String| {self.on_input(c)}).into()
+        match self.placeholder {
+            Some(v) => {
+                iced::widget::text_input::TextInput::new(v, self.value).into()
+            }
+            None => iced::widget::text_input::TextInput::new("", self.value)
+                .on_input(move |c: String| self.on_input(c))
+                .into(),
         }
     }
-    
+
     pub fn on_input(&self, content: String) -> Message {
         Message::FormContentChanged(self.field_id.clone(), content)
     }

@@ -1,13 +1,13 @@
-use std::path::PathBuf;
-use iced::Background::Color;
-use iced::{color, Border, Element};
-use iced::alignment::{Horizontal, Vertical};
-use iced::border::Radius;
-use iced::widget::{container, scrollable, column, row};
-use iced::widget::container::{background, Style};
 use crate::components::form::text_input::TextInput;
 use crate::events::types::Message;
 use crate::views::landing::LandingView;
+use iced::Background::Color;
+use iced::alignment::{Horizontal, Vertical};
+use iced::border::Radius;
+use iced::widget::container::{Style, background};
+use iced::widget::{column, container, row, scrollable};
+use iced::{Border, Element, color};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct NewWorkspaceView<'a> {
@@ -20,9 +20,7 @@ pub struct NewWorkspaceView<'a> {
     pub workspace_name_input: TextInput<'a>,
 }
 
-
-
-impl <'a> NewWorkspaceView<'a> {
+impl<'a> NewWorkspaceView<'a> {
     pub fn new() -> Self {
         Self {
             workspace_name: None,
@@ -35,30 +33,19 @@ impl <'a> NewWorkspaceView<'a> {
     }
 
     pub fn view(&self, content: &LandingView) -> Element<Message> {
-        container(
-            scrollable(
-                column![
-                    row![
-                        self.workspace_name_input.view()
-                    ]
-                ]
-            )
-        )
+        container(scrollable(column![row![self.workspace_name_input.view()]]))
             .height(395)
             .width(530)
-            .style(move|_: &_| {
-                Style {
-                    background: Some(Color(color!(0x1a1a1a))),
-                    border: Border {
-                          radius: Radius::new(5.),
-                        color: iced::Color::TRANSPARENT,
-                        width: 0.
-                    },
-                    ..Default::default()
-                }
+            .style(move |_: &_| Style {
+                background: Some(Color(color!(0x1a1a1a))),
+                border: Border {
+                    radius: Radius::new(5.),
+                    color: iced::Color::TRANSPARENT,
+                    width: 0.,
+                },
+                ..Default::default()
             })
             .align_x(Horizontal::Center)
             .into()
     }
-
 }

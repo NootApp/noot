@@ -4,8 +4,8 @@ last-open = "091ZqEwsFMsDuyQ6"
 enable = true
 client-id = "1343225099834101810"
 enable-idle = true
-
-
+show-current-workspace = true
+show-current-file = true
 
 [[workspace]]
 id = "091ZqEwsFMsDuyQ6"
@@ -16,11 +16,11 @@ cd = "2025-03-01T17:16:18.383Z"
 le = "2025-03-01T17:16:18.383Z"
 flags = 0
 
-[workspace.backup-strategy]
+[workspace.backup-strategy.git]
 permit-remotes = ["origin"]
 
 [workspace.rpc]
 enable = false
 enable-idle = false
 show-current-file = false
-show-workspace-name = false
+show-current-workspace = false

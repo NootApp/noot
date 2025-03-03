@@ -1,13 +1,16 @@
 use crate::Noot;
 use crate::events::types::Message;
-use iced::widget::{self, Container, button, center, column, container, horizontal_space, pick_list, row, text, text_editor, tooltip, Themer};
-use iced::{Bottom, highlighter, color, Theme, Background, Length, Padding};
-use iced::{Element, Task};
-use std::path::PathBuf;
+use crate::views::landing::new_workspace::NewWorkspaceView;
 use iced::Background::Gradient;
 use iced::gradient::Linear;
 use iced::widget::container::Style;
-use crate::views::landing::new_workspace::NewWorkspaceView;
+use iced::widget::{
+    self, Container, Themer, button, center, column, container,
+    horizontal_space, pick_list, row, text, text_editor, tooltip,
+};
+use iced::{Background, Bottom, Length, Padding, Theme, color, highlighter};
+use iced::{Element, Task};
+use std::path::PathBuf;
 
 mod cloud_sync;
 mod new_workspace;
@@ -26,8 +29,7 @@ pub enum SubView<'a> {
     CloudWorkspace(),
 }
 
-
-impl <'a> LandingView <'a> {
+impl<'a> LandingView<'a> {
     pub fn new() -> LandingView<'a> {
         LandingView {
             // subview: SubView::None,
@@ -40,22 +42,30 @@ impl <'a> LandingView <'a> {
             SubView::None => Container::new(column![center(
                 column![
                     row![center(column![
-                        center(text("Noot Noot!").font(iced::Font {
-            family: iced::font::Family::Monospace,
-            weight: iced::font::Weight::ExtraBold,
-            stretch: iced::font::Stretch::Normal,
-            style: iced::font::Style::Normal,
-        }).size(32).color(color!(0xfff1aa))),
-                        center(text("Welcome to the future of note taking").width(350.))
+                        center(
+                            text("Noot Noot!")
+                                .font(iced::Font {
+                                    family: iced::font::Family::Monospace,
+                                    weight: iced::font::Weight::ExtraBold,
+                                    stretch: iced::font::Stretch::Normal,
+                                    style: iced::font::Style::Normal,
+                                })
+                                .size(32)
+                                .color(color!(0xfff1aa))
+                        ),
+                        center(
+                            text("Welcome to the future of note taking")
+                                .width(350.)
+                        )
                     ])]
-                        .padding(iced::Padding {
-                            top: 5.,
-                            left: 10.,
-                            right: 10.,
-                            bottom: 5.
-                        })
-                        .align_y(Bottom)
-                        .height(100),
+                    .padding(iced::Padding {
+                        top: 5.,
+                        left: 10.,
+                        right: 10.,
+                        bottom: 5.
+                    })
+                    .align_y(Bottom)
+                    .height(100),
                     row![center(
                         row![
                             column![
@@ -83,14 +93,14 @@ impl <'a> LandingView <'a> {
                     )]
                 ]
                 .height(170.)
-            )]).width(Length::Fill)
-                .height(Length::Fill)
-                .style(gradient_background)
-                .into(),
+            )])
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(gradient_background)
+            .into(),
             SubView::NewWorkspace(workspace) => {
-                Container::new(
-                    workspace.view(self)
-                ).width(Length::Fill)
+                Container::new(workspace.view(self))
+                    .width(Length::Fill)
                     .height(Length::Fill)
                     .style(gradient_background)
                     .padding(Padding::from(5))
@@ -101,20 +111,17 @@ impl <'a> LandingView <'a> {
     }
 }
 
-
 fn gradient_background(theme: &Theme) -> Style {
     Style {
         text_color: None,
-        background: Some(
-            Gradient(
-                Linear::new(iced::Radians(0.785))
-                    .add_stop(0.0, color!(0x116731))
-                    .add_stop(0.15, color!(0x04050b))
-                    .add_stop(0.85, color!(0x04050b))
-                    .add_stop(1.0, color!(0x116731))
-                    .into()
-            )
-        ),
+        background: Some(Gradient(
+            Linear::new(iced::Radians(0.785))
+                .add_stop(0.0, color!(0x116731))
+                .add_stop(0.15, color!(0x04050b))
+                .add_stop(0.85, color!(0x04050b))
+                .add_stop(1.0, color!(0x116731))
+                .into(),
+        )),
         border: Default::default(),
         shadow: Default::default(),
     }

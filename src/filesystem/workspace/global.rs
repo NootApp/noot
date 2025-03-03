@@ -1,12 +1,13 @@
-use std::path::PathBuf;
+use crate::filesystem::config::Config;
+use crate::subsystems::discord::config::RichPresenceConfig;
 use bitflags::bitflags;
 use chrono::{DateTime, Local, Utc};
 use lazy_static::lazy_static;
 use nanoid::nanoid;
 use serde_derive::{Deserialize, Serialize};
-use crate::filesystem::config::Config;
-use crate::subsystems::discord::config::RichPresenceConfig;
-
+use std::path::PathBuf;
+use crate::filesystem::workspace::global::flags::WorkspaceFlags;
+// pub(crate) use crate::filesystem::workspace::global::flags::{WorkspaceFlags, serialize_flags, deserialize_flags};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -18,17 +19,9 @@ pub struct WorkspaceManifest {
     pub cd: DateTime<Local>,
     pub le: DateTime<Local>,
     pub backup_strategy: WorkspaceBackupStrategy,
-    pub rpc: WorkspaceRichPresenceConfig,
-    pub flags: WorkspaceFlags,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct WorkspaceRichPresenceConfig {
-    pub enable: bool,
-    pub enable_idle: bool,
-    pub show_current_file: bool,
-    pub show_workspace_name: bool,
+    pub rpc: RichPresenceConfig,
+    // #[serde(serialize_with = "serialize_flags", deserialize_with = "deserialize_flags")]
+    pub flags: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,7 +35,7 @@ pub enum WorkspaceBackupStrategy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GitBackupStrategy {
-    permit_remotes: Vec<String>,
+    pub(crate) permit_remotes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,14 +49,12 @@ pub struct S3BackupStrategy {
 #[serde(rename_all = "kebab-case")]
 pub struct RsyncBackupStrategy {}
 
-
 impl WorkspaceManifest {
     pub fn parse_local_path(&self) -> PathBuf {
         debug!("Parsing local path - {:?}", self.local_path);
         let mut doc_dir = dirs::document_dir().unwrap();
 
         doc_dir.push("noot");
-
 
         if let Some(p) = &self.local_path {
             if p.contains(":WSP_DIR:") {
@@ -81,34 +72,5 @@ impl WorkspaceManifest {
     }
 }
 
-bitflags! {
-    #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialOrd, PartialEq, Ord, Eq, Hash)]
-    pub struct WorkspaceFlags: u32 {
-        /// Whether the workspace is encrypted
-        const ENCRYPTED = 0b00000001;
 
-        /// Whether the workspace is managed using the Noot Workspace Manager Protocol
-        const NWMP = 0b00000010;
-
-        /// Plugin support, do not supply the bit if
-        const ALLOW_PLUGINS = 0b00000100;
-
-        /// Forces the workspace to synchronize in "immediate" mode
-        const FORCE_CLEAN = 0b00001000;
-
-        /// Enterprise mode - See the above entries for definitions
-        const ENTERPRISE = Self::ENCRYPTED.bits()
-            | Self::NWMP.bits()
-            // | Self::ALLOW_PLUGINS.bits()
-            | Self::FORCE_CLEAN.bits();
-
-        const DEFAULTS = Self::ALLOW_PLUGINS.bits()
-            | Self::FORCE_CLEAN.bits();
-    }
-}
-
-impl Default for WorkspaceFlags {
-    fn default() -> Self {
-        WorkspaceFlags::ENCRYPTED
-    }
-}
+pub mod flags;

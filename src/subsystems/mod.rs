@@ -1,2 +1,2 @@
-pub mod discord;
 pub mod crypto;
+pub mod discord;
