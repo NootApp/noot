@@ -1,16 +1,15 @@
-use crate::Noot;
 use crate::events::types::Message;
 use crate::views::landing::new_workspace::NewWorkspaceView;
-use iced::Background::Gradient;
+use crate::Noot;
 use iced::gradient::Linear;
 use iced::widget::container::Style;
 use iced::widget::{
-    self, Container, Themer, button, center, column, container,
-    horizontal_space, pick_list, row, text, text_editor, tooltip,
+    button, center, column, container, row
+    , text, Container,
 };
-use iced::{Background, Bottom, Length, Padding, Theme, color, highlighter};
-use iced::{Element, Task};
-use std::path::PathBuf;
+use iced::Background::Gradient;
+use iced::{color, Bottom, Length, Padding, Theme};
+use iced::Element;
 
 mod cloud_sync;
 mod new_workspace;

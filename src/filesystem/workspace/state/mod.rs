@@ -109,7 +109,7 @@ impl WorkspaceState {
         let manifest_dir = workspace_path.join(".manifest");
         let cache_dir = workspace_path.join(".cache");
 
-        let manifest_core_file = manifest_dir.join(".noot.wsp");
+        // let manifest_core_file = manifest_dir.join(".noot.wsp");
 
         let mut temporary_state = WorkspaceState {
             manifest,

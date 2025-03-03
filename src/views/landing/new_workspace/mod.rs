@@ -1,12 +1,12 @@
 use crate::components::form::text_input::TextInput;
 use crate::events::types::Message;
 use crate::views::landing::LandingView;
-use iced::Background::Color;
-use iced::alignment::{Horizontal, Vertical};
+use iced::alignment::Horizontal;
 use iced::border::Radius;
-use iced::widget::container::{Style, background};
+use iced::widget::container::Style;
 use iced::widget::{column, container, row, scrollable};
-use iced::{Border, Element, color};
+use iced::Background::Color;
+use iced::{color, Border, Element};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]

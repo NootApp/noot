@@ -190,7 +190,7 @@ impl<'a> Noot<'a> {
             ViewPort::LoadingView => {
                 container(text("Loading... Please Wait.")).into()
             }
-            ViewPort::WorkspaceView(editor) => {
+            ViewPort::WorkspaceView(_editor) => {
                 container(text("Not Implemented")).into()
             }
             ViewPort::LandingView(view) => view.view(&self),

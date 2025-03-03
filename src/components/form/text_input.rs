@@ -1,7 +1,7 @@
 use crate::events::types::Message;
-use iced::Element;
 use iced::widget::container;
-use iced::widget::{column, row, text, text_input};
+use iced::widget::{column, text};
+use iced::Element;
 use nanoid::nanoid;
 
 #[derive(Debug, Clone)]
