@@ -28,8 +28,8 @@ keyring = { version = "3.6.2", features = ["tokio"] }
 pbkdf2 = { version = "0.12.2", features = ["std"] }
 sha2 = "0.10"
 hmac = "0.12"
-secp256k1 = "0.27"
-zeroize = "1.6"
+secp256k1 = "0.30.0"
+zeroize = "1.8"
 rand = "0.9.0"
 
 [build-dependencies]
