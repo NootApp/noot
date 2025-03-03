@@ -36,7 +36,7 @@ impl<'a> LandingView<'a> {
         }
     }
 
-    pub(crate) fn view(&self, parent: &Noot) -> Element<Message> {
+    pub(crate) fn view(&self, _parent: &Noot) -> Element<Message> {
         match &self.subview {
             SubView::None => Container::new(column![center(
                 column![
@@ -110,7 +110,7 @@ impl<'a> LandingView<'a> {
     }
 }
 
-fn gradient_background(theme: &Theme) -> Style {
+fn gradient_background(_theme: &Theme) -> Style {
     Style {
         text_color: None,
         background: Some(Gradient(

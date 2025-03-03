@@ -106,7 +106,7 @@ impl WorkspaceState {
     ) -> WorkspaceState {
         let workspace_path = manifest.parse_local_path();
         let asset_dir = workspace_path.join(".assets");
-        let manifest_dir = workspace_path.join(".manifest");
+        let _manifest_dir = workspace_path.join(".manifest");
         let cache_dir = workspace_path.join(".cache");
 
         // let manifest_core_file = manifest_dir.join(".noot.wsp");

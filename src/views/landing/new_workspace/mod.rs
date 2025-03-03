@@ -32,7 +32,7 @@ impl<'a> NewWorkspaceView<'a> {
         }
     }
 
-    pub fn view(&self, content: &LandingView) -> Element<Message> {
+    pub fn view(&self,_content: &LandingView) -> Element<Message> {
         container(scrollable(column![row![self.workspace_name_input.view()]]))
             .height(395)
             .width(530)
