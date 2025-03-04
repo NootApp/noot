@@ -51,7 +51,7 @@ pub struct WorkspaceFile {
 
 impl WorkspaceState {
     pub async fn open_workspace_from_manifest(manifest: WorkspaceManifest) -> WorkspaceState {
-        let workspace_path = manifest.parse_local_path();
+        let workspace_path = manifest.parse_local_path().unwrap();
         let workspace_exists = tokio::fs::try_exists(&workspace_path).await;
 
         match workspace_exists {
@@ -82,6 +82,7 @@ impl WorkspaceState {
                 }
             }
             Err(e) => {
+                
                 error!("Failed to open workspace: {}", e);
             }
         };
@@ -104,7 +105,7 @@ impl WorkspaceState {
     pub async fn create_empty_workspace(
         manifest: WorkspaceManifest,
     ) -> WorkspaceState {
-        let workspace_path = manifest.parse_local_path();
+        let workspace_path = manifest.parse_local_path().unwrap();
         let asset_dir = workspace_path.join(".assets");
         let _manifest_dir = workspace_path.join(".manifest");
         let cache_dir = workspace_path.join(".cache");

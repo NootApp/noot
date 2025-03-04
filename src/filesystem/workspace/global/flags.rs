@@ -30,7 +30,7 @@ bitflags! {
 
 impl Default for WorkspaceFlags {
     fn default() -> Self {
-        WorkspaceFlags::ENCRYPTED
+        WorkspaceFlags::DEFAULTS
     }
 }
 
@@ -44,5 +44,28 @@ impl From<WorkspaceFlags> for u32 {
 impl From<u32> for WorkspaceFlags {
     fn from(value: u32) -> Self {
         WorkspaceFlags::from_bits_truncate(value)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::filesystem::workspace::global::flags::WorkspaceFlags;
+
+    #[test]
+    fn test_enterprise_features_match() {
+        let test_target = WorkspaceFlags::ENTERPRISE;
+        
+        let test_value: u32 = 11;
+        
+        assert_eq!(test_target.bits(), test_value);
+    }
+    
+    #[test]
+    fn test_default_features_match() {
+        let test_target = WorkspaceFlags::default();
+        let test_value: u32 = 12;
+        
+        assert_eq!(test_target.bits(), test_value);
     }
 }

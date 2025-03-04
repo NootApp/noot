@@ -1,6 +1,7 @@
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::state::WorkspaceState;
 use std::io;
+use crate::filesystem::workspace::manager::{WorkspaceError, WorkspaceResult};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -11,7 +12,7 @@ pub enum Message {
     /// Contains the ID of the form field which was changed, as well as the new content
     FormContentChanged(String, String),
     
-    WorkspaceLoaded(WorkspaceState)
+    WorkspaceLoadResult(WorkspaceResult<WorkspaceState>)
     
     // ActionPerformed(text_editor::Action),
     // ThemeSelected(highlighter::Theme),

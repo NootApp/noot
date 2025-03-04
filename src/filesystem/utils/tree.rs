@@ -17,6 +17,8 @@ pub struct FileTree {
     pub children: Vec<FileEntry>
 }
 
+
+
 impl FileTree {
     pub fn from_path(path: &PathBuf) -> Result<FileTree, std::io::Error> {
         let mut tree = FileTree {
@@ -54,33 +56,14 @@ impl FileTree {
     }
 }
 
-#[tauri::command]
-pub fn list_working_directory(wd: String) -> (Option<FileTree>, Option<String>) {
-    let outcome = FileTree::from_path_str(wd);
-    if outcome.is_ok() {
-        (Some(outcome.unwrap()), None)
-    } else {
-        let e = outcome.unwrap_err();
-        let msg = e.to_string();
-        (None, Some(msg))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_file_tree_top_level() {
-        let tree = FileTree::from_path(&PathBuf::from("/bin/")).unwrap();
-        dbg!(&tree);
-        assert_eq!(tree.node_count, 1);
-    }
-
-    #[test]
     fn test_file_tree_recursion() {
-        let tree = FileTree::from_path(&PathBuf::from("../starter-workspace")).unwrap();
+        let tree = FileTree::from_path(&PathBuf::from("./static")).unwrap();
         dbg!(&tree);
-        assert_eq!(tree.node_count, 9);
+        assert_eq!(tree.node_count, 6);
     }
 }

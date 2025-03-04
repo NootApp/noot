@@ -1,12 +1,12 @@
-use crate::filesystem::config::Config;
 use crate::subsystems::discord::config::RichPresenceConfig;
-use bitflags::bitflags;
-use chrono::{DateTime, Local, Utc};
-use lazy_static::lazy_static;
-use nanoid::nanoid;
+use chrono::{DateTime, Local};
+
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
-use crate::filesystem::workspace::global::flags::WorkspaceFlags;
+
+use std::str::FromStr;
+use lazy_static::lazy_static;
+use regex::Regex;
 // pub(crate) use crate::filesystem::workspace::global::flags::{WorkspaceFlags, serialize_flags, deserialize_flags};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,7 +14,6 @@ use crate::filesystem::workspace::global::flags::WorkspaceFlags;
 pub struct WorkspaceManifest {
     pub id: String,
     pub name: String,
-    pub store: Option<String>,
     pub local_path: Option<String>,
     pub cd: DateTime<Local>,
     pub le: DateTime<Local>,
@@ -35,42 +34,162 @@ pub enum WorkspaceBackupStrategy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GitBackupStrategy {
-    pub(crate) permit_remotes: Vec<String>,
+    pub permit_remotes: Vec<String>,
+    pub repository: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct S3BackupStrategy {
-    bucket: String,
-    region: String,
+    pub bucket: String,
+    pub region: String,
+    pub root_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct RsyncBackupStrategy {}
 
+
+pub type PathResult<T> = Result<T, PathError>;
+
+#[derive(Debug, Clone)]
+pub struct PathError {
+    reason: String,
+    code: u8,
+}
+
+impl PathError {
+    pub fn new<S: Into<String>>(reason: S, code: u8) -> Self {
+        Self { reason: reason.into(), code }
+    }
+}
+
+lazy_static!(
+  pub static ref PATH_PARSER: Regex = Regex::new("([A-Za-z0-9-_+~@:.]*)/{0,2}").unwrap();
+);
+
 impl WorkspaceManifest {
-    pub fn parse_local_path(&self) -> PathBuf {
+    pub fn parse_local_path(&self) -> PathResult<PathBuf> {
         debug!("Parsing local path - {:?}", self.local_path);
-        let mut doc_dir = dirs::document_dir().unwrap();
 
-        doc_dir.push("noot");
+        if let Some(local_path) = &self.local_path {
+            let mut parsed_parts: Vec<String> = vec![];
+            let parts = PATH_PARSER.captures_iter(local_path);
 
-        if let Some(p) = &self.local_path {
-            if p.contains(":WSP_DIR:") {
-                let p2 = p.replace(":WSP_DIR:", "");
+            let mut index = 0;
+            for c1 in parts {
+                let part = c1.get(1).unwrap().as_str();
 
-                doc_dir.push(p2);
+
+                match part {
+                    ":WSP_DIR:" => {
+                        if index > 0 {
+                            return Err(
+                                PathError::new(
+                                "Cannot add workspace directory anywhere but start of path",
+                                0b00000010
+                                )
+                            );
+                        }
+
+                        let mut doc_dir = dirs::document_dir().unwrap();
+                        doc_dir.push("noot");
+                        parsed_parts.push(doc_dir.to_str().unwrap().to_string());
+                    }
+                    x => parsed_parts.push(x.trim().to_string()),
+                }
+
+                index += 1;
             }
-        } else {
-            doc_dir.push(self.local_path.clone().unwrap());
+
+            return Ok(PathBuf::from_iter(parsed_parts.into_iter()));
         }
 
-        debug!("Local path: {:?}", doc_dir);
-
-        doc_dir
+        Err(PathError { reason: "Cannot parse empty path".to_string(), code: 0b00000001 })
     }
 }
 
 
 pub mod flags;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_local_path_wsp_dir() {
+        let mut doc_dir = dirs::document_dir().unwrap();
+        doc_dir.push("noot");
+        doc_dir.push("test_workspace");
+
+        let test_manifest = WorkspaceManifest {
+            id: "".to_string(),
+            name: "".to_string(),
+            local_path: Some(":WSP_DIR:/test_workspace".to_string()),
+            cd: Default::default(),
+            le: Default::default(),
+            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            rpc: RichPresenceConfig {
+                enable: false,
+                client_id: None,
+                enable_idle: false,
+                show_current_workspace: false,
+                show_current_file: false,
+            },
+            flags: 0,
+        };
+
+        let local_path = test_manifest.parse_local_path().unwrap();
+
+        assert_eq!(local_path, doc_dir)
+    }
+
+    #[test]
+    fn test_parse_local_path_invalid_wsp_dir() {
+        let test_manifest = WorkspaceManifest {
+            id: "".to_string(),
+            name: "".to_string(),
+            local_path: Some("invalid/:WSP_DIR:/test_workspace".to_string()),
+            cd: Default::default(),
+            le: Default::default(),
+            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            rpc: RichPresenceConfig {
+                enable: false,
+                client_id: None,
+                enable_idle: false,
+                show_current_workspace: false,
+                show_current_file: false,
+            },
+            flags: 0,
+        };
+
+        let local_path = test_manifest.parse_local_path().unwrap_err();
+
+        assert_eq!(local_path.code, 0b00000010);
+    }
+
+    #[test]
+    fn test_parse_local_path_non_wsp_dir() {
+        let test_manifest = WorkspaceManifest {
+            id: "".to_string(),
+            name: "".to_string(),
+            local_path: Some("noot/test_workspace".to_string()),
+            cd: Default::default(),
+            le: Default::default(),
+            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            rpc: RichPresenceConfig {
+                enable: false,
+                client_id: None,
+                enable_idle: false,
+                show_current_workspace: false,
+                show_current_file: false,
+            },
+            flags: 0,
+        };
+
+        let local_path = test_manifest.parse_local_path().unwrap();
+
+        assert_eq!(local_path, PathBuf::from("noot/test_workspace"))
+    }
+}

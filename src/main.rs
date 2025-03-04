@@ -14,6 +14,7 @@ use std::path::PathBuf;
 extern crate log;
 use crate::events::types::Message;
 use crate::filesystem::config::Config;
+use crate::filesystem::workspace::manager::WorkspaceManager;
 use crate::subsystems::discord::RPC_CLIENT;
 use crate::filesystem::workspace::state::WorkspaceState;
 
@@ -81,6 +82,9 @@ struct Noot<'a> {
 
     /// the currently loaded configuration (if one is present)
     config: Option<Config>,
+
+    /// The workspace manager instance for the running process
+    workspace_manager: WorkspaceManager,
 }
 
 /// This is a temporary struct used to keep the compiler happy
@@ -113,6 +117,7 @@ impl<'a> Noot<'a> {
                 theme: highlighter::Theme::SolarizedDark,
                 viewport: ViewPort::LoadingView,
                 config: None,
+                workspace_manager: WorkspaceManager::new(),
             },
             Task::perform(Config::load_from_disk(), Message::ConfigLoaded),
         )
@@ -125,30 +130,34 @@ impl<'a> Noot<'a> {
                 info!("Config loaded");
                 self.config = Some(cfg.clone());
 
+                self.workspace_manager.ingest_config(cfg.workspaces);
+
                 let _outcome =
                     subsystems::crypto::perform_startup_checks().unwrap();
+
+
 
                 debug!("Checking for previous workspaces");
 
                 if let Some(prev_wsp) = cfg.last_open {
-                    debug!("Previous workspace referenced, checking manifests");
-                    let workspace_manifest = cfg.workspaces.iter().filter(|p| {
-                        debug!("Checking workspace {} ({} - {})", p.name, p.id, &prev_wsp);
-                        if p.id == prev_wsp {
-                            info!("Previous workspace {} ({})", p.name, prev_wsp);
-                            return true
-                        }
-                        warn!("Workspace does not match");
-                        false
-                    }).next();
-
-                    if let Some(workspace_manifest) = workspace_manifest {
-                        debug!("Workspace manifest found - Attempting to load");
-                        return Task::perform(WorkspaceState::open_workspace_from_manifest(workspace_manifest.clone()), Message::WorkspaceLoaded);
-                    } else {
-                        warn!("Workspace manifest not found - Defaulting to LandingView");
-                    }
-
+                    // return Task::perform(self.workspace_manager.load_workspace(prev_wsp), Message::WorkspaceLoadResult);
+                    // debug!("Previous workspace referenced, checking manifests");
+                    // let workspace_manifest = cfg.workspaces.iter().filter(|p| {
+                    //     debug!("Checking workspace {} ({} - {})", p.name, p.id, &prev_wsp);
+                    //     if p.id == prev_wsp {
+                    //         info!("Previous workspace {} ({})", p.name, prev_wsp);
+                    //         return true
+                    //     }
+                    //     warn!("Workspace does not match");
+                    //     false
+                    // }).next();
+                    //
+                    // if let Some(workspace_manifest) = workspace_manifest {
+                    //     debug!("Workspace manifest found - Attempting to load");
+                    //     return Task::perform(WorkspaceState::open_workspace_from_manifest(workspace_manifest.clone()), Message::WorkspaceLoaded);
+                    // } else {
+                    //     warn!("Workspace manifest not found - Defaulting to LandingView");
+                    // }
                 } else {
                     self.viewport =
                         ViewPort::LandingView(views::landing::LandingView::new());
@@ -167,6 +176,16 @@ impl<'a> Noot<'a> {
                 }
 
                 debug!("Config load finished...")
+            }
+            Message::WorkspaceLoadResult(outcome) => {
+                debug!("Workspace load event triggered");
+
+                if let Ok(state) = outcome {
+                    self.viewport = ViewPort::WorkspaceView(state);
+                } else {
+                    error!("Workspace load failed");
+                    error!("")
+                }
             }
             _ => {
                 warn!("Received an unknown message payload");
