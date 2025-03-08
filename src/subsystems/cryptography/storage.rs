@@ -71,7 +71,7 @@ pub fn store(path: &PathBuf, data: &[u8], enterprise: bool) -> Result<(), String
 
 
 
-pub fn retrieve(path: &PathBuf) {
+pub fn retrieve(path: &PathBuf) -> Result<Vec<u8>, String> {
     let handle_result = std::fs::File::open(path);
 
     if let Ok(mut handle) = handle_result {
@@ -80,8 +80,34 @@ pub fn retrieve(path: &PathBuf) {
         
         handle.read_to_end(&mut buffer).unwrap();
 
+        return match buffer[0] {
+            CONSUMER_MAGIC => {
+                let mut size: u32 = 0;
+                for byte in &buffer[1..4] {
+                    size = size << 8 | *byte as u32;
+                }
+
+
+
+                panic!("Failed to parse magic file")
+            },
+
+            // If the enterprise magic number is present...
+            // panic because we don't support it yet.
+            ENTERPRISE_MAGIC => {
+                panic!("Enterprise grade encryption is not supported yet.")
+            },
+
+            // If there is no magic number, presume plaintext.
+            _ => {
+                Ok(buffer)
+            }
+        }
+
     }
 
+
+    Err(format!("Could not open file: {:?}", path))
 }
 
 
@@ -89,4 +115,20 @@ pub fn retrieve(path: &PathBuf) {
 fn generate_seed(seed: &mut [u8; 32])  {
     let mut rng = rand::rng();
     rng.fill_bytes(seed);
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+    use super::*;
+
+    #[test]
+    pub fn test_encryption() {
+        let raw = "Hello, World!";
+
+        store(&PathBuf::from_str("./sample.txt").unwrap(), raw.as_bytes(), false).unwrap();
+
+        assert_eq!(1,1);
+    }
 }

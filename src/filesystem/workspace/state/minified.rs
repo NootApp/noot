@@ -1,3 +1,4 @@
+use std::io::Write;
 use crate::filesystem::workspace::state::{ResolverMethod, Screen, WorkspaceFile, WorkspaceState};
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
@@ -22,6 +23,7 @@ pub struct MinifiedWorkspaceFile {
     pub path: PathBuf,
 }
 
+
 impl WorkspaceFile {
     pub fn store(&self) -> PathBuf {
         let mut tmp_path = self.path.clone();
@@ -36,6 +38,12 @@ impl WorkspaceFile {
         tmp_path.set_file_name(format!("{}.cache",name));
         debug!("Temp file: {:?}", tmp_path);
 
+        let serial = toml::to_string(self).unwrap();
+        
+        let mut handle = std::fs::File::options().write(true).create(true).truncate(true).open(&tmp_path).unwrap();
+        handle.write_all(serial.as_bytes()).unwrap();
+        handle.sync_all().unwrap();
+        
         tmp_path
     }
 }

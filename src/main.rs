@@ -27,6 +27,16 @@ mod filesystem;
 mod subsystems;
 mod views;
 
+#[cfg(test)]
+#[ctor::ctor]
+fn init() {
+    // This is definitely safe :|
+    unsafe {
+        env::set_var("NOOT_LOG", "debug");
+    }
+    pretty_env_logger::init_custom_env("NOOT_LOG");
+}
+
 #[tokio::main]
 async fn main() -> iced::Result {
     // This is definitely safe :|

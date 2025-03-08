@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use crate::events::types::Message;
 use crate::filesystem::workspace::manager::WorkspaceError;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
+use crate::subsystems::cryptography::storage::retrieve;
 
 pub mod minified;
 
@@ -51,7 +52,7 @@ pub enum Screen {
     Empty,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceFile {
     /// TODO: Implement history
     history: Vec<()>,
@@ -185,6 +186,14 @@ impl WorkspaceState {
 }
 
 impl WorkspaceFile {
+    // pub async fn open_from_cache(path: PathBuf) -> WorkspaceFile {
+    //     let buffer = retrieve(&path).unwrap();
+    //     String::from_utf8(buffer).unwrap();
+    //     
+    //     let file = toml::from_str()
+    //     
+    // }
+    
     pub async fn open(path: PathBuf) -> WorkspaceFile {
         let handle = tokio::fs::read(&path).await;
 
@@ -215,3 +224,14 @@ impl WorkspaceFile {
     //     Ok(())
     // }
 }
+
+
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[tokio::test]
+//     pub async fn test_workspace_file_storage() {
+//         let file = WorkspaceFile::open().await;
+//     }
+// }
