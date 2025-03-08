@@ -1,7 +1,17 @@
 use std::str::FromStr;
-use crate::filesystem::workspace::global::WorkspaceManifest;
-use crate::filesystem::workspace::state::WorkspaceState;
+use std::sync::Mutex;
+use crate::filesystem::workspace::global::{WorkspaceBackupStrategy, WorkspaceManifest};
+use crate::filesystem::workspace::state::{ResolverMethod, Screen, WorkspaceState};
 use hashbrown::HashMap;
+use lazy_static::lazy_static;
+use crate::filesystem::workspace::global::backups::BackupStrategy;
+use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
+use crate::subsystems::discord::config::RichPresenceConfig;
+
+lazy_static!(
+  pub static ref MANAGER: Mutex<WorkspaceManager> = Mutex::new(WorkspaceManager::new());  
+);
+
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceManager {
@@ -35,14 +45,36 @@ impl WorkspaceManager {
             debug!("Workspace root path is '{:?}'", &root_dir);
             
             let exists_result = tokio::fs::try_exists(&root_dir).await;
-            
+            let mut workspace = WorkspaceState {
+                manifest: manifest.clone(),
+                viewport: Screen::Empty,
+                plugins: Default::default(),
+                cache_dir: Default::default(),
+                assets_dirs: vec![],
+                resolver_method: ResolverMethod::Proprietary,
+                last_update: Default::default(),
+                dirty: false,
+                files: Default::default(),
+            };
+
             if let Ok(outcome) = exists_result {
-                
+                if outcome {
+                    return Err(WorkspaceCheckFailed("Not Implemented (workspace exists but cannot load)".to_string()))
+                } else {
+                    if let Some(mut git) = manifest.backup_strategy.git.clone() {
+                        let outcome = git.fetch(&root_dir);
+                        if let Err(e) = outcome {
+                            error!("Failed to fetch git repository {:?}", e);
+                            return Err(e);
+                        }
+                    }
+                }
             } else {
-                //
+                return Err(WorkspaceError::WorkspaceCheckFailed(exists_result.unwrap_err().to_string()));
             }
-            
-            Err("".into())
+
+            workspace.store();
+            Ok(workspace)
         } else {
             error!("Workspace not found: {}", id);
             Err(WorkspaceError::WorkspaceManifestNotFound(id.clone()))
@@ -76,7 +108,9 @@ pub enum WorkspaceError {
     WorkspaceDoesNotExist(String),
     WorkspaceManifestNotFound(String),
     WorkspaceDecryptionFailed(String),
-    Unknown(String)
+    Unknown(String),
+    FailedToFetch(String),
+    WorkspaceCheckFailed(String),
 }
 
 impl Into<WorkspaceError> for &'static str{

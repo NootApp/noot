@@ -6,6 +6,8 @@ use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use crate::events::types::Message;
+use crate::filesystem::workspace::manager::WorkspaceError;
+use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
 
 pub mod minified;
 
@@ -23,9 +25,20 @@ pub struct WorkspaceState {
     pub files: HashMap<PathBuf, WorkspaceFile>,
 }
 
+impl WorkspaceState {
+    pub fn store(&self) -> Result<(), std::io::Error> {
+        let path = self.manifest.parse_local_path().unwrap();
+        let mini = MinifiedWorkspaceState::from_state(self.clone());
+        let serial = toml::to_string(&mini).unwrap();
+        crate::subsystems::cryptography::storage::store(&path, serial.as_bytes(), false).unwrap();
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ResolverMethod {
+    Smart,
     Proprietary,
     Spec,
 }

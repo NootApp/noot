@@ -1,9 +1,5 @@
-use crate::filesystem::workspace::global::{
-    GitBackupStrategy, WorkspaceBackupStrategy, WorkspaceManifest,
-};
+use crate::filesystem::workspace::global::{WorkspaceManifest};
 use crate::subsystems::discord::config::RichPresenceConfig;
-use lazy_static::lazy_static;
-use log::{debug, error, info, trace, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
@@ -40,6 +36,7 @@ impl Config {
             )
             .await
             .unwrap();
+            
             toml::from_str(DEFAULT_CONFIG_STRING).unwrap()
         } else {
             debug!("Parsing config file");
@@ -94,19 +91,20 @@ pub fn get_config_path() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::*;
     use nanoid::nanoid;
 
 
     #[tokio::test]
     async fn test_config_read_from_disk() {
-        let cfg = Config::load_from_disk().await;
+        let cfg: config::Config = Config::load_from_disk().await;
 
         assert_eq!(cfg.workspaces.len(), 1);
     }
 
     #[tokio::test]
     async fn test_config_save_to_disk() {
-        let mut cfg = Config::load_from_disk().await;
+        let mut cfg: config::Config = Config::load_from_disk().await;
 
         let new_workspace_id = nanoid!(10);
 

@@ -1,2 +1,2 @@
-pub mod crypto;
 pub mod discord;
+pub mod cryptography;

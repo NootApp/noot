@@ -10,11 +10,13 @@ use iced::window::icon;
 use iced::{Size, Task, window};
 use std::env;
 use std::path::PathBuf;
+use iced::futures::executor::block_on;
+use filesystem::workspace::manager::MANAGER;
+
 #[macro_use]
 extern crate log;
 use crate::events::types::Message;
 use crate::filesystem::config::Config;
-use crate::filesystem::workspace::manager::WorkspaceManager;
 use crate::subsystems::discord::RPC_CLIENT;
 use crate::filesystem::workspace::state::WorkspaceState;
 
@@ -81,10 +83,7 @@ struct Noot<'a> {
     viewport: ViewPort<'a>,
 
     /// the currently loaded configuration (if one is present)
-    config: Option<Config>,
-
-    /// The workspace manager instance for the running process
-    workspace_manager: WorkspaceManager,
+    config: Option<Config>
 }
 
 /// This is a temporary struct used to keep the compiler happy
@@ -117,7 +116,6 @@ impl<'a> Noot<'a> {
                 theme: highlighter::Theme::SolarizedDark,
                 viewport: ViewPort::LoadingView,
                 config: None,
-                workspace_manager: WorkspaceManager::new(),
             },
             Task::perform(Config::load_from_disk(), Message::ConfigLoaded),
         )
@@ -125,22 +123,28 @@ impl<'a> Noot<'a> {
 
     fn update(&mut self, message: Message) -> Task<Message> {
         debug!("Received message: {:?}", message);
+
         match message {
             Message::ConfigLoaded(cfg) => {
+                let mut tasks : Vec<Task<Message>> = vec![];
                 info!("Config loaded");
                 self.config = Some(cfg.clone());
-
-                self.workspace_manager.ingest_config(cfg.workspaces);
+                let mut mgr = MANAGER.lock().unwrap();
+                mgr.ingest_config(cfg.workspaces);
 
                 let _outcome =
-                    subsystems::crypto::perform_startup_checks().unwrap();
+                    subsystems::cryptography::keys::perform_startup_checks().unwrap();
 
 
 
                 debug!("Checking for previous workspaces");
 
                 if let Some(prev_wsp) = cfg.last_open {
-                    // return Task::perform(self.workspace_manager.load_workspace(prev_wsp), Message::WorkspaceLoadResult);
+                    let load_outcome = mgr.load_workspace(prev_wsp);
+                    let outcome = block_on(load_outcome);
+
+                    tasks.push(Task::done(Message::WorkspaceLoadResult(outcome)));
+
                     // debug!("Previous workspace referenced, checking manifests");
                     // let workspace_manifest = cfg.workspaces.iter().filter(|p| {
                     //     debug!("Checking workspace {} ({} - {})", p.name, p.id, &prev_wsp);
@@ -175,7 +179,8 @@ impl<'a> Noot<'a> {
                     rpc.disconnect();
                 }
 
-                debug!("Config load finished...")
+                debug!("Config load finished...");
+                return Task::batch(tasks);
             }
             Message::WorkspaceLoadResult(outcome) => {
                 debug!("Workspace load event triggered");
@@ -184,7 +189,7 @@ impl<'a> Noot<'a> {
                     self.viewport = ViewPort::WorkspaceView(state);
                 } else {
                     error!("Workspace load failed");
-                    error!("")
+                    error!("{:?}", outcome.unwrap_err());
                 }
             }
             _ => {

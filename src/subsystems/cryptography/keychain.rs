@@ -17,11 +17,13 @@ const PBKDF2_ITERATIONS: u32 = 10_000;
 const PBKDF2_ITERATIONS: u32 = 310_000;
 const SALT: &[u8] = include_bytes!("../../../salt-secret.bin");
 
+
+
 /// Represents an extended secret key with a chain code.
 #[derive(Debug)]
-struct ExtendedSecretKey {
-    secret_key: [u8; SECRET_KEY_SIZE],
-    chain_code: [u8; 32],
+pub struct ExtendedSecretKey {
+    pub(crate) secret_key: [u8; SECRET_KEY_SIZE],
+    pub(crate) chain_code: [u8; 32],
 }
 
 impl ExtendedSecretKey {
@@ -47,64 +49,7 @@ impl Drop for ExtendedSecretKey {
     }
 }
 
-/// check for the presence of the primary encryption key within the OS secure storage
-/// on macOS this may be the M series "Secure Enclave"
-/// on Windows this could be the TPM
-/// on Linux this is provided by the OS itself
-pub fn perform_startup_checks() -> keyring::Result<()> {
-    debug!("Performing cryptography startup checks");
 
-    let primary = Entry::new("com.nootapp", "primary")?;
-    let primary_chain = Entry::new("com.nootapp", "primaryChain")?;
-
-    debug!("Primary entry: {:?}", primary);
-
-    if primary.get_secret().is_err() {
-        let err = primary.get_secret().unwrap_err();
-
-        if err.to_string()
-            == String::from("No matching entry found in secure storage")
-        {
-            debug!("No matching entry found in secure storage");
-            debug!("Generating new master cryptographic key");
-
-            let mut seed: [u8; 32] = [0; 32];
-            let mut rng = rand::rng();
-            rng.fill_bytes(&mut seed);
-
-            let master_secret_key_outcome =
-                derive_master_extended_secret_key(&seed);
-
-            if !master_secret_key_outcome.is_ok() {
-                error!("{:?}", master_secret_key_outcome.unwrap_err());
-                panic!("Failed to generate master key");
-            }
-
-            debug!("Generated new master key");
-
-            let master_key = master_secret_key_outcome.unwrap();
-
-            debug!("Generating new master public key");
-            let secp = Secp256k1::new();
-            let master_pubkey = PublicKey::from_secret_key(
-                &secp,
-                &SecretKey::from_slice(&master_key.secret_key).unwrap(),
-            );
-
-            primary.set_secret(&master_key.secret_key)?;
-            primary_chain.set_secret(&master_key.chain_code)?;
-
-            debug!("Credentials successfully stored");
-
-            debug!("Public key: {:?}", master_pubkey);
-        } else {
-            error!("{:?}", err.to_string());
-            return Err(err.into());
-        }
-    }
-
-    Ok(())
-}
 
 // !=========== CAUTION ============!
 // All code below this point was sourced from a blogpost on medium.com
@@ -119,7 +64,7 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
 ///
 /// # Arguments
 /// - `seed`: A secure random seed (16 to 64 bytes).
-fn derive_master_extended_secret_key(
+pub fn derive_master_extended_secret_key(
     seed: &[u8],
 ) -> Result<ExtendedSecretKey, &'static str> {
     let mut master_seed_bytes = [0u8; 64];

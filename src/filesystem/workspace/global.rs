@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use lazy_static::lazy_static;
 use regex::Regex;
+pub(crate) use crate::filesystem::workspace::global::backups::WorkspaceBackupStrategy;
 // pub(crate) use crate::filesystem::workspace::global::flags::{WorkspaceFlags, serialize_flags, deserialize_flags};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,21 +22,6 @@ pub struct WorkspaceManifest {
     pub rpc: RichPresenceConfig,
     // #[serde(serialize_with = "serialize_flags", deserialize_with = "deserialize_flags")]
     pub flags: u32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum WorkspaceBackupStrategy {
-    S3(S3BackupStrategy),
-    Rsync(RsyncBackupStrategy),
-    Git(GitBackupStrategy),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct GitBackupStrategy {
-    pub permit_remotes: Vec<String>,
-    pub repository: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -112,9 +98,12 @@ impl WorkspaceManifest {
 
 
 pub mod flags;
+pub mod backups;
 
 #[cfg(test)]
 mod tests {
+    use hashbrown::HashMap;
+    use crate::filesystem::workspace::global::backups::git::GitBackupStrategy;
     use super::*;
 
     #[test]
@@ -129,7 +118,9 @@ mod tests {
             local_path: Some(":WSP_DIR:/test_workspace".to_string()),
             cd: Default::default(),
             le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            backup_strategy: WorkspaceBackupStrategy {
+                git: Some(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None })
+            },
             rpc: RichPresenceConfig {
                 enable: false,
                 client_id: None,
@@ -153,7 +144,17 @@ mod tests {
             local_path: Some("invalid/:WSP_DIR:/test_workspace".to_string()),
             cd: Default::default(),
             le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            backup_strategy: WorkspaceBackupStrategy {
+                git: Some(GitBackupStrategy {
+                    permit_remotes: vec![],
+                    repository: "".to_string(),
+                    branch: None,
+                }),
+            },
+
+
+
+            // Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None }),
             rpc: RichPresenceConfig {
                 enable: false,
                 client_id: None,
@@ -177,7 +178,9 @@ mod tests {
             local_path: Some("noot/test_workspace".to_string()),
             cd: Default::default(),
             le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy::Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string() }),
+            backup_strategy: WorkspaceBackupStrategy {
+                git: Some(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None })
+            },
             rpc: RichPresenceConfig {
                 enable: false,
                 client_id: None,

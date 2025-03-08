@@ -20,10 +20,10 @@ pretty_env_logger = "0.5.0"
 git-version = "0.3.9"
 hashbrown = { version = "0.15.2", features = ["serde"] }
 #num_cpus = "1.16.0"
-#cocoon = "0.4.3"
+cocoon = "0.4.3"
 bitflags = { version = "2.9.0", features = ["serde"] }
 infer = "0.19"
-keyring = { version = "3.6.2", features = ["tokio"] }
+keyring = { version = "3.6.2", features = ["tokio", "windows-native", "apple-native", "linux-native", "linux-native-sync-persistent"] }
 #secrets = "1.2.0"
 pbkdf2 = { version = "0.12.2", features = ["std"] }
 sha2 = "0.10"
