@@ -3,8 +3,7 @@
 //! than you should be
 use iced::highlighter;
 use iced::widget::{
-    container, horizontal_space,
-    pick_list, row, text, text_editor, tooltip,
+    container, text, text_editor,
 };
 use iced::window::icon;
 use iced::{Size, Task, window};

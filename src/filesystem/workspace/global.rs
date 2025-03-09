@@ -4,7 +4,6 @@ use chrono::{DateTime, Local};
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use std::str::FromStr;
 use lazy_static::lazy_static;
 use regex::Regex;
 pub(crate) use crate::filesystem::workspace::global::backups::WorkspaceBackupStrategy;
@@ -102,7 +101,7 @@ pub mod backups;
 
 #[cfg(test)]
 mod tests {
-    use hashbrown::HashMap;
+    
     use crate::filesystem::workspace::global::backups::git::GitBackupStrategy;
     use super::*;
 

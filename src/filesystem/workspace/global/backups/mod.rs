@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 use std::path::PathBuf;
-use hashbrown::HashMap;
-use serde::de::DeserializeOwned;
 use serde_derive::{Deserialize, Serialize};
 
 pub mod git;

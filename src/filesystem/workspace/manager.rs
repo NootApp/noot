@@ -1,12 +1,11 @@
 use std::str::FromStr;
 use std::sync::Mutex;
-use crate::filesystem::workspace::global::{WorkspaceBackupStrategy, WorkspaceManifest};
+use crate::filesystem::workspace::global::WorkspaceManifest;
 use crate::filesystem::workspace::state::{ResolverMethod, Screen, WorkspaceState};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
-use crate::subsystems::discord::config::RichPresenceConfig;
 
 lazy_static!(
   pub static ref MANAGER: Mutex<WorkspaceManager> = Mutex::new(WorkspaceManager::new());  
@@ -45,7 +44,7 @@ impl WorkspaceManager {
             debug!("Workspace root path is '{:?}'", &root_dir);
             
             let exists_result = tokio::fs::try_exists(&root_dir).await;
-            let mut workspace = WorkspaceState {
+            let workspace = WorkspaceState {
                 manifest: manifest.clone(),
                 viewport: Screen::Empty,
                 plugins: Default::default(),
@@ -73,7 +72,7 @@ impl WorkspaceManager {
                 return Err(WorkspaceError::WorkspaceCheckFailed(exists_result.unwrap_err().to_string()));
             }
 
-            workspace.store();
+            let _ = workspace.store();
             Ok(workspace)
         } else {
             error!("Workspace not found: {}", id);

@@ -1,7 +1,7 @@
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::state::WorkspaceState;
 use std::io;
-use crate::filesystem::workspace::manager::{WorkspaceError, WorkspaceResult};
+use crate::filesystem::workspace::manager::WorkspaceResult;
 
 #[derive(Debug, Clone)]
 pub enum Message {

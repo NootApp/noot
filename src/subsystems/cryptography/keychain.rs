@@ -1,7 +1,5 @@
 use hmac::{Hmac, Mac};
-use keyring::Entry;
 use pbkdf2::pbkdf2;
-use rand::RngCore;
 use secp256k1::constants::SECRET_KEY_SIZE;
 use secp256k1::{PublicKey, Scalar, Secp256k1, SecretKey};
 use sha2::Sha512;

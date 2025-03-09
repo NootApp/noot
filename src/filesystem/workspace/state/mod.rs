@@ -1,14 +1,9 @@
-use crate::filesystem::workspace::global::{
-    WorkspaceBackupStrategy, flags::WorkspaceFlags, WorkspaceManifest,
-};
+use crate::filesystem::workspace::global::WorkspaceManifest;
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
-use crate::events::types::Message;
-use crate::filesystem::workspace::manager::WorkspaceError;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
-use crate::subsystems::cryptography::storage::retrieve;
 
 pub mod minified;
 
@@ -126,7 +121,7 @@ impl WorkspaceState {
 
         // let manifest_core_file = manifest_dir.join(".noot.wsp");
 
-        let mut temporary_state = WorkspaceState {
+        let temporary_state = WorkspaceState {
             manifest,
             viewport: Screen::Empty,
             plugins: HashMap::new(),
