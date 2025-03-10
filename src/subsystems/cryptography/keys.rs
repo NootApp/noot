@@ -1,8 +1,3 @@
-// use aes_gcm_siv::{
-//     aead::{Aead, KeyInit, OsRng},
-//     Aes256GcmSiv, Nonce // Or `Aes128GcmSiv`
-// };
-
 use crypto::{aead, aead::{AeadCore, AeadInPlace, KeyInit}, ChaCha20Poly1305 as Poly, Key, Nonce};
 use crypto::aead::{Aead, OsRng};
 use keyring::Entry;

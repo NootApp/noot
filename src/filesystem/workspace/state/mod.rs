@@ -26,7 +26,7 @@ impl WorkspaceState {
         let path = self.manifest.parse_local_path().unwrap();
         let mini = MinifiedWorkspaceState::from_state(self.clone());
         let serial = toml::to_string(&mini).unwrap();
-        crate::subsystems::cryptography::storage::store(&path, serial.as_bytes(), false).unwrap();
+        crate::subsystems::cryptography::storage::store(&path, serial.as_bytes(), false)?;
         Ok(())
     }
 }

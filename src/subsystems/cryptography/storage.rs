@@ -1,10 +1,8 @@
-use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
-use aes_gcm_siv::{AeadCore, Aes256GcmSiv, KeyInit, Nonce};
-use aes_gcm_siv::aead::{Aead, OsRng};
 use cocoon::Cocoon;
+use crypto::Nonce;
 use rand::RngCore;
 use crate::subsystems::cryptography::keys::SymmetricCipher;
 use super::keys;
