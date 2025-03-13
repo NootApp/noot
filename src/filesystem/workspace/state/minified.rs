@@ -5,12 +5,13 @@ use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use crate::filesystem::workspace::global::WorkspaceManifest;
+use crate::filesystem::workspace::state::plugins::PluginManifest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {
     pub manifest: WorkspaceManifest,
     pub viewport: Screen,
-    pub plugins: HashMap<String, bool>,
+    pub plugins: HashMap<String, PluginManifest>,
     pub cache_dir: PathBuf,
     pub assets_dirs: Vec<PathBuf>,
     pub resolver_method: ResolverMethod,

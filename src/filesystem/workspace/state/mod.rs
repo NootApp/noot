@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io::Write;
 use crate::filesystem::workspace::global::WorkspaceManifest;
 use chrono::{DateTime, Local};
@@ -7,15 +7,17 @@ use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use crate::filesystem::workspace::global::flags::WorkspaceFlags;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
+use crate::filesystem::workspace::state::plugins::PluginManifest;
 
 pub mod minified;
+pub mod plugins;
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceState {
     // We do not want to serialize the workspace manifest into the workspace state, as this is a seperate entity
     pub manifest: WorkspaceManifest,
     pub viewport: Screen,
-    pub plugins: HashMap<String, bool>,
+    pub plugins: HashMap<String, PluginManifest>,
     pub cache_dir: PathBuf,
     pub assets_dirs: Vec<PathBuf>,
     pub resolver_method: ResolverMethod,
@@ -25,6 +27,35 @@ pub struct WorkspaceState {
 }
 
 impl WorkspaceState {
+    pub fn create_directories(&mut self) -> Result<(), std::io::Error> {
+        let root = self.manifest.parse_local_path().unwrap();
+        let workspace = root.join(".noot");
+        let cache_dir = root.join(".noot/cache");
+        let plugin_dir = root.join(".noot/plugins");
+        let asset_dir = root.join(".noot/assets");
+        let asset_dir_primary = root.join("assets");
+
+        if !self.cache_dir.exists() {
+            self.cache_dir = cache_dir;
+            create_dir_all(&self.cache_dir)?
+        }
+
+        Ok(())
+    }
+
+    pub fn load_plugins(&mut self) {
+
+    }
+
+    // pub fn resolve_path(&self) -> PathBuf {
+    //     match self.resolver_method {
+    //         ResolverMethod::Proprietary => {
+    //
+    //         }
+    //     }
+    // }
+
+
     pub fn store(&self) -> Result<(), std::io::Error> {
         info!("Storing workspace state");
         let mut path = self.manifest.parse_local_path().unwrap();
@@ -46,7 +77,9 @@ impl WorkspaceState {
             }
         }
 
-        let mut manifest_path = wsp_path.join(".noot/manifest.toml");
+        let manifest_path = wsp_path.join("manifest.toml");
+
+        debug!("Workspace manifest path: {}", manifest_path.display());
 
         if flags.contains(WorkspaceFlags::ENCRYPTED) {
             info!("Workspace is encrypted");
@@ -59,7 +92,7 @@ impl WorkspaceState {
             let mut handle = File::options().write(true).create(true).truncate(true).open(&manifest_path)?;
             handle.write_all(serial.as_bytes())?;
             handle.sync_all()?;
-            
+
             info!("Wrote manifest file ({})", manifest_path.display());
         }
 

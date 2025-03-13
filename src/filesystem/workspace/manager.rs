@@ -7,6 +7,7 @@ use lazy_static::lazy_static;
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
+use crate::filesystem::workspace::state::plugins::PluginManifest;
 use crate::subsystems::cryptography::storage::{retrieve, CONSUMER_MAGIC, ENTERPRISE_MAGIC};
 
 lazy_static!(
@@ -49,7 +50,13 @@ impl WorkspaceManager {
             let mut workspace = WorkspaceState {
                 manifest: manifest.clone(),
                 viewport: Screen::Empty,
-                plugins: Default::default(),
+                plugins: HashMap::from([("example".to_string(), PluginManifest {
+                    version: "0.0.1".to_string(),
+                    author: "nootapp".to_string(),
+                    repository: "example_plugin".to_string(),
+                    source_name: "github".to_string(),
+                })]),
+                
                 cache_dir: Default::default(),
                 assets_dirs: vec![],
                 resolver_method: ResolverMethod::Proprietary,
@@ -90,10 +97,13 @@ impl WorkspaceManager {
                             workspace.resolver_method = ws2.resolver_method;
                             workspace.last_update = ws2.last_update;
                             workspace.dirty = ws2.dirty;
+                            workspace.store().unwrap();
                             return Ok(workspace);
                         } else {
                             error!("Manifest file not found at location");
                             error!("Path: {}", manifest_file.display());
+                            workspace.store().unwrap();
+                            return Ok(workspace);
                         }
 
                     } else {
@@ -122,24 +132,6 @@ impl WorkspaceManager {
             error!("Workspace not found: {}", id);
             Err(WorkspaceError::WorkspaceManifestNotFound(id.clone()))
         }
-
-        // debug!("Previous workspace referenced, checking manifests");
-        // let workspace_manifest = cfg.workspaces.iter().filter(|p| {
-        //     debug!("Checking workspace {} ({} - {})", p.name, p.id, &prev_wsp);
-        //     if p.id == prev_wsp {
-        //         info!("Previous workspace {} ({})", p.name, prev_wsp);
-        //         return true
-        //     }
-        //     warn!("Workspace does not match");
-        //     false
-        // }).next();
-        //
-        // if let Some(workspace_manifest) = workspace_manifest {
-        //     debug!("Workspace manifest found - Attempting to load");
-        //     return Task::perform(WorkspaceState::open_workspace_from_manifest(workspace_manifest.clone()), Message::WorkspaceLoaded);
-        // } else {
-        //     warn!("Workspace manifest not found - Defaulting to LandingView");
-        // }
     }
 }
 
