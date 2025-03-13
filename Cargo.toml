@@ -16,15 +16,12 @@ toml = "0.8.20"
 nanoid = "0.4"
 log = "0.4.26"
 pretty_env_logger = "0.5.0"
-#env_logger = "0.11.6"
 git-version = "0.3.9"
 hashbrown = { version = "0.15.2", features = ["serde"] }
-#num_cpus = "1.16.0"
 cocoon = "0.4.3"
 bitflags = { version = "2.9.0", features = ["serde"] }
 infer = "0.19"
 keyring = { version = "3.6.2", features = ["tokio", "windows-native", "apple-native", "linux-native", "linux-native-sync-persistent"] }
-#secrets = "1.2.0"
 pbkdf2 = { version = "0.12.2", features = ["std"] }
 sha2 = "0.10"
 hmac = "0.12"
@@ -33,11 +30,11 @@ zeroize = "1.8"
 rand = "0.9.0"
 git2 = "0.20.0"
 regex = "1.11.1"
-aes-gcm-siv = { version = "0.11.1", features = ["std"] }
 crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
 num_cpus = "1.16.0"
 crossbeam-queue = "0.3.12"
-libsql-client = "0.33.4"
+libsql = { git = "https://github.com/tursodatabase/libsql", rev = "38cfab7d5dd2f294ce36493ad02f26bfd26cef33" }
+aead = "0.5.2"
 
 
 [dev-dependencies]

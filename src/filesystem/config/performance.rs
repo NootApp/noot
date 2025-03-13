@@ -10,7 +10,7 @@ pub const THREAD_COUNT_LIMIT: usize = 12;
 pub struct PerformanceConfiguration {
     /// The maximum number of background threads to handle event processing
     pub max_work_threads: Option<usize>,
-    /// The maximum number of history entries for each file (may be overridden by workspaces)
+    /// The maximum number of history entries for each file (can be overridden by workspaces)
     pub max_history_size: Option<usize>,
 }
 

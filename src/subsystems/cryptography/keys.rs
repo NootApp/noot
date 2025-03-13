@@ -1,5 +1,5 @@
 use crypto::{aead, aead::{AeadCore, AeadInPlace, KeyInit}, ChaCha20Poly1305 as Poly, Key, Nonce};
-use crypto::aead::OsRng;
+use aead::rand_core::OsRng;
 use keyring::Entry;
 use rand::RngCore;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
