@@ -24,3 +24,7 @@ enable = false
 enable-idle = false
 show-current-file = false
 show-current-workspace = false
+
+
+[performance]
+max-work-threads = 6 
