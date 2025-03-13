@@ -1,8 +1,11 @@
+use std::fs::File;
+use std::io::Write;
 use crate::filesystem::workspace::global::WorkspaceManifest;
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
+use crate::filesystem::workspace::global::flags::WorkspaceFlags;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
 
 pub mod minified;
@@ -23,10 +26,43 @@ pub struct WorkspaceState {
 
 impl WorkspaceState {
     pub fn store(&self) -> Result<(), std::io::Error> {
-        let path = self.manifest.parse_local_path().unwrap();
+        info!("Storing workspace state");
+        let mut path = self.manifest.parse_local_path().unwrap();
         let mini = MinifiedWorkspaceState::from_state(self.clone());
         let serial = toml::to_string(&mini).unwrap();
-        crate::subsystems::cryptography::storage::store(&path, serial.as_bytes(), false)?;
+
+        let flags = WorkspaceFlags::from(self.manifest.flags.unwrap_or_default());
+        let mut wsp_path = path.clone();
+
+        wsp_path.push(".noot");
+
+        if std::fs::exists(wsp_path.clone()).unwrap_or(false) {
+            debug!("Workspace data dir exists ({})", wsp_path.display());
+        } else {
+            debug!("Workspace data dir does not exist ({})", wsp_path.display());
+            let outcome = std::fs::create_dir_all(&wsp_path);
+            if let Ok(_) = outcome {
+                debug!("Workspace data dir created ({})", wsp_path.display());
+            }
+        }
+
+        let mut manifest_path = wsp_path.join(".noot/manifest.toml");
+
+        if flags.contains(WorkspaceFlags::ENCRYPTED) {
+            info!("Workspace is encrypted");
+            let enterprise = flags.contains(WorkspaceFlags::ENTERPRISE);
+            crate::subsystems::cryptography::storage::store(&manifest_path, serial.as_bytes(), enterprise)?;
+            info!("Wrote encrypted manifest file ({})", manifest_path.display());
+        } else {
+            info!("Workspace is not encrypted");
+
+            let mut handle = File::options().write(true).create(true).truncate(true).open(&manifest_path)?;
+            handle.write_all(serial.as_bytes())?;
+            handle.sync_all()?;
+            
+            info!("Wrote manifest file ({})", manifest_path.display());
+        }
+
         Ok(())
     }
 }

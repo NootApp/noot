@@ -6,6 +6,8 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
+use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
+use crate::subsystems::cryptography::storage::{retrieve, CONSUMER_MAGIC, ENTERPRISE_MAGIC};
 
 lazy_static!(
   pub static ref MANAGER: Mutex<WorkspaceManager> = Mutex::new(WorkspaceManager::new());  
@@ -29,8 +31,8 @@ impl WorkspaceManager {
     pub fn ingest_config(&mut self, workspaces: Vec<WorkspaceManifest>) {
         debug!("Ingesting workspace manifests from config file");
         for workspace in workspaces {
-            debug!("Ingesting workspace {}", workspace.id.clone());
-            self.all.insert(workspace.id.clone(), workspace);
+            debug!("Ingesting workspace {}", workspace.id.clone().unwrap());
+            self.all.insert(workspace.id.clone().unwrap(), workspace);
         }
     }
 
@@ -44,7 +46,7 @@ impl WorkspaceManager {
             debug!("Workspace root path is '{:?}'", &root_dir);
             
             let exists_result = tokio::fs::try_exists(&root_dir).await;
-            let workspace = WorkspaceState {
+            let mut workspace = WorkspaceState {
                 manifest: manifest.clone(),
                 viewport: Screen::Empty,
                 plugins: Default::default(),
@@ -58,9 +60,49 @@ impl WorkspaceManager {
 
             if let Ok(outcome) = exists_result {
                 if outcome {
+                    let mut noot_dir = root_dir.clone();
+                    noot_dir.push(".noot");
+
+                    let noot_exists = tokio::fs::try_exists(&noot_dir).await;
+
+                    if noot_exists.is_ok() {
+                        debug!("Noot dir exists");
+                        let manifest_file = noot_dir.join("manifest.toml");
+
+                        if std::fs::exists(&manifest_file).unwrap_or(false) {
+                            debug!("Manifest file exists");
+                            let mut content = std::fs::read(&manifest_file).unwrap();
+
+                            if [ENTERPRISE_MAGIC, CONSUMER_MAGIC].contains(&content[0]) {
+                                debug!("Manifest is encrypted");
+                                content = retrieve(&manifest_file)?;
+                            }
+
+                            let cstring = String::from_utf8(content).unwrap();
+
+                            let ws2: MinifiedWorkspaceState = toml::from_str(&cstring).unwrap();
+
+                            workspace.manifest = ws2.manifest;
+                            workspace.viewport = ws2.viewport;
+                            workspace.plugins = ws2.plugins;
+                            workspace.cache_dir = ws2.cache_dir;
+                            workspace.assets_dirs = ws2.assets_dirs;
+                            workspace.resolver_method = ws2.resolver_method;
+                            workspace.last_update = ws2.last_update;
+                            workspace.dirty = ws2.dirty;
+                            return Ok(workspace);
+                        } else {
+                            error!("Manifest file not found at location");
+                            error!("Path: {}", manifest_file.display());
+                        }
+
+                    } else {
+                        debug!("Noot dir does not exist - Need to init project");
+                    }
+
                     return Err(WorkspaceCheckFailed("Not Implemented (workspace exists but cannot load)".to_string()))
                 } else {
-                    if let Some(mut git) = manifest.backup_strategy.git.clone() {
+                    if let Some(mut git) = manifest.backup_strategy.clone().unwrap().git.clone() {
                         let outcome = git.fetch(&root_dir);
                         if let Err(e) = outcome {
                             error!("Failed to fetch git repository {:?}", e);
@@ -73,6 +115,8 @@ impl WorkspaceManager {
             }
 
             let _ = workspace.store();
+
+
             Ok(workspace)
         } else {
             error!("Workspace not found: {}", id);

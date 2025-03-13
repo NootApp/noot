@@ -6,29 +6,30 @@ use std::path::PathBuf;
 
 use lazy_static::lazy_static;
 use regex::Regex;
+use crate::filesystem::utils::traits::{Configuration, ValidationError};
 pub(crate) use crate::filesystem::workspace::global::backups::WorkspaceBackupStrategy;
 // pub(crate) use crate::filesystem::workspace::global::flags::{WorkspaceFlags, serialize_flags, deserialize_flags};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct WorkspaceManifest {
-    pub id: String,
-    pub name: String,
+    pub id: Option<String>,
+    pub name: Option<String>,
     pub local_path: Option<String>,
-    pub cd: DateTime<Local>,
-    pub le: DateTime<Local>,
-    pub backup_strategy: WorkspaceBackupStrategy,
-    pub rpc: RichPresenceConfig,
+    pub cd: Option<DateTime<Local>>,
+    pub le: Option<DateTime<Local>>,
+    pub backup_strategy: Option<WorkspaceBackupStrategy>,
+    pub rpc: Option<RichPresenceConfig>,
     // #[serde(serialize_with = "serialize_flags", deserialize_with = "deserialize_flags")]
-    pub flags: u32,
+    pub flags: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct S3BackupStrategy {
-    pub bucket: String,
-    pub region: String,
-    pub root_path: String,
+    pub bucket: Option<String>,
+    pub region: Option<String>,
+    pub root_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,7 +55,7 @@ lazy_static!(
   pub static ref PATH_PARSER: Regex = Regex::new("([A-Za-z0-9-_+~@:.]*)/{0,2}").unwrap();
 );
 
-impl WorkspaceManifest {
+impl WorkspaceManifest{
     pub fn parse_local_path(&self) -> PathResult<PathBuf> {
         debug!("Parsing local path - {:?}", self.local_path);
 
@@ -72,8 +73,8 @@ impl WorkspaceManifest {
                         if index > 0 {
                             return Err(
                                 PathError::new(
-                                "Cannot add workspace directory anywhere but start of path",
-                                0b00000010
+                                    "Cannot add workspace directory anywhere but start of path",
+                                    0b00000010
                                 )
                             );
                         }
@@ -96,12 +97,26 @@ impl WorkspaceManifest {
 }
 
 
+impl Configuration for WorkspaceManifest {
+    fn validate(&self, prefix: &str) -> Vec<ValidationError> {
+        let errors = Vec::new();
+
+
+        errors
+    }
+
+    fn repair(&mut self) {
+        todo!()
+    }
+}
+
+
 pub mod flags;
 pub mod backups;
 
 #[cfg(test)]
 mod tests {
-    
+
     use crate::filesystem::workspace::global::backups::git::GitBackupStrategy;
     use super::*;
 
@@ -112,22 +127,14 @@ mod tests {
         doc_dir.push("test_workspace");
 
         let test_manifest = WorkspaceManifest {
-            id: "".to_string(),
-            name: "".to_string(),
+            id: None,
+            name: None,
             local_path: Some(":WSP_DIR:/test_workspace".to_string()),
-            cd: Default::default(),
-            le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy {
-                git: Some(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None })
-            },
-            rpc: RichPresenceConfig {
-                enable: false,
-                client_id: None,
-                enable_idle: false,
-                show_current_workspace: false,
-                show_current_file: false,
-            },
-            flags: 0,
+            cd: None,
+            le: None,
+            backup_strategy: None,
+            rpc: None,
+            flags: None,
         };
 
         let local_path = test_manifest.parse_local_path().unwrap();
@@ -138,31 +145,16 @@ mod tests {
     #[test]
     fn test_parse_local_path_invalid_wsp_dir() {
         let test_manifest = WorkspaceManifest {
-            id: "".to_string(),
-            name: "".to_string(),
+            id: None,
+            name: None,
             local_path: Some("invalid/:WSP_DIR:/test_workspace".to_string()),
-            cd: Default::default(),
-            le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy {
-                git: Some(GitBackupStrategy {
-                    permit_remotes: vec![],
-                    repository: "".to_string(),
-                    branch: None,
-                }),
-            },
-
-
-
-            // Git(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None }),
-            rpc: RichPresenceConfig {
-                enable: false,
-                client_id: None,
-                enable_idle: false,
-                show_current_workspace: false,
-                show_current_file: false,
-            },
-            flags: 0,
+            cd: None,
+            le: None,
+            backup_strategy: None,
+            rpc: None,
+            flags: None,
         };
+
 
         let local_path = test_manifest.parse_local_path().unwrap_err();
 
@@ -172,23 +164,16 @@ mod tests {
     #[test]
     fn test_parse_local_path_non_wsp_dir() {
         let test_manifest = WorkspaceManifest {
-            id: "".to_string(),
-            name: "".to_string(),
+            id: None,
+            name: None,
             local_path: Some("noot/test_workspace".to_string()),
-            cd: Default::default(),
-            le: Default::default(),
-            backup_strategy: WorkspaceBackupStrategy {
-                git: Some(GitBackupStrategy { permit_remotes: vec![], repository: "".to_string(), branch: None })
-            },
-            rpc: RichPresenceConfig {
-                enable: false,
-                client_id: None,
-                enable_idle: false,
-                show_current_workspace: false,
-                show_current_file: false,
-            },
-            flags: 0,
+            cd: None,
+            le: None,
+            backup_strategy: None,
+            rpc: None,
+            flags: None,
         };
+
 
         let local_path = test_manifest.parse_local_path().unwrap();
 

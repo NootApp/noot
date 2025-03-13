@@ -107,17 +107,6 @@ pub fn retrieve(path: &PathBuf) -> Result<Vec<u8>, String> {
             &CONSUMER_MAGIC => {
                 let nonce = Nonce::from_slice(&buffer[1..13]);
 
-                // debug!("Nonce (retrieve): {}", String::from_utf8_lossy(nonce.as_slice()));
-                // let raw_key = keys::find_symmetric_key().unwrap();
-                // 
-                // let key_str = String::from_utf8_lossy(&raw_key);
-                // 
-                // debug!("Found symmetric key (retrieve): {}", key_str);
-                // 
-                // let cipher = Aes256GcmSiv::new_from_slice(&*raw_key).unwrap();
-                // 
-                // debug!("Buffer (retrieve): {:?}", &buffer[13..]);
-
                 let mut cipher = SymmetricCipher::new_from_id("symmetric_workspace").unwrap();
                 
                 let decrypt_outcome = cipher.decrypt_with_nonce(&nonce, &buffer[13..]);
@@ -126,44 +115,43 @@ pub fn retrieve(path: &PathBuf) -> Result<Vec<u8>, String> {
                     Ok(decrypt_outcome.unwrap())
                 } else {
                     error!("Decryption failed: {:?}", decrypt_outcome.clone().unwrap_err());
-                    dbg!(decrypt_outcome);
                     Err("Decryption failed".to_string())
                 }
 
 
-                // let pass = keys::find_primary_key().unwrap();
-                // let mut size: u32 = 0;
-                // let version_bytes: &[u8] = &buffer[1..3];
-                //
-                // let version = u16::from_be_bytes(version_bytes.try_into().unwrap());
-                //
-                // debug!("Storage version: {}", version);
-                //
-                // for byte in &buffer[3..8] {
-                //     size = size << 8 | *byte as u32;
-                // }
-                //
-                // debug!("Final Size Value: {}", size);
-                // let header: &[u8] = &buffer[1..2+60]; // Get the cocoon header.
-                //
-                // let mut cocoon : Vec<u8> = vec![];
-                //
-                // buffer[62..].clone_into(&mut cocoon); // Get the data
-                //
-                // dbg!(&header);
-                //
-                // let shell = Cocoon::new(&pass);
-                // shell.decrypt(&mut cocoon, header).unwrap();
-                //
-                // Ok(cocoon)
 
-                // panic!("Failed to parse magic file")
             },
 
             // If the enterprise magic number is present...
             // panic because we don't support it yet.
             &ENTERPRISE_MAGIC => {
-                panic!("Enterprise grade encryption is not supported yet.")
+                let pass = keys::find_primary_key().unwrap();
+                let mut size: u32 = 0;
+                let version_bytes: &[u8] = &buffer[1..3];
+                
+                let version = u16::from_be_bytes(version_bytes.try_into().unwrap());
+                
+                debug!("Storage version: {}", version);
+                
+                for byte in &buffer[3..8] {
+                    size = size << 8 | *byte as u32;
+                }
+                
+                debug!("Final Size Value: {}", size);
+                let header: &[u8] = &buffer[1..2+60]; // Get the cocoon header.
+                
+                let mut cocoon : Vec<u8> = vec![];
+                
+                buffer[62..].clone_into(&mut cocoon); // Get the data
+                
+                let shell = Cocoon::new(&pass);
+                shell.decrypt(&mut cocoon, header).unwrap();
+                
+                Ok(cocoon)
+
+                // panic!("Failed to parse magic file")
+                
+                // panic!("Enterprise grade encryption is not supported yet.")
             },
 
             // If there is no magic number, presume plaintext.

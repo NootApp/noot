@@ -57,7 +57,7 @@ impl<'a> LandingView<'a> {
                                 .width(350.)
                         )
                     ])]
-                    .padding(iced::Padding {
+                    .padding(Padding {
                         top: 5.,
                         left: 10.,
                         right: 10.,
@@ -82,7 +82,7 @@ impl<'a> LandingView<'a> {
                         ]
                         .spacing(10.)
                         .width(475.)
-                        .padding(iced::Padding {
+                        .padding(Padding {
                             top: 5.,
                             left: 10.,
                             right: 10.,

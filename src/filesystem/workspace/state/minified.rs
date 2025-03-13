@@ -4,10 +4,11 @@ use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
+use crate::filesystem::workspace::global::WorkspaceManifest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {
-    pub manifest: String,
+    pub manifest: WorkspaceManifest,
     pub viewport: Screen,
     pub plugins: HashMap<String, bool>,
     pub cache_dir: PathBuf,
@@ -51,7 +52,7 @@ impl WorkspaceFile {
 impl MinifiedWorkspaceState {
     pub fn from_state(s: WorkspaceState) -> Self {
         Self {
-            manifest: toml::to_string(&s.manifest).unwrap(),
+            manifest: s.manifest.clone(),
             viewport: s.viewport.clone(),
             plugins: s.plugins.clone(),
             cache_dir: s.cache_dir.clone(),

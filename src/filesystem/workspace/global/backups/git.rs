@@ -7,8 +7,8 @@ use crate::filesystem::workspace::manager::{WorkspaceError, WorkspaceResult};
 #[serde(rename_all = "kebab-case")]
 pub struct GitBackupStrategy {
 
-    pub permit_remotes: Vec<String>,
-    pub repository: String,
+    pub permit_remotes: Option<Vec<String>>,
+    pub repository: Option<String>,
     pub branch: Option<String>,
 }
 
@@ -16,7 +16,7 @@ pub struct GitBackupStrategy {
 impl BackupStrategy for GitBackupStrategy {
     fn fetch(&mut self, path: &PathBuf) -> WorkspaceResult<()> {
         let clone_attempt = git2::Repository::clone(
-            self.repository.as_str(),
+            self.repository.clone().unwrap().as_str(),
             path.to_str().unwrap(),
         );
 

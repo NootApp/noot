@@ -3,14 +3,16 @@ use crate::subsystems::discord::config::RichPresenceConfig;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
+use crate::filesystem::utils::traits::{Configuration, ValidationError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
     #[serde(rename = "workspace")]
-    pub workspaces: Vec<WorkspaceManifest>,
+    pub workspaces: Option<Vec<WorkspaceManifest>>,
     pub last_open: Option<String>,
-    pub rpc: RichPresenceConfig,
+    pub rpc: Option<RichPresenceConfig>,
+    pub performance: Option<performance::PerformanceConfiguration>
 }
 
 /// The default config is imported at compile time
@@ -29,19 +31,17 @@ impl Config {
 
         if !tokio::fs::try_exists(&cfg_path).await.unwrap() {
             warn!("Config file does not exist - making folder");
-            tokio::fs::create_dir_all(cfg_folder.clone()).await.unwrap();
-            tokio::fs::write(
-                &cfg_path,
-                DEFAULT_CONFIG_STRING.as_bytes(),
-            )
-            .await
-            .unwrap();
-            
-            toml::from_str(DEFAULT_CONFIG_STRING).unwrap()
+            let tmp: Config = Config::default();
+            tmp.validate("");
+            tmp.save_to_disk().await.unwrap();
+
+            tmp
         } else {
             debug!("Parsing config file");
             let contents = tokio::fs::read_to_string(cfg_path).await.unwrap();
-            toml::from_str(&contents).unwrap()
+            let tmp: Config = toml::from_str(&contents).unwrap();
+            tmp.validate("");
+            tmp
         }
     }
 
@@ -72,6 +72,88 @@ impl Config {
     }
 }
 
+impl Default for Config {
+    fn default() -> Config {
+        toml::from_str(DEFAULT_CONFIG_STRING).unwrap()
+    }
+}
+
+impl Configuration for Config {
+    fn validate(&self, _prefix: &str) -> Vec<ValidationError> {
+       let mut errors = Vec::new();
+
+        dbg!(&self);
+
+        if self.rpc.is_none() {
+            errors.push(
+                ValidationError::new(
+                    "config.rpc",
+                    "Rich Presence configuration not provided, will use default",
+                    true
+                )
+            );
+        } else {
+            let mut rpc = self.rpc.as_ref().unwrap().validate("config.rpc");
+            errors.append(&mut rpc);
+        }
+
+        if self.performance.is_none() {
+            errors.push(
+                ValidationError::new(
+                    "config.performance",
+                    "Performance configuration not provided, will use default",
+                    true
+                )
+            );
+        } else {
+            let mut performance = self.performance.as_ref().unwrap().clone().validate("config.performance");
+            errors.append(&mut performance);
+        }
+
+        if self.workspaces.is_none() {
+            errors.push(
+                ValidationError::new(
+                    "config.workspaces",
+                    "Workspaces list not provided, will use default",
+                    true
+                )
+            );
+        } else {
+            let mut used_ids = Vec::new();
+            for workspace in self.workspaces.as_ref().unwrap().iter() {
+                if used_ids.contains(&workspace.id) {
+                    errors.push(ValidationError::new(
+                        &format!("config.workspace.{}(2)", workspace.id.clone().unwrap()),
+                        "More than one workspace has the same ID. This will cause the app to fail to start.",
+                        false
+                    ))
+                } else {
+                    used_ids.push(workspace.id.clone());
+                }
+                let mut wsp = workspace.validate(&format!("config.workspace.{}", workspace.id.clone().unwrap()));
+                errors.append(&mut wsp);
+
+            }
+        }
+
+        errors
+    }
+
+    fn repair(&mut self) {
+        if self.rpc.is_none() {
+            self.rpc = Some(RichPresenceConfig::default());
+        }
+
+        if self.performance.is_none() {
+            self.performance = Some(performance::PerformanceConfiguration::default());
+        }
+
+        if self.workspaces.is_none() {
+            self.workspaces = Some(Vec::new());
+        }
+    }
+}
+
 #[cfg(debug_assertions)]
 pub fn get_config_path() -> PathBuf {
     let cfg_dir = dirs::config_dir();
@@ -97,20 +179,23 @@ mod tests {
 
     #[tokio::test]
     async fn test_config_read_from_disk() {
-        let cfg: config::Config = Config::load_from_disk().await;
+        let cfg: Config = Config::load_from_disk().await;
 
-        assert_eq!(cfg.workspaces.len(), 1);
+        assert_eq!(cfg.workspaces.unwrap().len(), 1);
     }
 
     #[tokio::test]
     async fn test_config_save_to_disk() {
-        let mut cfg: config::Config = Config::load_from_disk().await;
+        let mut cfg: Config = Config::load_from_disk().await;
 
         let new_workspace_id = nanoid!(10);
 
         cfg.last_open = Some(new_workspace_id.clone());
         cfg.save_to_disk().await.unwrap();
-        let cfg2 = Config::load_from_disk().await;
+        let cfg2 : Config = Config::load_from_disk().await;
         assert_eq!(cfg2.last_open, Some(new_workspace_id));
     }
 }
+
+
+mod performance;

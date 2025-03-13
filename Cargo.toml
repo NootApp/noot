@@ -35,6 +35,9 @@ git2 = "0.20.0"
 regex = "1.11.1"
 aes-gcm-siv = { version = "0.11.1", features = ["std"] }
 crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
+num_cpus = "1.16.0"
+crossbeam-queue = "0.3.12"
+libsql-client = "0.33.4"
 
 
 [dev-dependencies]

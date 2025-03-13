@@ -8,6 +8,7 @@ pub mod config;
 
 #[derive(Debug)]
 pub struct RichPresence {
+    connected: bool,
     client: DiscordIpcClient,
     inner_config: Mutex<RichPresenceConfig>,
     workspace_config: Mutex<RichPresenceConfig>,
@@ -21,25 +22,20 @@ lazy_static! {
 impl RichPresence {
     pub fn new() -> RichPresence {
         RichPresence {
+            connected: false,
             client: DiscordIpcClient::new("1343225099834101810").unwrap(),
-            inner_config: Mutex::new(RichPresenceConfig {
-                enable: false,
-                client_id: None,
-                enable_idle: false,
-                show_current_workspace: false,
-                show_current_file: false,
-            }),
-            workspace_config: Mutex::new(RichPresenceConfig {
-                enable: false,
-                client_id: None,
-                enable_idle: false,
-                show_current_workspace: false,
-                show_current_file: false,
-            }),
+            inner_config: Mutex::new(RichPresenceConfig::default()),
+            workspace_config: Mutex::new(RichPresenceConfig::default()),
         }
     }
 
-    pub fn connect(&mut self) {
+    pub fn connect(&mut self, client_id: &str) {
+        if self.connected {
+            return;
+        }
+        
+        self.client = DiscordIpcClient::new(client_id).unwrap();
+        
         info!("Connecting to Discord");
         let con_res = self.client.connect();
         if con_res.is_err() {
@@ -58,6 +54,9 @@ impl RichPresence {
     }
 
     pub fn disconnect(&mut self) {
+        if !self.connected {
+            return;
+        }
         info!("Disconnecting");
         let close_res = self.client.close();
         if close_res.is_err() {
