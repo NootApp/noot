@@ -33,9 +33,9 @@ impl RichPresence {
         if self.connected {
             return;
         }
-        
+
         self.client = DiscordIpcClient::new(client_id).unwrap();
-        
+
         info!("Connecting to Discord");
         let con_res = self.client.connect();
         if con_res.is_err() {

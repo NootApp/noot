@@ -15,8 +15,6 @@ const PBKDF2_ITERATIONS: u32 = 10_000;
 const PBKDF2_ITERATIONS: u32 = 310_000;
 const SALT: &[u8] = include_bytes!("../../../salt-secret.bin");
 
-
-
 /// Represents an extended secret key with a chain code.
 #[derive(Debug)]
 pub struct ExtendedSecretKey {
@@ -46,8 +44,6 @@ impl Drop for ExtendedSecretKey {
         self.zeroize();
     }
 }
-
-
 
 // !=========== CAUTION ============!
 // All code below this point was sourced from a blogpost on medium.com

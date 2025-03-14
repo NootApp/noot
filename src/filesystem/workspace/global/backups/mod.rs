@@ -1,11 +1,8 @@
+use serde_derive::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::path::PathBuf;
-use serde_derive::{Deserialize, Serialize};
 
 pub mod git;
-
-
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -18,8 +15,6 @@ pub struct WorkspaceBackupStrategy {
 }
 
 use crate::filesystem::workspace::manager::WorkspaceResult;
-
-
 
 pub trait BackupStrategy {
     fn fetch(&mut self, path: &PathBuf) -> WorkspaceResult<()>;

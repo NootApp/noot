@@ -1,24 +1,22 @@
+use crate::Noot;
 use crate::filesystem::config::Config;
+use crate::filesystem::workspace::manager::WorkspaceResult;
 use crate::filesystem::workspace::state::WorkspaceState;
-use std::io;
-use std::io::Bytes;
 use discord_rich_presence::activity::Activity;
 use iced::{Application, Task};
 use nanoid::nanoid;
-use crate::filesystem::workspace::manager::WorkspaceResult;
-use crate::Noot;
+use std::io;
+use std::io::Bytes;
+use iced::window::Id;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     /*
         Configuration events
     */
-
-
     /// Emitted when the configuration file is loaded
     ConfigLoaded(Config),
     // CreateNewWorkspace,
-
 
     /*
         Workspace Events
@@ -30,7 +28,6 @@ pub enum Message {
     WorkspaceIngestManifests,
 
     WorkspaceLoadStart,
-
 
     /*
         Rich Presence Events
@@ -56,13 +53,11 @@ pub enum Message {
     */
     TPSpawn,
     TPKill,
-    
+
     // TPEncrypt(Vec<u8>),
     // TPEncrypt(Vec<u8>),
     // TPDecrypt(Vec<u8>),
     // TPDecryptResult(Vec<u8>),
-    
-    
 
     /*
         Plugin Events
@@ -91,24 +86,13 @@ pub enum Message {
     /// - 2 - String - Error Message
     PluginError(String, String),
 
-
     /*
         Reactivity Events
     */
-
     /// Emitted when the content of a form element changes.
     /// Contains the ID of the form field which was changed, as well as the new content
     FormContentChanged(String, String),
-
-
-    // ActionPerformed(text_editor::Action),
-    // ThemeSelected(highlighter::Theme),
-    // WordWrapToggled(bool),
-    // NewFile,
-    // OpenFile,
-    // FileOpened(Result<(PathBuf, Arc<String>), Error>),
-    // SaveFile,
-    // FileSaved(Result<PathBuf, Error>),
+    WindowOpened(Id),
 }
 
 #[derive(Debug, Clone)]
@@ -116,7 +100,6 @@ pub enum Error {
     DialogClosed,
     IoError(io::ErrorKind),
 }
-
 
 pub struct EventQueue {
     id: String,
@@ -127,7 +110,7 @@ impl EventQueue {
     pub fn new() -> EventQueue {
         EventQueue {
             id: nanoid!(10),
-            queue: Vec::new()
+            queue: Vec::new(),
         }
     }
 
@@ -151,7 +134,6 @@ impl EventQueue {
     }
 }
 
-
 pub struct ThreadPoolEvent<T> {
     id: String,
     kind: ThreadPoolMessage,
@@ -159,11 +141,10 @@ pub struct ThreadPoolEvent<T> {
     channel: tokio::sync::mpsc::Sender<T>,
 }
 
-impl <T> ThreadPoolEvent<T> {
+impl<T> ThreadPoolEvent<T> {
     // TODO! Implement threadpool event promise structure
 }
 
-
 pub enum ThreadPoolMessage {
-    Kill
+    Kill,
 }

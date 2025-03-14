@@ -1,9 +1,12 @@
-use crypto::{aead, aead::{AeadCore, AeadInPlace, KeyInit}, ChaCha20Poly1305 as Poly, Key, Nonce};
+use crate::subsystems::cryptography::keychain::derive_master_extended_secret_key;
 use aead::rand_core::OsRng;
+use crypto::{
+    ChaCha20Poly1305 as Poly, Key, Nonce, aead,
+    aead::{AeadCore, AeadInPlace, KeyInit},
+};
 use keyring::Entry;
 use rand::RngCore;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
-use crate::subsystems::cryptography::keychain::derive_master_extended_secret_key;
 
 /// check for the presence of the primary encryption key within the OS secure storage
 /// on macOS this may be the M series "Secure Enclave"
@@ -11,7 +14,7 @@ use crate::subsystems::cryptography::keychain::derive_master_extended_secret_key
 /// on Linux this is provided by the OS itself
 pub fn perform_startup_checks() -> keyring::Result<()> {
     debug!("Performing cryptography startup checks");
-    
+
     let primary = Entry::new("com.nootapp.behring", "emil_von.primary")?;
     let primary_chain = Entry::new("com.nootapp.behring", "emil_von.chain")?;
     let public_key = Entry::new("com.nootapp.behring", "emil_von.public")?;
@@ -21,7 +24,9 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
     if primary.get_secret().is_err() {
         let err = primary.get_secret().unwrap_err();
 
-        if err.to_string() == String::from("No matching entry found in secure storage") {
+        if err.to_string()
+            == String::from("No matching entry found in secure storage")
+        {
             debug!("No matching entry found in secure storage");
             debug!("Generating new master cryptographic key");
 
@@ -61,10 +66,9 @@ pub fn perform_startup_checks() -> keyring::Result<()> {
             return Err(err.into());
         }
     }
-    
+
     Ok(())
 }
-
 
 pub fn find_primary_key() -> keyring::Result<Vec<u8>> {
     debug!("Finding primary key");
@@ -73,11 +77,14 @@ pub fn find_primary_key() -> keyring::Result<Vec<u8>> {
 }
 
 // pub fn derive_public_key(file: &PathBuf) -> keyring::Result<PublicKey> {
-//     
+//
 // }
 
 /// Locates (or generates and stores) a symmetric ChaCha20Poly1305 key within the system using the given ID
-pub fn find_symmetric_key(id: String, generate: bool) -> keyring::Result<Vec<u8>> {
+pub fn find_symmetric_key(
+    id: String,
+    generate: bool,
+) -> keyring::Result<Vec<u8>> {
     debug!("Finding symmetric key");
     let symmetric = Entry::new("com.nootapp.behring", &id)?;
 
@@ -86,7 +93,9 @@ pub fn find_symmetric_key(id: String, generate: bool) -> keyring::Result<Vec<u8>
     if secret.is_err() {
         let err = secret.unwrap_err();
 
-        if err.to_string() == String::from("No matching entry found in secure storage") {
+        if err.to_string()
+            == String::from("No matching entry found in secure storage")
+        {
             if generate {
                 debug!("Generating new symmetric key for id '{}'", id);
                 let key = Poly::generate_key(&mut OsRng);
@@ -100,7 +109,6 @@ pub fn find_symmetric_key(id: String, generate: bool) -> keyring::Result<Vec<u8>
 
     secret
 }
-
 
 /// A struct representing an instance of a symmetric key encryption cipher
 pub struct SymmetricCipher {
@@ -134,12 +142,12 @@ impl SymmetricCipher {
     pub fn encrypt(&mut self, plaintext: &[u8]) -> aead::Result<Vec<u8>> {
         // Protect ourselves from accidentally reusing the same nonce value, by regenerating it before we encrypt anything.
         self.update_nonce();
-        
-        
+
         let mut buffer = plaintext.to_vec();
         let ad = [];
 
-        self.cipher.encrypt_in_place(&self.nonce, &ad, &mut buffer)?;
+        self.cipher
+            .encrypt_in_place(&self.nonce, &ad, &mut buffer)?;
         buffer.splice(0..0, self.nonce.as_slice().iter().cloned());
 
         Ok(buffer)
@@ -150,27 +158,27 @@ impl SymmetricCipher {
         self.decrypt_with_nonce(nonce.as_slice(), ciphertext)
     }
 
-    pub fn decrypt_with_nonce(&mut self, nonce: &[u8], ciphertext: &[u8]) -> aead::Result<Vec<u8>> {
-
+    pub fn decrypt_with_nonce(
+        &mut self,
+        nonce: &[u8],
+        ciphertext: &[u8],
+    ) -> aead::Result<Vec<u8>> {
         let mut buffer = ciphertext.to_vec();
         let ad = [];
         let nonce = Nonce::from_slice(nonce);
         self.cipher.decrypt_in_place(&nonce, &ad, &mut buffer)?;
 
         Ok(buffer)
-
     }
-
 }
-
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     pub fn test_codec_round_trip() {
-        let mut cipher = SymmetricCipher::new_from_id("test_workspace_cipher").unwrap();
+        let mut cipher =
+            SymmetricCipher::new_from_id("test_workspace_cipher").unwrap();
         let test_text = b"Hello, World";
 
         let encrypted = cipher.encrypt(test_text).unwrap();

@@ -1,13 +1,13 @@
-use std::fs::{create_dir_all, File};
-use std::io::Write;
 use crate::filesystem::workspace::global::WorkspaceManifest;
-use chrono::{DateTime, Local};
-use hashbrown::HashMap;
-use serde_derive::{Deserialize, Serialize};
-use std::path::PathBuf;
 use crate::filesystem::workspace::global::flags::WorkspaceFlags;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
 use crate::filesystem::workspace::state::plugins::PluginManifest;
+use chrono::{DateTime, Local};
+use hashbrown::HashMap;
+use serde_derive::{Deserialize, Serialize};
+use std::fs::{File, create_dir_all};
+use std::io::Write;
+use std::path::PathBuf;
 
 pub mod minified;
 pub mod plugins;
@@ -43,9 +43,7 @@ impl WorkspaceState {
         Ok(())
     }
 
-    pub fn load_plugins(&mut self) {
-
-    }
+    pub fn load_plugins(&mut self) {}
 
     // pub fn resolve_path(&self) -> PathBuf {
     //     match self.resolver_method {
@@ -55,14 +53,14 @@ impl WorkspaceState {
     //     }
     // }
 
-
     pub fn store(&self) -> Result<(), std::io::Error> {
         info!("Storing workspace state");
         let mut path = self.manifest.parse_local_path().unwrap();
         let mini = MinifiedWorkspaceState::from_state(self.clone());
         let serial = toml::to_string(&mini).unwrap();
 
-        let flags = WorkspaceFlags::from(self.manifest.flags.unwrap_or_default());
+        let flags =
+            WorkspaceFlags::from(self.manifest.flags.unwrap_or_default());
         let mut wsp_path = path.clone();
 
         wsp_path.push(".noot");
@@ -70,7 +68,10 @@ impl WorkspaceState {
         if std::fs::exists(wsp_path.clone()).unwrap_or(false) {
             debug!("Workspace data dir exists ({})", wsp_path.display());
         } else {
-            debug!("Workspace data dir does not exist ({})", wsp_path.display());
+            debug!(
+                "Workspace data dir does not exist ({})",
+                wsp_path.display()
+            );
             let outcome = std::fs::create_dir_all(&wsp_path);
             if let Ok(_) = outcome {
                 debug!("Workspace data dir created ({})", wsp_path.display());
@@ -84,12 +85,23 @@ impl WorkspaceState {
         if flags.contains(WorkspaceFlags::ENCRYPTED) {
             info!("Workspace is encrypted");
             let enterprise = flags.contains(WorkspaceFlags::ENTERPRISE);
-            crate::subsystems::cryptography::storage::store(&manifest_path, serial.as_bytes(), enterprise)?;
-            info!("Wrote encrypted manifest file ({})", manifest_path.display());
+            crate::subsystems::cryptography::storage::store(
+                &manifest_path,
+                serial.as_bytes(),
+                enterprise,
+            )?;
+            info!(
+                "Wrote encrypted manifest file ({})",
+                manifest_path.display()
+            );
         } else {
             info!("Workspace is not encrypted");
 
-            let mut handle = File::options().write(true).create(true).truncate(true).open(&manifest_path)?;
+            let mut handle = File::options()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&manifest_path)?;
             handle.write_all(serial.as_bytes())?;
             handle.sync_all()?;
 
@@ -113,6 +125,7 @@ pub enum ResolverMethod {
 pub enum Screen {
     Split(Box<(Screen, Screen)>),
     Editor(PathBuf),
+    Welcome,
     Empty,
 }
 
@@ -128,13 +141,16 @@ pub struct WorkspaceFile {
 }
 
 impl WorkspaceState {
-    pub async fn open_workspace_from_manifest(manifest: WorkspaceManifest) -> WorkspaceState {
+    pub async fn open_workspace_from_manifest(
+        manifest: WorkspaceManifest,
+    ) -> WorkspaceState {
         let workspace_path = manifest.parse_local_path().unwrap();
         let workspace_exists = tokio::fs::try_exists(&workspace_path).await;
-
+        let mut viewport: Screen = Screen::Empty;
         match workspace_exists {
             Ok(exists) => {
                 if !exists {
+                    viewport = Screen::Welcome;
                     let create_dir_result =
                         tokio::fs::create_dir_all(&workspace_path).await;
                     if create_dir_result.is_err() {
@@ -148,19 +164,15 @@ impl WorkspaceState {
                         );
                     }
 
-                    match manifest.backup_strategy {
+                    return match manifest.backup_strategy {
                         // Git(bs) => {
                         //
                         // }
-                        _ => {
-                            return Self::create_empty_workspace(manifest)
-                                .await;
-                        }
-                    }
+                        _ => Self::create_empty_workspace(manifest).await,
+                    };
                 }
             }
             Err(e) => {
-                
                 error!("Failed to open workspace: {}", e);
             }
         };
@@ -169,7 +181,7 @@ impl WorkspaceState {
 
         WorkspaceState {
             manifest,
-            viewport: Screen::Empty,
+            viewport,
             plugins: Default::default(),
             cache_dir: Default::default(),
             assets_dirs: vec![],
@@ -192,7 +204,7 @@ impl WorkspaceState {
 
         let temporary_state = WorkspaceState {
             manifest,
-            viewport: Screen::Empty,
+            viewport: Screen::Welcome,
             plugins: HashMap::new(),
             cache_dir,
             assets_dirs: vec![asset_dir],
@@ -253,11 +265,11 @@ impl WorkspaceFile {
     // pub async fn open_from_cache(path: PathBuf) -> WorkspaceFile {
     //     let buffer = retrieve(&path).unwrap();
     //     String::from_utf8(buffer).unwrap();
-    //     
+    //
     //     let file = toml::from_str()
-    //     
+    //
     // }
-    
+
     pub async fn open(path: PathBuf) -> WorkspaceFile {
         let handle = tokio::fs::read(&path).await;
 
@@ -288,8 +300,6 @@ impl WorkspaceFile {
     //     Ok(())
     // }
 }
-
-
 
 // #[cfg(test)]
 // mod tests {

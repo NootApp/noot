@@ -1,19 +1,23 @@
-use std::str::FromStr;
-use std::sync::Mutex;
 use crate::filesystem::workspace::global::WorkspaceManifest;
-use crate::filesystem::workspace::state::{ResolverMethod, Screen, WorkspaceState};
-use hashbrown::HashMap;
-use lazy_static::lazy_static;
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
 use crate::filesystem::workspace::state::plugins::PluginManifest;
-use crate::subsystems::cryptography::storage::{retrieve, CONSUMER_MAGIC, ENTERPRISE_MAGIC};
+use crate::filesystem::workspace::state::{
+    ResolverMethod, Screen, WorkspaceState,
+};
+use crate::subsystems::cryptography::storage::{
+    CONSUMER_MAGIC, ENTERPRISE_MAGIC, retrieve,
+};
+use hashbrown::HashMap;
+use lazy_static::lazy_static;
+use std::str::FromStr;
+use std::sync::Mutex;
 
-lazy_static!(
-  pub static ref MANAGER: Mutex<WorkspaceManager> = Mutex::new(WorkspaceManager::new());  
-);
-
+lazy_static! {
+    pub static ref MANAGER: Mutex<WorkspaceManager> =
+        Mutex::new(WorkspaceManager::new());
+}
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceManager {
@@ -37,26 +41,30 @@ impl WorkspaceManager {
         }
     }
 
-
-
-    pub async fn load_workspace(&mut self, id: String) -> WorkspaceResult<WorkspaceState> {
+    pub async fn load_workspace(
+        &mut self,
+        id: String,
+    ) -> WorkspaceResult<WorkspaceState> {
         debug!("Loading workspace {}", id);
 
         if let Some(manifest) = self.all.get(&id) {
             let root_dir = manifest.parse_local_path().unwrap();
             debug!("Workspace root path is '{:?}'", &root_dir);
-            
+
             let exists_result = tokio::fs::try_exists(&root_dir).await;
             let mut workspace = WorkspaceState {
                 manifest: manifest.clone(),
                 viewport: Screen::Empty,
-                plugins: HashMap::from([("example".to_string(), PluginManifest {
-                    version: "0.0.1".to_string(),
-                    author: "nootapp".to_string(),
-                    repository: "example_plugin".to_string(),
-                    source_name: "github".to_string(),
-                })]),
-                
+                plugins: HashMap::from([(
+                    "example".to_string(),
+                    PluginManifest {
+                        version: "0.0.1".to_string(),
+                        author: "nootapp".to_string(),
+                        repository: "example_plugin".to_string(),
+                        source_name: "github".to_string(),
+                    },
+                )]),
+
                 cache_dir: Default::default(),
                 assets_dirs: vec![],
                 resolver_method: ResolverMethod::Proprietary,
@@ -78,16 +86,20 @@ impl WorkspaceManager {
 
                         if std::fs::exists(&manifest_file).unwrap_or(false) {
                             debug!("Manifest file exists");
-                            let mut content = std::fs::read(&manifest_file).unwrap();
+                            let mut content =
+                                std::fs::read(&manifest_file).unwrap();
 
-                            if [ENTERPRISE_MAGIC, CONSUMER_MAGIC].contains(&content[0]) {
+                            if [ENTERPRISE_MAGIC, CONSUMER_MAGIC]
+                                .contains(&content[0])
+                            {
                                 debug!("Manifest is encrypted");
                                 content = retrieve(&manifest_file)?;
                             }
 
                             let cstring = String::from_utf8(content).unwrap();
 
-                            let ws2: MinifiedWorkspaceState = toml::from_str(&cstring).unwrap();
+                            let ws2: MinifiedWorkspaceState =
+                                toml::from_str(&cstring).unwrap();
 
                             workspace.manifest = ws2.manifest;
                             workspace.viewport = ws2.viewport;
@@ -105,14 +117,20 @@ impl WorkspaceManager {
                             workspace.store().unwrap();
                             return Ok(workspace);
                         }
-
                     } else {
-                        debug!("Noot dir does not exist - Need to init project");
+                        debug!(
+                            "Noot dir does not exist - Need to init project"
+                        );
                     }
 
-                    return Err(WorkspaceCheckFailed("Not Implemented (workspace exists but cannot load)".to_string()))
+                    return Err(WorkspaceCheckFailed(
+                        "Not Implemented (workspace exists but cannot load)"
+                            .to_string(),
+                    ));
                 } else {
-                    if let Some(mut git) = manifest.backup_strategy.clone().unwrap().git.clone() {
+                    if let Some(mut git) =
+                        manifest.backup_strategy.clone().unwrap().git.clone()
+                    {
                         let outcome = git.fetch(&root_dir);
                         if let Err(e) = outcome {
                             error!("Failed to fetch git repository {:?}", e);
@@ -121,11 +139,12 @@ impl WorkspaceManager {
                     }
                 }
             } else {
-                return Err(WorkspaceError::WorkspaceCheckFailed(exists_result.unwrap_err().to_string()));
+                return Err(WorkspaceError::WorkspaceCheckFailed(
+                    exists_result.unwrap_err().to_string(),
+                ));
             }
 
             let _ = workspace.store();
-
 
             Ok(workspace)
         } else {
@@ -137,7 +156,6 @@ impl WorkspaceManager {
 
 pub type WorkspaceResult<T> = Result<T, WorkspaceError>;
 
-
 #[derive(Debug, Clone)]
 pub enum WorkspaceError {
     WorkspaceDoesNotExist(String),
@@ -148,7 +166,7 @@ pub enum WorkspaceError {
     WorkspaceCheckFailed(String),
 }
 
-impl Into<WorkspaceError> for &'static str{
+impl Into<WorkspaceError> for &'static str {
     fn into(self) -> WorkspaceError {
         WorkspaceError::Unknown(format!("{:?}", self))
     }

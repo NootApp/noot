@@ -34,7 +34,6 @@ impl Default for WorkspaceFlags {
     }
 }
 
-
 impl From<WorkspaceFlags> for u32 {
     fn from(permissions: WorkspaceFlags) -> Self {
         permissions.bits()
@@ -47,7 +46,6 @@ impl From<u32> for WorkspaceFlags {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::filesystem::workspace::global::flags::WorkspaceFlags;
@@ -55,17 +53,17 @@ mod tests {
     #[test]
     fn test_enterprise_features_match() {
         let test_target = WorkspaceFlags::ENTERPRISE;
-        
+
         let test_value: u32 = 11;
-        
+
         assert_eq!(test_target.bits(), test_value);
     }
-    
+
     #[test]
     fn test_default_features_match() {
         let test_target = WorkspaceFlags::default();
         let test_value: u32 = 12;
-        
+
         assert_eq!(test_target.bits(), test_value);
     }
 }

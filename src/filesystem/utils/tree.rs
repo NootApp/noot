@@ -1,23 +1,21 @@
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 use std::path::PathBuf;
 
-#[derive(Serialize,Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum FileEntry {
     Folder(FileTree),
     File(String),
     Symlink(String),
 }
 
-#[derive(Serialize,Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct FileTree {
     pub node_count: u32,
     pub parent: String,
     pub name: String,
-    pub children: Vec<FileEntry>
+    pub children: Vec<FileEntry>,
 }
-
-
 
 impl FileTree {
     pub fn from_path(path: &PathBuf) -> Result<FileTree, std::io::Error> {
@@ -25,7 +23,7 @@ impl FileTree {
             node_count: 0,
             name: path.file_name().unwrap().to_str().unwrap().to_string(),
             parent: path.parent().unwrap().to_str().unwrap().to_string(),
-            children: vec!()
+            children: vec![],
         };
 
         let mut entries = std::fs::read_dir(path)?;
@@ -40,17 +38,23 @@ impl FileTree {
                 tree.children.push(FileEntry::Folder(subtree));
             } else if metadata.is_file() {
                 tree.node_count = tree.node_count + 1;
-                tree.children.push(FileEntry::File(entry.file_name().to_str().unwrap().to_string()))
+                tree.children.push(FileEntry::File(
+                    entry.file_name().to_str().unwrap().to_string(),
+                ))
             } else if metadata.is_symlink() {
                 tree.node_count = tree.node_count + 1;
-                tree.children.push(FileEntry::Symlink(entry.file_name().to_str().unwrap().to_string()))
+                tree.children.push(FileEntry::Symlink(
+                    entry.file_name().to_str().unwrap().to_string(),
+                ))
             }
         }
 
         Ok(tree)
     }
 
-    pub fn from_path_str<A: Into<String>>(path: A) -> Result<FileTree, std::io::Error> {
+    pub fn from_path_str<A: Into<String>>(
+        path: A,
+    ) -> Result<FileTree, std::io::Error> {
         let pathbuf = PathBuf::from(path.into());
         FileTree::from_path(&pathbuf)
     }

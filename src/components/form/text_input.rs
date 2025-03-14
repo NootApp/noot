@@ -1,27 +1,27 @@
 use crate::events::types::Message;
+use iced::Element;
 use iced::widget::container;
 use iced::widget::{column, text};
-use iced::Element;
 use nanoid::nanoid;
 
 #[derive(Debug, Clone)]
-pub struct TextInput<'a> {
+pub struct TextInput {
     pub field_id: String,
     pub label: String,
-    pub placeholder: Option<&'a str>,
-    pub value: &'a str,
+    pub placeholder: Option<String>,
+    pub value: String,
     pub obfuscated: bool,
 }
 
 #[derive(Debug, Clone)]
 pub enum TextInputChanged {}
 
-impl<'a> TextInput<'a> {
-    pub fn new<S: Into<String>, V: Into<&'a str>>(
+impl TextInput {
+    pub fn new<S: Into<String>, V: Into<String>>(
         label: S,
         value: V,
         obfuscated: bool,
-    ) -> TextInput<'a> {
+    ) -> TextInput {
         TextInput {
             field_id: nanoid!(),
             label: label.into(),
@@ -31,12 +31,12 @@ impl<'a> TextInput<'a> {
         }
     }
 
-    pub fn placeholder<S: Into<&'a str>>(mut self, placeholder: S) -> Self {
+    pub fn placeholder<S: Into<String>>(mut self, placeholder: S) -> Self {
         self.placeholder = Some(placeholder.into());
         self
     }
 
-    pub fn value<S: Into<&'a str>>(mut self, value: S) -> Self {
+    pub fn value<S: Into<String>>(mut self, value: S) -> Self {
         self.value = value.into();
         self
     }
@@ -51,11 +51,11 @@ impl<'a> TextInput<'a> {
     }
 
     pub fn text_input(&self) -> Element<Message> {
-        match self.placeholder {
+        match &self.placeholder {
             Some(v) => {
-                iced::widget::text_input::TextInput::new(v, self.value).into()
+                iced::widget::text_input::TextInput::new(v, &self.value).into()
             }
-            None => iced::widget::text_input::TextInput::new("", self.value)
+            None => iced::widget::text_input::TextInput::new("", &self.value)
                 .on_input(move |c: String| self.on_input(c))
                 .into(),
         }

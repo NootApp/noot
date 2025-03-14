@@ -1,13 +1,15 @@
-use iced::futures::executor::block_on;
-use iced::Task;
 use crate::events::types::{EventQueue, Message};
-use crate::filesystem::workspace::manager::{WorkspaceResult, MANAGER};
+use crate::filesystem::workspace::manager::{MANAGER, WorkspaceResult};
 use crate::filesystem::workspace::state::WorkspaceState;
-use crate::{Noot, ViewPort};
 use crate::views::landing::LandingView;
+use crate::{Noot, ViewPort};
+use iced::Task;
+use iced::futures::executor::block_on;
 
-pub fn on_load(noot: &mut Noot, outcome: WorkspaceResult<WorkspaceState>) -> Task<Message> {
-
+pub fn on_load(
+    noot: &mut Noot,
+    outcome: WorkspaceResult<WorkspaceState>,
+) -> Task<Message> {
     debug!("Workspace load event triggered");
 
     if let Ok(state) = outcome {
@@ -19,7 +21,6 @@ pub fn on_load(noot: &mut Noot, outcome: WorkspaceResult<WorkspaceState>) -> Tas
 
     Task::none()
 }
-
 
 pub fn on_ingest(noot: &mut Noot) -> Task<Message> {
     let mut mgr = MANAGER.lock().unwrap();
@@ -34,8 +35,6 @@ pub fn on_ingest(noot: &mut Noot) -> Task<Message> {
     } else {
         panic!("Cannot ingest config whilst config is not initialized");
     }
-
-
 }
 
 pub fn on_load_start(noot: &mut Noot) -> Task<Message> {
@@ -51,12 +50,8 @@ pub fn on_load_start(noot: &mut Noot) -> Task<Message> {
         queue.add(Message::WorkspaceLoadResult(outcome));
     } else {
         debug!("No previous workspace found - Showing landing view");
-        noot.viewport = ViewPort::LandingView(
-            LandingView::new()
-        );
+        noot.viewport = ViewPort::LandingView(LandingView::new());
     }
-
-
 
     queue.drain(noot)
 }

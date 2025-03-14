@@ -1,7 +1,7 @@
-use iced::Task;
-use crate::events::types::{EventQueue, Message};
 use crate::Noot;
+use crate::events::types::{EventQueue, Message};
 use crate::subsystems::discord::RPC_CLIENT;
+use iced::Task;
 
 pub fn on_connect() -> Task<Message> {
     debug!("Rich Presence Client connected");
@@ -31,9 +31,7 @@ pub fn on_init(noot: &mut Noot) -> Task<Message> {
 
     let cfg = config.unwrap();
 
-
     debug!("Checking RPC permissions");
-
 
     let rpc_config = cfg.rpc.unwrap_or_default();
 

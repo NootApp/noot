@@ -1,17 +1,15 @@
-use std::path::PathBuf;
-use serde_derive::{Deserialize, Serialize};
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::{WorkspaceError, WorkspaceResult};
+use serde_derive::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GitBackupStrategy {
-
     pub permit_remotes: Option<Vec<String>>,
     pub repository: Option<String>,
     pub branch: Option<String>,
 }
-
 
 impl BackupStrategy for GitBackupStrategy {
     fn fetch(&mut self, path: &PathBuf) -> WorkspaceResult<()> {
@@ -43,4 +41,3 @@ impl BackupStrategy for GitBackupStrategy {
         todo!()
     }
 }
-

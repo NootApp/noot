@@ -1,11 +1,13 @@
-use std::io::Write;
-use crate::filesystem::workspace::state::{ResolverMethod, Screen, WorkspaceFile, WorkspaceState};
+use crate::filesystem::workspace::global::WorkspaceManifest;
+use crate::filesystem::workspace::state::plugins::PluginManifest;
+use crate::filesystem::workspace::state::{
+    ResolverMethod, Screen, WorkspaceFile, WorkspaceState,
+};
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
+use std::io::Write;
 use std::path::PathBuf;
-use crate::filesystem::workspace::global::WorkspaceManifest;
-use crate::filesystem::workspace::state::plugins::PluginManifest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {
@@ -25,7 +27,6 @@ pub struct MinifiedWorkspaceFile {
     pub path: PathBuf,
 }
 
-
 impl WorkspaceFile {
     pub fn store(&self) -> PathBuf {
         let mut tmp_path = self.path.clone();
@@ -37,15 +38,20 @@ impl WorkspaceFile {
 
         tmp_path.push(".noot");
         tmp_path.push(".cache");
-        tmp_path.set_file_name(format!("{}.cache",name));
+        tmp_path.set_file_name(format!("{}.cache", name));
         debug!("Temp file: {:?}", tmp_path);
 
         let serial = toml::to_string(self).unwrap();
-        
-        let mut handle = std::fs::File::options().write(true).create(true).truncate(true).open(&tmp_path).unwrap();
+
+        let mut handle = std::fs::File::options()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&tmp_path)
+            .unwrap();
         handle.write_all(serial.as_bytes()).unwrap();
         handle.sync_all().unwrap();
-        
+
         tmp_path
     }
 }
@@ -66,9 +72,10 @@ impl MinifiedWorkspaceState {
     }
 }
 
-
 impl MinifiedWorkspaceFile {
-    pub fn from_state(s: WorkspaceState) -> HashMap<PathBuf, MinifiedWorkspaceFile> {
+    pub fn from_state(
+        s: WorkspaceState,
+    ) -> HashMap<PathBuf, MinifiedWorkspaceFile> {
         let mut files = HashMap::new();
 
         for (path, file) in s.files {
@@ -79,8 +86,6 @@ impl MinifiedWorkspaceFile {
     }
 
     pub fn from_file(file: WorkspaceFile) -> Self {
-        Self {
-            path: file.path,
-        }
+        Self { path: file.path }
     }
 }

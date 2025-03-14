@@ -1,6 +1,6 @@
+use crate::filesystem::utils::traits::{Configuration, ValidationError};
 use regex::Regex;
 use serde_derive::{Deserialize, Serialize};
-use crate::filesystem::utils::traits::{Configuration, ValidationError};
 
 /// RichPresenceConfig provides a configuration interface for the
 /// rich presence provided within the application.
@@ -24,7 +24,9 @@ impl RichPresenceConfig {
     }
 
     pub fn client_id(&self) -> String {
-        self.client_id.clone().unwrap_or("1343225099834101810".to_string())
+        self.client_id
+            .clone()
+            .unwrap_or("1343225099834101810".to_string())
     }
 
     pub fn is_enable_idle(&self) -> bool {
@@ -52,10 +54,7 @@ impl Default for RichPresenceConfig {
     }
 }
 
-
-
 impl Configuration for RichPresenceConfig {
-
     /// Validation will always pass for rich presence config
     fn validate(&self, prefix: &str) -> Vec<ValidationError> {
         let mut errors = Vec::new();

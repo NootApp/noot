@@ -1,9 +1,9 @@
-use crate::filesystem::workspace::global::{WorkspaceManifest};
+use crate::filesystem::utils::traits::{Configuration, ValidationError};
+use crate::filesystem::workspace::global::WorkspaceManifest;
 use crate::subsystems::discord::config::RichPresenceConfig;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
-use crate::filesystem::utils::traits::{Configuration, ValidationError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -12,7 +12,7 @@ pub struct Config {
     pub workspaces: Option<Vec<WorkspaceManifest>>,
     pub last_open: Option<String>,
     pub rpc: Option<RichPresenceConfig>,
-    pub performance: Option<performance::PerformanceConfiguration>
+    pub performance: Option<performance::PerformanceConfiguration>,
 }
 
 /// The default config is imported at compile time
@@ -80,44 +80,43 @@ impl Default for Config {
 
 impl Configuration for Config {
     fn validate(&self, _prefix: &str) -> Vec<ValidationError> {
-       let mut errors = Vec::new();
+        let mut errors = Vec::new();
 
         dbg!(&self);
 
         if self.rpc.is_none() {
-            errors.push(
-                ValidationError::new(
-                    "config.rpc",
-                    "Rich Presence configuration not provided, will use default",
-                    true
-                )
-            );
+            errors.push(ValidationError::new(
+                "config.rpc",
+                "Rich Presence configuration not provided, will use default",
+                true,
+            ));
         } else {
             let mut rpc = self.rpc.as_ref().unwrap().validate("config.rpc");
             errors.append(&mut rpc);
         }
 
         if self.performance.is_none() {
-            errors.push(
-                ValidationError::new(
-                    "config.performance",
-                    "Performance configuration not provided, will use default",
-                    true
-                )
-            );
+            errors.push(ValidationError::new(
+                "config.performance",
+                "Performance configuration not provided, will use default",
+                true,
+            ));
         } else {
-            let mut performance = self.performance.as_ref().unwrap().clone().validate("config.performance");
+            let mut performance = self
+                .performance
+                .as_ref()
+                .unwrap()
+                .clone()
+                .validate("config.performance");
             errors.append(&mut performance);
         }
 
         if self.workspaces.is_none() {
-            errors.push(
-                ValidationError::new(
-                    "config.workspaces",
-                    "Workspaces list not provided, will use default",
-                    true
-                )
-            );
+            errors.push(ValidationError::new(
+                "config.workspaces",
+                "Workspaces list not provided, will use default",
+                true,
+            ));
         } else {
             let mut used_ids = Vec::new();
             for workspace in self.workspaces.as_ref().unwrap().iter() {
@@ -130,9 +129,11 @@ impl Configuration for Config {
                 } else {
                     used_ids.push(workspace.id.clone());
                 }
-                let mut wsp = workspace.validate(&format!("config.workspace.{}", workspace.id.clone().unwrap()));
+                let mut wsp = workspace.validate(&format!(
+                    "config.workspace.{}",
+                    workspace.id.clone().unwrap()
+                ));
                 errors.append(&mut wsp);
-
             }
         }
 
@@ -145,7 +146,8 @@ impl Configuration for Config {
         }
 
         if self.performance.is_none() {
-            self.performance = Some(performance::PerformanceConfiguration::default());
+            self.performance =
+                Some(performance::PerformanceConfiguration::default());
         }
 
         if self.workspaces.is_none() {
@@ -172,10 +174,9 @@ pub fn get_config_path() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::*;
+    use super::*;
     use nanoid::nanoid;
-
 
     #[tokio::test]
     async fn test_config_read_from_disk() {
@@ -192,10 +193,9 @@ mod tests {
 
         cfg.last_open = Some(new_workspace_id.clone());
         cfg.save_to_disk().await.unwrap();
-        let cfg2 : Config = Config::load_from_disk().await;
+        let cfg2: Config = Config::load_from_disk().await;
         assert_eq!(cfg2.last_open, Some(new_workspace_id));
     }
 }
-
 
 mod performance;

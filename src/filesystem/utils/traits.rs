@@ -1,6 +1,6 @@
-use iced::{exit, Task};
-use serde_derive::{Deserialize, Serialize};
 use crate::events::types::Message;
+use iced::{Task, exit};
+use serde_derive::{Deserialize, Serialize};
 
 /// A trait which ensures that all
 pub trait Configuration {
@@ -33,7 +33,9 @@ impl std::fmt::Display for ValidationError {
     }
 }
 
-pub fn list_validation_results(results: Vec<ValidationError>) -> (Task<Message>, bool) {
+pub fn list_validation_results(
+    results: Vec<ValidationError>,
+) -> (Task<Message>, bool) {
     let mut recoverable = true;
     for result in results {
         if result.recoverable {
@@ -45,8 +47,10 @@ pub fn list_validation_results(results: Vec<ValidationError>) -> (Task<Message>,
     }
 
     if !recoverable {
-        error!("An irrecoverable error was encountered, and the program must now exit");
-        return (exit(), true)
+        error!(
+            "An irrecoverable error was encountered, and the program must now exit"
+        );
+        return (exit(), true);
     }
 
     (Task::none(), false)

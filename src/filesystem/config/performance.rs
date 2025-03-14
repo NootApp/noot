@@ -1,7 +1,6 @@
 use crate::filesystem::utils::traits::{Configuration, ValidationError};
 use serde_derive::{Deserialize, Serialize};
 
-
 pub const THREAD_COUNT_LIMIT: usize = 12;
 
 /// PerformanceConfiguration is a struct representing all the global performance settings for Noot
@@ -38,7 +37,6 @@ impl Configuration for PerformanceConfiguration {
             let system_physical_cpus = num_cpus::get_physical();
             let ratio = max_work_threads as f64 / system_threads as f64;
 
-
             if ratio > 0.5 {
                 issues.push(ValidationError::new(
                     &format!("{}.performance.max-work-threads", prefix),
@@ -46,7 +44,7 @@ impl Configuration for PerformanceConfiguration {
                     true
                 ))
             }
-            
+
             if max_work_threads > THREAD_COUNT_LIMIT {
                 issues.push(ValidationError::new(
                     &format!("{}.performance.max-work-threads", prefix),
@@ -54,7 +52,6 @@ impl Configuration for PerformanceConfiguration {
                     true
                 ))
             }
-
         }
 
         issues

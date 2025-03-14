@@ -1,25 +1,25 @@
 //! Welcome to the Noot docs.
 //! If you're reading this, congrats, you're probably more invested
 //! than you should be
-use iced::highlighter;
-use iced::widget::{
-    container, text, text_editor,
-};
-use iced::window::{icon, Id};
+use filesystem::workspace::manager::MANAGER;
+use hashbrown::HashMap;
+use iced::futures::executor::block_on;
+use iced::{highlighter, Application, Subscription, Theme};
+use iced::widget::{container, text, text_editor};
+use iced::window::{Id, icon};
 use iced::{Size, Task, window};
 use std::env;
 use std::path::PathBuf;
-use hashbrown::HashMap;
-use iced::futures::executor::block_on;
-use filesystem::workspace::manager::MANAGER;
 
 #[macro_use]
 extern crate log;
 use crate::events::types::Message;
 use crate::filesystem::config::Config;
-use crate::filesystem::utils::traits::{list_validation_results, Configuration};
-use crate::subsystems::discord::RPC_CLIENT;
+use crate::filesystem::utils::traits::{
+    Configuration, list_validation_results,
+};
 use crate::filesystem::workspace::state::WorkspaceState;
+use crate::subsystems::discord::RPC_CLIENT;
 
 mod build_meta;
 mod components;
@@ -42,7 +42,8 @@ fn init() {
 async fn main() -> iced::Result {
     // This is definitely safe :|
 
-    let log_level = env::var("NOOT_LOG").unwrap_or_else(|_| "info".to_uppercase());
+    let log_level =
+        env::var("NOOT_LOG").unwrap_or_else(|_| "info".to_uppercase());
 
     unsafe {
         env::set_var("NOOT_LOG", log_level.clone());
@@ -50,11 +51,12 @@ async fn main() -> iced::Result {
 
     pretty_env_logger::init_custom_env("NOOT_LOG");
 
-
-
     #[cfg(debug_assertions)]
     if log_level != "debug" {
-        warn!("Built with debug assertions, but log level is '{}'", log_level);
+        warn!(
+            "Built with debug assertions, but log level is '{}'",
+            log_level
+        );
     }
 
     debug!("{:?}", build_meta::VERSION);
@@ -77,7 +79,7 @@ async fn main() -> iced::Result {
                     include_bytes!("../static/favicon.png").as_slice(),
                     None,
                 )
-                    .unwrap(),
+                .unwrap(),
             ),
             platform_specific: Default::default(),
             exit_on_close_request: true,
@@ -97,44 +99,32 @@ async fn main() -> iced::Result {
 
 /// The runtime struct that manages the whole app flow
 #[derive(Debug)]
-struct Noot<'a> {
+struct Noot {
     /// the current application theme
     theme: highlighter::Theme,
 
     /// the current application viewport
-    viewport: ViewPort<'a>,
+    viewport: ViewPort,
 
     /// the currently loaded configuration (if one is present)
     config: Option<Config>,
 
-    windows: HashMap<String, Id>
+    windows: HashMap<String, Id>,
 }
 
 
 
-/// This is a temporary struct used to keep the compiler happy
-/// <div class="warning">
-/// This is not to be used as a reference
-/// </div>
 #[derive(Debug)]
-struct EditorWorkspace {
-    pub file: Option<PathBuf>,
-    pub content: text_editor::Content,
-    pub theme: highlighter::Theme,
-    pub word_wrap: bool,
-    pub is_loading: bool,
-    pub is_dirty: bool,
-}
-
-#[derive(Debug)]
-enum ViewPort<'a> {
+enum ViewPort {
     LoadingView,
     WorkspaceView(WorkspaceState),
-    LandingView(views::landing::LandingView<'a>),
+    LandingView(views::landing::LandingView),
     SettingsView,
 }
 
-impl<'a> Noot<'a> {
+
+impl Noot {
+
     fn new() -> (Self, Task<Message>) {
         debug!("Creating Noot runtime");
         (
@@ -142,7 +132,7 @@ impl<'a> Noot<'a> {
                 theme: highlighter::Theme::SolarizedDark,
                 viewport: ViewPort::LoadingView,
                 config: None,
-                windows: HashMap::new()
+                windows: HashMap::new(),
             },
             Task::perform(Config::load_from_disk(), Message::ConfigLoaded),
         )
@@ -152,16 +142,25 @@ impl<'a> Noot<'a> {
         events::handlers::core(self, message)
     }
 
-    fn theme(&self) -> iced::theme::Theme {
+    fn theme(&self) -> Theme {
         if self.theme.is_dark() {
-            iced::theme::Theme::TokyoNightStorm
+            Theme::TokyoNightStorm
         } else {
-            iced::theme::Theme::Light
+            Theme::Light
         }
     }
 
     fn view(&self) -> iced::Element<Message> {
         // debug!("Viewing window with id {}", id);
         views::render_view(self)
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        error!("Subscribing to noot runtime");
+        if let Some(config) = &self.config {
+            window::open_events().map(|id| Message::WindowOpened(id))
+        } else {
+            Subscription::none()
+        }
     }
 }

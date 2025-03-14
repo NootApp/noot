@@ -1,35 +1,32 @@
+use crate::Noot;
 use crate::events::types::Message;
 use crate::views::landing::new_workspace::NewWorkspaceView;
-use crate::Noot;
+use iced::Background::Gradient;
+use iced::Element;
 use iced::gradient::Linear;
 use iced::widget::container::Style;
-use iced::widget::{
-    button, center, column, container, row
-    , text, Container,
-};
-use iced::Background::Gradient;
-use iced::{color, Bottom, Length, Padding, Theme};
-use iced::Element;
+use iced::widget::{Container, button, center, column, container, row, text};
+use iced::{Bottom, Length, Padding, Theme, color};
 
 mod cloud_sync;
 mod new_workspace;
 mod open_workspace;
 
 #[derive(Debug, Clone)]
-pub struct LandingView<'a> {
-    subview: SubView<'a>,
+pub struct LandingView {
+    subview: SubView,
 }
 
 #[derive(Debug, Clone)]
-pub enum SubView<'a> {
+pub enum SubView {
     None,
-    NewWorkspace(NewWorkspaceView<'a>),
+    NewWorkspace(NewWorkspaceView),
     OpenWorkspace(),
     CloudWorkspace(),
 }
 
-impl<'a> LandingView<'a> {
-    pub fn new() -> LandingView<'a> {
+impl LandingView {
+    pub fn new() -> LandingView {
         LandingView {
             // subview: SubView::None,
             subview: SubView::NewWorkspace(NewWorkspaceView::new()),
