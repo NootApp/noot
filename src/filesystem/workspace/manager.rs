@@ -1,3 +1,4 @@
+use std::fs::exists;
 use crate::filesystem::workspace::global::WorkspaceManifest;
 use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
@@ -41,7 +42,7 @@ impl WorkspaceManager {
         }
     }
 
-    pub async fn load_workspace(
+    pub fn load_workspace(
         &mut self,
         id: String,
     ) -> WorkspaceResult<WorkspaceState> {
@@ -51,7 +52,7 @@ impl WorkspaceManager {
             let root_dir = manifest.parse_local_path().unwrap();
             debug!("Workspace root path is '{:?}'", &root_dir);
 
-            let exists_result = tokio::fs::try_exists(&root_dir).await;
+            let exists_result = exists(&root_dir);
             let mut workspace = WorkspaceState {
                 manifest: manifest.clone(),
                 viewport: Screen::Empty,
@@ -78,7 +79,7 @@ impl WorkspaceManager {
                     let mut noot_dir = root_dir.clone();
                     noot_dir.push(".noot");
 
-                    let noot_exists = tokio::fs::try_exists(&noot_dir).await;
+                    let noot_exists = exists(&noot_dir);
 
                     if noot_exists.is_ok() {
                         debug!("Noot dir exists");

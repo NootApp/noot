@@ -46,8 +46,7 @@ pub fn on_load_start(noot: &mut Noot) -> Task<AppEvent> {
 
     if let Some(previous_workspace) = cfg.last_open {
         debug!("Previous workspace found");
-        let load_outcome = mgr.load_workspace(previous_workspace);
-        let outcome = block_on(load_outcome);
+        let outcome = mgr.load_workspace(previous_workspace);
         queue.add(AppEvent::WorkspaceLoadResult(outcome));
     } else {
         debug!("No previous workspace found - Showing landing view");

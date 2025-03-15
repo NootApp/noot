@@ -1,15 +1,18 @@
 use serde_derive::{Deserialize, Serialize};
 
 use std::path::PathBuf;
+use iced::{color, Element, Padding};
+use iced::widget::{column, scrollable, text};
+use crate::app::GlobalEvent;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum FileEntry {
     Folder(FileTree),
     File(String),
     Symlink(String),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct FileTree {
     pub node_count: u32,
     pub parent: String,
@@ -58,6 +61,26 @@ impl FileTree {
         let pathbuf = PathBuf::from(path.into());
         FileTree::from_path(&pathbuf)
     }
+
+    pub fn view(&self, recursive: bool) -> Element<GlobalEvent> {
+        if !recursive {
+            scrollable(
+                column(self.children.iter().map(|e| e.view(true))).padding(Padding {
+                    top: 5.,
+                    bottom: 0.,
+                    left: 20.,
+                    right: 0.,
+                })
+            ).into()
+        } else {
+            column(self.children.iter().map(|e| e.view(true))).padding(Padding {
+                top: 5.,
+                bottom: 0.,
+                left: 20.,
+                right: 0.,
+            }).into()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -69,5 +92,25 @@ mod tests {
         let tree = FileTree::from_path(&PathBuf::from("./static")).unwrap();
         dbg!(&tree);
         assert_eq!(tree.node_count, 6);
+    }
+}
+
+
+impl FileEntry {
+    pub fn view(&self, recursive: bool) -> Element<GlobalEvent> {
+        match self {
+            FileEntry::Folder(subtree) => {
+                column!(
+                    text(subtree.name.clone()).color(color!(0x0000FF)),
+                    subtree.view(true)
+                ).into()
+            }
+            FileEntry::File(name) => {
+                text(name).color(color!(0xFF0000)).into()
+            }
+            FileEntry::Symlink(name) => {
+                text(name).color(color!(0x00FF00)).into()
+            }
+        }
     }
 }

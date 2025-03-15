@@ -1,10 +1,12 @@
 use std::collections::BTreeMap;
 use iced::{exit, window, Element, Subscription, Task, Theme};
+use iced::application::Title;
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
 use iced::window::{gain_focus, Event, Id};
 use crate::consts::{APP_NAME, APP_VERSION};
 use crate::filesystem::config::Config;
+use crate::filesystem::workspace::manager::MANAGER;
 use crate::windows::{AppWindow};
 use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
 use crate::windows::editor_window::EditorWindow;
@@ -32,6 +34,8 @@ pub enum GlobalEvent {
 impl App {
     pub fn new() -> (App, Task<GlobalEvent>) {
         let (config, is_initial) = Config::load_from_disk();
+        let mut mgr = MANAGER.lock().unwrap();
+        mgr.ingest_config(config.workspaces.clone().unwrap());
 
         (
             App {
@@ -68,11 +72,26 @@ impl App {
             GlobalEvent::OpenWindow(name) => {
                 match name.as_str() {
                     "editor" => {
-                        let (state, id, task) = EditorWindow::new();
-                        self.windows.insert(id, AppWindow::Editor(Box::from(state)));
-                        task.discard()
-                            .chain(gain_focus(id))
-                            .chain(Task::done(GlobalEvent::DebugState("Window Count".to_string(), self.windows.len().to_string())))
+                        let lo = self.config.last_open.clone().unwrap();
+
+                        let chain = Task::done(GlobalEvent::DebugState("Workspace Loaded".to_string(), "false".to_string()))
+                            .chain(Task::done(GlobalEvent::DebugState("Workspace ID".to_string(), lo.clone())));
+
+
+                        let workspace = MANAGER.lock().unwrap().load_workspace(lo);
+                        if let Ok(workspace) = workspace {
+                            let (state, id, task) = EditorWindow::new(workspace);
+                            self.windows.insert(id, AppWindow::Editor(Box::from(state)));
+                            return task.discard()
+                                .chain(chain)
+                                .chain(Task::done(GlobalEvent::DebugState("Workspace Loaded".to_string(), "true".to_string())))
+                                .chain(gain_focus(id))
+                                .chain(Task::done(GlobalEvent::DebugState("Window Count".to_string(), self.windows.len().to_string())))
+                        } else {
+                            error!("Tried to open workspace editor but workspace was not ready");
+                        }
+
+                        exit().chain(chain)
                     },
                     "debug" => {
                         let (state, id, task) = BuildInfoWindow::new();

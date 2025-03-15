@@ -2,15 +2,15 @@ use iced::{window, Element, Size, Task};
 use iced::widget::{row, Container, text, column};
 use iced::window::{icon, Id, Settings};
 use crate::app::GlobalEvent;
+use crate::components::tree::TreeWidget;
 use crate::consts::APP_ICON;
-use crate::filesystem::utils::tree::FileTree;
 use crate::filesystem::workspace::state::WorkspaceState;
 
 #[derive(Debug)]
 pub struct EditorWindow {
-    pub id: Id
-    // workspace: WorkspaceState,
-    // file_list: FileTree
+    pub id: Id,
+    workspace: WorkspaceState,
+    file_list: TreeWidget
 }
 
 
@@ -21,14 +21,13 @@ pub enum EditorEvent {
 
 
 impl EditorWindow {
-    pub fn new(/*state: WorkspaceState, tree: FileTree*/) -> (Self, Id, Task<Id>) {
+    pub fn new(state: WorkspaceState) -> (Self, Id, Task<Id>) {
         let (id, task) = window::open(Self::config());
-
-
+        
         let state = Self {
-            id
-            // workspace: state,
-            // file_list: tree,
+            id,
+            workspace: state.clone(),
+            file_list: TreeWidget::new(state.manifest.parse_local_path().unwrap()),
         };
 
         (state, id, task)
@@ -41,7 +40,7 @@ impl EditorWindow {
             min_size: None,
             max_size: None,
             visible: true,
-            resizable: false,
+            resizable: true,
             decorations: true,
             transparent: false,
             level: Default::default(),
@@ -54,9 +53,7 @@ impl EditorWindow {
     pub fn view(&self) -> Element<GlobalEvent> {
         Container::new(
             row!(
-                column!(
-                    text("File Tree")
-                ),
+                self.file_list.view(),
                 column!(
                     text("Editor Section")
                 ),
