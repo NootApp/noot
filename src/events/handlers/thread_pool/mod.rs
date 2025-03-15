@@ -1,9 +1,9 @@
 use crate::Noot;
-use crate::events::types::Message;
+use crate::events::types::AppEvent;
 use crossbeam_queue::SegQueue;
 use iced::Task;
 
-pub fn on_spawn(noot: &mut Noot) -> Task<Message> {
+pub fn on_spawn(noot: &mut Noot) -> Task<AppEvent> {
     let config = noot.config.clone().unwrap();
 
     let mut max_threads = config

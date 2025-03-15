@@ -3,14 +3,16 @@ use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::WorkspaceResult;
 use crate::filesystem::workspace::state::WorkspaceState;
 use discord_rich_presence::activity::Activity;
-use iced::{Application, Task};
+use iced::{Application, Point, Size, Task};
 use nanoid::nanoid;
 use std::io;
 use std::io::Bytes;
+use std::path::PathBuf;
+use crate::subsystems::events::Task as EventTask;
 use iced::window::Id;
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum AppEvent {
     /*
         Configuration events
     */
@@ -92,7 +94,27 @@ pub enum Message {
     /// Emitted when the content of a form element changes.
     /// Contains the ID of the form field which was changed, as well as the new content
     FormContentChanged(String, String),
+
+
+    /*
+        Event Emitter Events
+     */
+    EventQueue(Box<EventTask>),
+
+    /*
+        Iced internal events
+     */
+    Ignored, // Used for matching events we don't want to process
     WindowOpened(Id),
+    WindowClosed(Id),
+    WindowMoved(Id, Point),
+    WindowResized(Id, Size),
+    WindowFocused(Id),
+    WindowUnfocused(Id),
+    WindowFileHovered(Id, PathBuf),
+    WindowFileDropped(Id, PathBuf),
+    WindowFilesHoveredLeft(Id),
+    WindowCloseRequested(Id),
 }
 
 #[derive(Debug, Clone)]
@@ -103,7 +125,7 @@ pub enum Error {
 
 pub struct EventQueue {
     id: String,
-    queue: Vec<Message>,
+    queue: Vec<AppEvent>,
 }
 
 impl EventQueue {
@@ -114,15 +136,15 @@ impl EventQueue {
         }
     }
 
-    pub fn add(&mut self, msg: Message) {
+    pub fn add(&mut self, msg: AppEvent) {
         debug!("Adding event to queue ({})", self.id);
         self.queue.push(msg);
     }
 
-    pub fn drain(&mut self, noot: &mut Noot) -> Task<Message> {
+    pub fn drain(&mut self, noot: &mut Noot) -> Task<AppEvent> {
         debug!("Draining event queue ({})", self.id);
 
-        let mut tasks: Vec<Task<Message>> = Vec::new();
+        let mut tasks: Vec<Task<AppEvent>> = Vec::new();
 
         for event in self.queue.drain(..) {
             debug!("Draining event ({}): {:?}", self.id, event);

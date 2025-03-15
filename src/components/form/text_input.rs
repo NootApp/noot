@@ -1,4 +1,4 @@
-use crate::events::types::Message;
+use crate::events::types::AppEvent;
 use iced::Element;
 use iced::widget::container;
 use iced::widget::{column, text};
@@ -46,11 +46,11 @@ impl TextInput {
         self
     }
 
-    pub fn view(&self) -> Element<Message> {
+    pub fn view(&self) -> Element<AppEvent> {
         container(column![text(self.label.clone()), self.text_input()]).into()
     }
 
-    pub fn text_input(&self) -> Element<Message> {
+    pub fn text_input(&self) -> Element<AppEvent> {
         match &self.placeholder {
             Some(v) => {
                 iced::widget::text_input::TextInput::new(v, &self.value).into()
@@ -61,7 +61,7 @@ impl TextInput {
         }
     }
 
-    pub fn on_input(&self, content: String) -> Message {
-        Message::FormContentChanged(self.field_id.clone(), content)
+    pub fn on_input(&self, content: String) -> AppEvent {
+        AppEvent::FormContentChanged(self.field_id.clone(), content)
     }
 }

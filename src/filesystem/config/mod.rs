@@ -3,7 +3,8 @@ use crate::filesystem::workspace::global::WorkspaceManifest;
 use crate::subsystems::discord::config::RichPresenceConfig;
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
-use tokio::io::AsyncWriteExt;
+use std::fs::{create_dir_all, exists, read_to_string, OpenOptions};
+use std::io::Write;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -22,50 +23,49 @@ const DEFAULT_CONFIG_STRING: &'static str =
     include_str!("../../../sample_config.toml");
 
 impl Config {
-    pub async fn load_from_disk() -> Config {
+    pub fn load_from_disk() -> (Config, bool) {
         debug!("Loading config from disk");
         let mut cfg_path = get_config_path();
         let cfg_folder = cfg_path.clone();
         debug!("Config path: {:?}", cfg_path);
         cfg_path.push("cfg.toml");
 
-        if !tokio::fs::try_exists(&cfg_path).await.unwrap() {
+        if !exists(&cfg_path).unwrap() {
             warn!("Config file does not exist - making folder");
             let tmp: Config = Config::default();
             tmp.validate("");
-            tmp.save_to_disk().await.unwrap();
+            tmp.save_to_disk().unwrap();
 
-            tmp
+            (tmp, true)
         } else {
             debug!("Parsing config file");
-            let contents = tokio::fs::read_to_string(cfg_path).await.unwrap();
+            let contents = read_to_string(cfg_path).unwrap();
             let tmp: Config = toml::from_str(&contents).unwrap();
             tmp.validate("");
-            tmp
+            (tmp, false)
         }
     }
 
-    pub async fn save_to_disk(&self) -> Result<(), std::io::Error> {
+    pub fn save_to_disk(&self) -> Result<(), std::io::Error> {
         debug!("Saving config to disk");
         let contents = toml::to_string(&self).unwrap();
         let mut cfg_path = get_config_path();
 
-        if !tokio::fs::try_exists(&cfg_path).await? {
+        if !exists(&cfg_path)? {
             debug!("Config file does not exist");
-            tokio::fs::create_dir_all(&cfg_path).await?;
+            create_dir_all(&cfg_path)?;
         }
 
         debug!("Config path: {:?}", cfg_path);
         cfg_path.push("cfg.toml");
-        let mut handle = tokio::fs::OpenOptions::new()
+        let mut handle = OpenOptions::new()
             .write(true)
             .truncate(true)
             .create(true)
-            .open(cfg_path)
-            .await?;
+            .open(cfg_path)?;
 
-        handle.write_all(contents.as_bytes()).await?;
-        handle.flush().await?;
+        handle.write_all(contents.as_bytes())?;
+        handle.flush()?;
 
         debug!("Config file successfully saved");
         Ok(())
@@ -174,26 +174,23 @@ pub fn get_config_path() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::super::*;
     use super::*;
     use nanoid::nanoid;
 
-    #[tokio::test]
-    async fn test_config_read_from_disk() {
-        let cfg: Config = Config::load_from_disk().await;
+    fn test_config_read_from_disk() {
+        let (cfg, _) = Config::load_from_disk();
 
         assert_eq!(cfg.workspaces.unwrap().len(), 1);
     }
 
-    #[tokio::test]
-    async fn test_config_save_to_disk() {
-        let mut cfg: Config = Config::load_from_disk().await;
+    fn test_config_save_to_disk() {
+        let (mut cfg, _) = Config::load_from_disk();
 
         let new_workspace_id = nanoid!(10);
 
         cfg.last_open = Some(new_workspace_id.clone());
-        cfg.save_to_disk().await.unwrap();
-        let cfg2: Config = Config::load_from_disk().await;
+        cfg.save_to_disk().unwrap();
+        let (cfg2, _) = Config::load_from_disk();
         assert_eq!(cfg2.last_open, Some(new_workspace_id));
     }
 }

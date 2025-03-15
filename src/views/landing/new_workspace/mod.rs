@@ -1,5 +1,5 @@
 use crate::components::form::text_input::TextInput;
-use crate::events::types::Message;
+use crate::events::types::AppEvent;
 use crate::views::landing::LandingView;
 use iced::Background::Color;
 use iced::alignment::Horizontal;
@@ -32,7 +32,7 @@ impl<'a> NewWorkspaceView {
         }
     }
 
-    pub fn view(&self, _content: &LandingView) -> Element<Message> {
+    pub fn view(&self, _content: &LandingView) -> Element<AppEvent> {
         container(scrollable(column![row![self.workspace_name_input.view()]]))
             .height(395)
             .width(530)

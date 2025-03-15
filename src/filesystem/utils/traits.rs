@@ -1,4 +1,4 @@
-use crate::events::types::Message;
+use crate::events::types::AppEvent;
 use iced::{Task, exit};
 use serde_derive::{Deserialize, Serialize};
 
@@ -35,7 +35,7 @@ impl std::fmt::Display for ValidationError {
 
 pub fn list_validation_results(
     results: Vec<ValidationError>,
-) -> (Task<Message>, bool) {
+) -> (Task<AppEvent>, bool) {
     let mut recoverable = true;
     for result in results {
         if result.recoverable {

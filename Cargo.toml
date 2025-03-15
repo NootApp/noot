@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = {version = "0.13.1", features = ["debug", "tokio", "highlighter", "image"] }
+#iced = {path = "../iced", features = ["debug", "tokio", "image"]}
+iced = {version = "0.13.1", features = ["advanced", "multi-window", "debug", "tokio", "image"] }
 tokio = { version = "1.43.0", features = ["fs", "full"] }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
@@ -35,6 +36,11 @@ num_cpus = "1.16.0"
 crossbeam-queue = "0.3.12"
 libsql = { git = "https://github.com/tursodatabase/libsql", rev = "38cfab7d5dd2f294ce36493ad02f26bfd26cef33" }
 aead = "0.5.2"
+iced_anim = "0.2.0"
+rfd = "0.15.3"
+mouse_position = "0.1.4"
+tray-icon = "0.20.0"
+rdev = "0.5.3"
 
 
 [dev-dependencies]

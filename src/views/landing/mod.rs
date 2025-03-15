@@ -1,5 +1,5 @@
 use crate::Noot;
-use crate::events::types::Message;
+use crate::events::types::AppEvent;
 use crate::views::landing::new_workspace::NewWorkspaceView;
 use iced::Background::Gradient;
 use iced::Element;
@@ -33,7 +33,7 @@ impl LandingView {
         }
     }
 
-    pub(crate) fn view(&self, _parent: &Noot) -> Element<Message> {
+    pub(crate) fn view(&self, _parent: &Noot) -> Element<AppEvent> {
         match &self.subview {
             SubView::None => Container::new(column![center(
                 column![
