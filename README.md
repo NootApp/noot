@@ -15,3 +15,5 @@ This project has not been audited for security in any way, and the original
 implementations are not designed to be foolproof.
 
 
+### Project Status
+![server fire](https://us1.discourse-cdn.com/spiceworks/original/4X/0/d/4/0d488d0144275ff40a15b4dff65bba30a361d1ee.gif)

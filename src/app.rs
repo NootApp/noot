@@ -3,13 +3,14 @@ use iced::{exit, window, Element, Subscription, Task, Theme};
 use iced::application::Title;
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
+use iced::widget::text_editor::Edit;
 use iced::window::{gain_focus, Event, Id};
 use crate::consts::{APP_NAME, APP_VERSION};
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::MANAGER;
 use crate::windows::{AppWindow};
 use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
-use crate::windows::editor_window::EditorWindow;
+use crate::windows::editor_window::{EditorEvent, EditorWindow};
 
 #[derive(Debug)]
 pub struct App {
@@ -18,6 +19,7 @@ pub struct App {
     has_ticked: bool,
     is_initial: bool,
     debug_window_id: Option<Id>,
+    theme: Theme,
 }
 
 
@@ -29,6 +31,7 @@ pub enum GlobalEvent {
     WindowClosed(Id),
     DebugMessage(String),
     DebugState(String, String),
+    Editor(Id, EditorEvent),
 }
 
 impl App {
@@ -44,6 +47,7 @@ impl App {
                 has_ticked: false,
                 is_initial,
                 debug_window_id: None,
+                theme: Theme::default()
             },
             Task::done(GlobalEvent::Tick),
         )
@@ -80,13 +84,15 @@ impl App {
 
                         let workspace = MANAGER.lock().unwrap().load_workspace(lo);
                         if let Ok(workspace) = workspace {
-                            let (state, id, task) = EditorWindow::new(workspace);
+                            let (state, id, task) = EditorWindow::new(workspace, self.theme.clone());
+
                             self.windows.insert(id, AppWindow::Editor(Box::from(state)));
                             return task.discard()
                                 .chain(chain)
                                 .chain(Task::done(GlobalEvent::DebugState("Workspace Loaded".to_string(), "true".to_string())))
                                 .chain(gain_focus(id))
                                 .chain(Task::done(GlobalEvent::DebugState("Window Count".to_string(), self.windows.len().to_string())))
+                                .chain(Task::done(GlobalEvent::Editor(id, EditorEvent::Ready)));
                         } else {
                             error!("Tried to open workspace editor but workspace was not ready");
                         }
@@ -158,6 +164,16 @@ impl App {
 
                 Task::none()
             }
+            GlobalEvent::Editor(id, event) => {
+                if let Some(window) = self.windows.get_mut(&id) {
+                    match window {
+                        AppWindow::Editor(editor) => editor.update(event),
+                        _ => Task::none()
+                    }
+                } else {
+                    Task::none()
+                }
+            }
             e => {
                 error!("Unknown event: {:?}", e);
                 Task::none()
@@ -182,7 +198,7 @@ impl App {
     }
 
     pub fn theme(&self, id: Id) -> Theme {
-        Theme::default()
+        self.theme.clone()
     }
 
     pub fn scale_factor(&self, id: Id) -> f64 {
@@ -202,6 +218,14 @@ impl App {
                 _ => GlobalEvent::DebugMessage(format!("{:?}", e)),
             }
         });
+        //
+        // let handle = std::sync::mpsc::channel();
+        //
+        //
+        //
+        // std::thread::spawn(move || {
+        //
+        // })
 
         Subscription::batch([
             window_events,

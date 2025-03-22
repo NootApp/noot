@@ -1,3 +1,4 @@
+#![feature(stmt_expr_attributes)]
 //! Welcome to the Noot docs.
 //! If you're reading this, congrats, you're probably more invested
 //! than you should be
@@ -29,6 +30,8 @@ mod consts;
 mod windows;
 
 mod app;
+
+mod markdown;
 
 #[cfg(test)]
 #[ctor::ctor]
@@ -155,12 +158,7 @@ impl Noot {
     fn new() -> (Self, Task<AppEvent>) {
         debug!("Creating Noot runtime");
 
-        let mut window_map = HashMap::new();
-        let id = window::get_latest();
-
-
-
-
+        let window_map = HashMap::new();
         (
             Self {
                 viewport: ViewPort::LoadingView,

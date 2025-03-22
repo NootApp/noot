@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use iced::Element;
 use iced::widget::{column, span, text};
 use crate::app::GlobalEvent;
-use crate::filesystem::utils::tree::FileTree;
+use crate::filesystem::utils::tree::{FileEntry, FileTree};
 
 #[derive(Debug, Clone)]
 pub struct TreeWidget {
-    cwd: PathBuf,
-    tree: FileTree
+    pub cwd: PathBuf,
+    pub tree: FileTree
 }
 
 impl TreeWidget {
@@ -32,5 +32,26 @@ impl TreeWidget {
             text("Workspace Files").into(),
             self.tree.view(false).into(),
         ]).into()
+    }
+
+    pub fn has_readme(&self) -> Option<PathBuf> {
+        let mut readme = None;
+
+        for entry in &self.tree.children {
+            match entry {
+                FileEntry::Folder(_) => continue,
+                FileEntry::File(content) => {
+                    if content.to_lowercase().contains("readme.md") {
+                        readme = Some(PathBuf::from(content));
+                        break;
+                    }
+                    continue;
+                }
+                FileEntry::Symlink(_) => continue,
+            }
+        }
+
+
+        readme
     }
 }

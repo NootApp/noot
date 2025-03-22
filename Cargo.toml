@@ -3,9 +3,10 @@ name = "noot"
 version = "0.1.0"
 edition = "2024"
 
+
 [dependencies]
 #iced = {path = "../iced", features = ["debug", "tokio", "image"]}
-iced = {version = "0.13.1", features = ["advanced", "multi-window", "debug", "tokio", "image"] }
+iced = {version = "0.13.1", features = ["advanced", "multi-window", "debug", "tokio", "image", "markdown"] }
 tokio = { version = "1.43.0", features = ["fs", "full"] }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
@@ -42,6 +43,9 @@ mouse_position = "0.1.4"
 tray-icon = "0.20.0"
 rdev = "0.5.3"
 
+[lib]
+name = "servo"
+path = "./servo/lib.rs"
 
 [dev-dependencies]
 ctor = "0.4.0"
