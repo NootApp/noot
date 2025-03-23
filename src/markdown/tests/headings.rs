@@ -119,6 +119,6 @@ fn nonconforming() {
     let first_token = outcome.unwrap()[0].clone();
     assert_eq!(first_token.value, "#example_title");
     assert_eq!(first_token.vector, [0, 14]);
-    assert_eq!(first_token.kind, TokenType::Paragraph);
+    assert_eq!(first_token.kind, TokenType::Text(TextModifier::NONE));
     println!("{}", first_token)
 }

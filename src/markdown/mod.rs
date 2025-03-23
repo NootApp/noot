@@ -5,7 +5,7 @@ use iced::futures::StreamExt;
 use lazy_static::lazy_static;
 use regex::bytes::Regex;
 
-/// An enum to help the parser decide how to interpret a markdown document
+/// An enum to help the parser decide how to interpret a Markdown document
 pub enum MarkdownSpecification {
     /// The core markdown specification, with a boolean value to enable extended syntax
     Core(bool),
@@ -25,61 +25,73 @@ pub enum MarkdownSpecification {
     /// The [R Markdown](https://rmarkdown.rstudio.com/) specification
     RMarkdown,
 }
+//
+// bitflags! {
+//     pub struct MarkdownFeatureSet: u64 {
+//         const SPEC = 0b00001111_11111111;
+//     }
+// }
+//
+// bitflags! {
+//     pub struct MarkdownFeatures: u64 {
+//         // CORE FEATURES
+//         const HEADINGS            = 0b00000000_00000000_00000000_00000001; //  1
+//         const PARAGRAPH           = 0b00000000_00000000_00000000_00000010; //  2
+//         const LINE_BREAKS         = 0b00000000_00000000_00000000_00000100; //  4
+//         const BOLD                = 0b00000000_00000000_00000000_00001000; //  8
+//         const ITALIC              = 0b00000000_00000000_00000000_00010000; // 16
+//         const BLOCK_QUOTES        = 0b00000000_00000000_00000000_00100000; // 32
+//         const LISTS               = 0b00000000_00000000_00000000_01000000; // 64
+//         const CODE                = 0b00000000_00000000_00000000_10000000; // 128
+//         const IMAGE               = 0b00000000_00000000_00000001_00000000; // 256
+//         const HORIZONTAL_RULES    = 0b00000000_00000000_00000010_00000000; // 512
+//         const LINKS               = 0b00000000_00000000_00000100_00000000; // 1024
+//         const HTML                = 0b00000000_00000000_00001000_00000000; // 2048 - currently unsupported
+//
+//         // Extends Features
+//         const TABLES              = 0b00000000_00000000_00010000_00000000; // 4096
+//         const FENCED_CODE_BLOCKS  = 0b00000000_00000000_00100000_00000000; // 8192
+//         const FOOTNOTES           = 0b00000000_00000000_01000000_00000000; // 16384
+//         const HEADING_WITH_ID     = 0b00000000_00000000_10000000_00000000; // 32768
+//         const DEFINITION_LISTS    = 0b00000000_00000001_00000000_00000000; // 65536
+//         const STRIKETHROUGH       = 0b00000000_00000010_00000000_00000000;
+//         const TASK_LISTS          = 0b00000000_00000100_00000000_00000000;
+//         const EMOJI               = 0b00000000_00001000_00000000_00000000;
+//         const HIGHLIGHT           = 0b00000000_00010000_00000000_00000000;
+//         const SUBSCRIPT           = 0b00000000_00100000_00000000_00000000;
+//         const SUPERSCRIPT         = 0b00000000_01000000_00000000_00000000;
+//         const AUTO_LINK           = 0b00000000_10000000_00000000_00000000; // can be disabled using backticks
+//
+//         // Markdown Extra syntax
+//         const ABBREVIATIONS       = 0b00000001_00000000_00000000_00000000; // see the docs: https://michelf.ca/projects/php-markdown/extra/#abbr
+//
+//         // Common features people like:
+//         const LATEX               = 0b00000010_00000000_00000000_00000000; // not supported
+//         const IMAGE_CAPTIONS      = 0b00000100_00000000_00000000_00000000;
+//         const FRONTMATTER         = 0b00001000_00000000_00000000_00000000;
+//     }
+// }
 
 bitflags! {
-    pub struct MarkdownFeatureSet: u64 {
-        const SPEC = 0b00001111_11111111;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+    pub struct TextModifier: u8 {
+        const NONE          = 0b0000_0000;
+        const BOLD          = 0b0000_0001;
+        const ITALIC        = 0b0000_0010;
+        const UNDERLINE     = 0b0000_0100;
+        const STRIKETHROUGH = 0b0000_1000;
+        const SUPERSCRIPT   = 0b0001_0000;
+        const SUBSCRIPT     = 0b0010_0000;
+        const MONOSPACED    = 0b0100_0000;
     }
 }
 
-bitflags! {
-    pub struct MarkdownFeatures: u64 {
-        // CORE FEATURES
-        const HEADINGS            = 0b00000000_00000000_00000000_00000001; //  1
-        const PARAGRAPH           = 0b00000000_00000000_00000000_00000010; //  2
-        const LINE_BREAKS         = 0b00000000_00000000_00000000_00000100; //  4
-        const BOLD                = 0b00000000_00000000_00000000_00001000; //  8
-        const ITALIC              = 0b00000000_00000000_00000000_00010000; // 16
-        const BLOCK_QUOTES        = 0b00000000_00000000_00000000_00100000; // 32
-        const LISTS               = 0b00000000_00000000_00000000_01000000; // 64
-        const CODE                = 0b00000000_00000000_00000000_10000000; // 128
-        const IMAGE               = 0b00000000_00000000_00000001_00000000; // 256
-        const HORIZONTAL_RULES    = 0b00000000_00000000_00000010_00000000; // 512
-        const LINKS               = 0b00000000_00000000_00000100_00000000; // 1024
-        const HTML                = 0b00000000_00000000_00001000_00000000; // 2048 - currently unsupported
-
-        // Extends Features
-        const TABLES              = 0b00000000_00000000_00010000_00000000; // 4096
-        const FENCED_CODE_BLOCKS  = 0b00000000_00000000_00100000_00000000; // 8192
-        const FOOTNOTES           = 0b00000000_00000000_01000000_00000000; // 16384
-        const HEADING_WITH_ID     = 0b00000000_00000000_10000000_00000000; // 32768
-        const DEFINITION_LISTS    = 0b00000000_00000001_00000000_00000000; // 65536
-        const STRIKETHROUGH       = 0b00000000_00000010_00000000_00000000;
-        const TASK_LISTS          = 0b00000000_00000100_00000000_00000000;
-        const EMOJI               = 0b00000000_00001000_00000000_00000000;
-        const HIGHLIGHT           = 0b00000000_00010000_00000000_00000000;
-        const SUBSCRIPT           = 0b00000000_00100000_00000000_00000000;
-        const SUPERSCRIPT         = 0b00000000_01000000_00000000_00000000;
-        const AUTO_LINK           = 0b00000000_10000000_00000000_00000000; // can be disabled using backticks
-
-        // Markdown Extra syntax
-        const ABBREVIATIONS       = 0b00000001_00000000_00000000_00000000; // see the docs: https://michelf.ca/projects/php-markdown/extra/#abbr
-
-        // Common features people like:
-        const LATEX               = 0b00000010_00000000_00000000_00000000; // not supported
-        const IMAGE_CAPTIONS      = 0b00000100_00000000_00000000_00000000;
-        const FRONTMATTER         = 0b00001000_00000000_00000000_00000000;
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum TokenType {
     Whitespace,
     Heading(u8),
-    Paragraph,
+    Text(TextModifier),
     LineBreak,
-    Bold,
-    Italic,
     BlockQuote,
     OrderedList,
     UnorderedList,
@@ -90,6 +102,7 @@ pub enum TokenType {
     HTMLBlock,
     Table,
 }
+
 
 
 #[derive(Debug, Clone)]
@@ -183,7 +196,7 @@ impl Tokenizer {
                         self.cursor += 1;
                         tokens.push(
                             Token::new(
-                                TokenType::Paragraph,
+                                TokenType::Text(TextModifier::NONE),
                                 '#'.to_string(),
                                 self.cursor,
                                 1
@@ -215,7 +228,7 @@ impl Tokenizer {
                     } else {
                         (
                             Token::new(
-                                TokenType::Paragraph,
+                                TokenType::Text(TextModifier::NONE),
                                 self.source[self.cursor..title_end].to_string(),
                                 self.cursor,
                                 char_count
@@ -241,7 +254,7 @@ impl Tokenizer {
                 // Match everything else
                 x => {
                     (
-                        Token::new(TokenType::Paragraph, char::from(x).to_string(), self.cursor, 1),
+                        Token::new(TokenType::Text(TextModifier::NONE), char::from(x).to_string(), self.cursor, 1),
                         1
                     )
                 }
