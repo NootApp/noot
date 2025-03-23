@@ -1,4 +1,3 @@
-#![feature(stmt_expr_attributes)]
 //! Welcome to the Noot docs.
 //! If you're reading this, congrats, you're probably more invested
 //! than you should be
