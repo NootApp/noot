@@ -76,21 +76,25 @@ bitflags! {
     #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
     pub struct TextModifier: u8 {
         const NONE          = 0b0000_0000;
-        const BOLD          = 0b0000_0001;
-        const ITALIC        = 0b0000_0010;
+        const BOLD          = 0b0000_0001; // double asterisk
+        const ITALIC        = 0b0000_0010; // single asterisk
         const UNDERLINE     = 0b0000_0100;
-        const STRIKETHROUGH = 0b0000_1000;
-        const SUPERSCRIPT   = 0b0001_0000;
-        const SUBSCRIPT     = 0b0010_0000;
-        const MONOSPACED    = 0b0100_0000;
+        const MONOSPACED    = 0b0000_1000;
+
+        // Non standard
+        const STRIKETHROUGH = 0b0001_0000;
+        const SUPERSCRIPT   = 0b0010_0000;
+        const SUBSCRIPT     = 0b0100_0000;
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum TokenType {
     Whitespace,
     Heading(u8),
     Text(TextModifier),
+    Definition(Box<TokenType>),
+    Citation(Box<TokenType>, usize),
     LineBreak,
     BlockQuote,
     OrderedList,
@@ -119,6 +123,10 @@ impl Token {
 
     fn heading(level: u8, title: String, cursor: usize, count: usize) -> Self {
         Self::new(TokenType::Heading(level), String::from(title), cursor, count)
+    }
+
+    fn text(modifiers: TextModifier, value: String, cursor: usize, count: usize) -> Self {
+        Self::new(TokenType::Text(modifiers), value, cursor, count)
     }
 
     fn new(kind: TokenType, value: String, cursor: usize, count: usize) -> Self {
@@ -170,15 +178,24 @@ impl Tokenizer {
 
     pub fn tokenize(&mut self) -> TokenizerResult {
         let mut tokens: Vec<Token> = vec![];
+        // Array of modifiers and their starting indexes
+        let mut pending_modifiers: Vec<(usize, TextModifier, Vec<char>)> = vec![];
         let mut start_of_line: bool = true;
         let chars = self.source.chars().collect::<Vec<char>>();
+        // Tokens Since Last Modifier - All the tokens which should be modified if
+        // the modifier is closed, or merged as is if the modifier is left open
+        // let mut modifier_token = Token::new(TokenType::Text(TextModifier::NONE), String::from(""), 0, 0);
+        // let mut tslm
+
 
         while self.cursor < self.source.len() {
             let (token, consumed) = match chars[self.cursor] {
+
                 ' ' | '\t' => {
                     let count = self.peek_while(is_whitespace);
                     (Token::whitespace(self.cursor, count), count)
                 },
+
                 '\n' => {
                     let count = self.peek_while(|c| c == '\n') + 1;
 
@@ -190,6 +207,7 @@ impl Tokenizer {
                         (Token::new(TokenType::LineBreak, String::from("\n"), self.cursor, count), count)
                     }
                 },
+
                 // Match all title fields
                 '#' => {
                     if !start_of_line {
@@ -237,6 +255,7 @@ impl Tokenizer {
                         )
                     }
                 },
+
                 // '>' => {
                 //     if !start_of_line {
                 //         self.cursor += 1;
@@ -251,10 +270,72 @@ impl Tokenizer {
                 //         continue;
                 //     }
                 // },
+
                 // Match everything else
                 x => {
+                    let mut modifier = TextModifier::NONE;
+
+                    if x == '*' {
+                        println!("Encountered an asterisk");
+                        let distance_to_next_asterisk = self.peek_while(is_modifier('*'));
+                        if distance_to_next_asterisk == 0 {
+                            println!("Encountered at least a double asterisk");
+                            if self.cursor + 2 < chars.len() {
+                                println!("Checking if triple asterisk");
+                                let next_two: [char;2] = [chars[self.cursor+1], chars[self.cursor+2]];
+                                if next_two[0] == '*' && next_two[1] == '*' {
+                                    println!("Located a triple asterisk");
+
+                                    // Triple Asterisk
+                                    let next_cursor = self.cursor;
+                                    self.cursor+2;
+                                    let dtna = self.peek_while(is_modifier('*'));
+                                    if dtna == 0 {
+                                        println!("Triple asterisk ignored as no matching pair found");
+                                        // then this likely was not something meant for us to format
+                                        self.cursor -= 2; // restore the original cursor position
+                                    } else {
+                                        // next asterisk index
+
+                                        println!("Checking if next asterisk is a triple asterisk");
+
+                                        let nast = self.cursor + dtna;
+                                        let nta: [char;2] = [chars[self.cursor+nast+1], chars[self.cursor+nast+2]];
+                                        if nta[0] == '*' && nta[1] == '*' {
+                                            modifier.insert(TextModifier::BOLD);
+                                            modifier.insert(TextModifier::ITALIC);
+                                        } else {
+                                            dbg!(chars[self.cursor..self.cursor+nast+2].to_vec());
+                                        }
+                                    }
+                                }
+
+                            } else if self.cursor + 1 < self.source.len() {
+
+                            } else {
+                                // There is
+                            }
+
+                            // the asterisk is a double asterisk, we should check if there is more
+                            // let cursor_reset = self.cursor.clone(); // Create a completely seperate
+                            // self.cursor += 1; // push the cursor forward by one token to pass the token (temporarily)
+
+                            // Check for the distance to the next asterisk...
+                            // let dtna = self.peek_while(|c| c != '\n' && c != '*');
+                            // if dtna == 0 {
+
+                            // }
+
+                            // self.cursor = cursor_reset;
+                        } else if distance_to_next_asterisk == chars.len()-self.cursor {
+                            // there was no next token, do nothing
+                            println!("Asterisk had no closing partner");
+                        }
+                    }
+
+
                     (
-                        Token::new(TokenType::Text(TextModifier::NONE), char::from(x).to_string(), self.cursor, 1),
+                        Token::new(TokenType::Text(modifier), char::from(x).to_string(), self.cursor, 1),
                         1
                     )
                 }
@@ -274,7 +355,7 @@ impl Tokenizer {
         let mut count = 0;
         let chars = self.source.chars().collect::<Vec<char>>();
 
-        while (self.cursor + count) < self.source.len() && predicate(chars[self.cursor + count]) {
+        while (self.cursor + count) < chars.len() && predicate(chars[self.cursor + count]) {
             count += 1;
         }
 
@@ -288,7 +369,7 @@ impl Tokenizer {
         let chars = self.source.chars().collect::<Vec<char>>();
         let etx_len = self.source.len()-1;
         loop {
-            if !(self.cursor+count < self.source.len()) {
+            if !(self.cursor+count < chars.len()) {
                 break;
             }
 
@@ -324,6 +405,13 @@ impl Tokenizer {
 
 
         count
+    }
+}
+
+/// Generic predicate method for processing text modifiers
+fn is_modifier(modifier: char) -> impl Fn(char) -> bool {
+    move |c: char| {
+        c == modifier
     }
 }
 
