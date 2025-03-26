@@ -11,7 +11,6 @@ fn level_1() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 7]);
     assert_eq!(first_token.kind, TokenType::Heading(1));
-    println!("{}", first_token)
 }
 
 
@@ -25,7 +24,6 @@ fn level_2() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 8]);
     assert_eq!(first_token.kind, TokenType::Heading(2));
-    println!("{}", first_token)
 }
 
 
@@ -39,7 +37,6 @@ fn level_3() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 9]);
     assert_eq!(first_token.kind, TokenType::Heading(3));
-    println!("{}", first_token)
 }
 
 
@@ -53,7 +50,6 @@ fn level_4() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 10]);
     assert_eq!(first_token.kind, TokenType::Heading(4));
-    println!("{}", first_token)
 }
 
 
@@ -67,7 +63,6 @@ fn level_5() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 11]);
     assert_eq!(first_token.kind, TokenType::Heading(5));
-    println!("{}", first_token)
 }
 
 #[test]
@@ -80,7 +75,6 @@ fn level_6() {
     assert_eq!(first_token.value, "Title");
     assert_eq!(first_token.vector, [0, 12]);
     assert_eq!(first_token.kind, TokenType::Heading(6));
-    println!("{}", first_token)
 }
 
 
@@ -94,7 +88,6 @@ fn level_n() {
     assert_eq!(first_token.value, "Title" );
     assert_eq!(first_token.vector, [0, 16]);
     assert_eq!(first_token.kind, TokenType::Heading(6));
-    println!("{}", first_token)
 }
 
 #[test]
@@ -107,7 +100,6 @@ fn indented() {
     assert_eq!(heading_token.value, "Title");
     assert_eq!(heading_token.vector, [5, 7]);
     assert_eq!(heading_token.kind, TokenType::Heading(1));
-    println!("{}", heading_token)
 }
 
 #[test]
@@ -120,5 +112,4 @@ fn nonconforming() {
     assert_eq!(first_token.value, "#example_title");
     assert_eq!(first_token.vector, [0, 14]);
     assert_eq!(first_token.kind, TokenType::Text(TextModifier::NONE));
-    println!("{}", first_token)
 }
