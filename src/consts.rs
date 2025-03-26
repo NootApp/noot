@@ -37,6 +37,20 @@ pub const FONT_BOLD: Font = Font {
     style: iced::font::Style::Normal,
 };
 
+pub const FONT_BOLD_ITALIC: Font = Font {
+    family: iced::font::Family::Name(FONT_NAME),
+    weight: iced::font::Weight::Bold,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Italic,
+};
+
+pub const FONT_ITALIC: Font = Font {
+    family: iced::font::Family::Name(FONT_NAME),
+    weight: iced::font::Weight::Medium,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Italic,
+};
+
 // Icons
 pub const APP_ICON: &[u8] = include_bytes!("../static/favicon.png");
 

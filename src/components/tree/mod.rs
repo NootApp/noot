@@ -7,7 +7,8 @@ use crate::filesystem::utils::tree::{FileEntry, FileTree};
 #[derive(Debug, Clone)]
 pub struct TreeWidget {
     pub cwd: PathBuf,
-    pub tree: FileTree
+    pub tree: FileTree,
+    pub width: f32
 }
 
 impl TreeWidget {
@@ -15,7 +16,8 @@ impl TreeWidget {
         let cwd = wd.into();
         Self {
             cwd: cwd.clone(),
-            tree: FileTree::from_path(&cwd).unwrap()
+            tree: FileTree::from_path(&cwd).unwrap(),
+            width: 400.
         }
     }
 
@@ -31,7 +33,7 @@ impl TreeWidget {
         column([
             text("Workspace Files").into(),
             self.tree.view(false).into(),
-        ]).into()
+        ]).width(self.width).into()
     }
 
     pub fn has_readme(&self) -> Option<PathBuf> {
@@ -40,7 +42,7 @@ impl TreeWidget {
         for entry in &self.tree.children {
             match entry {
                 FileEntry::Folder(_) => continue,
-                FileEntry::File(content) => {
+                FileEntry::File(content, _) => {
                     if content.to_lowercase().contains("readme.md") {
                         readme = Some(PathBuf::from(content));
                         break;
@@ -53,5 +55,9 @@ impl TreeWidget {
 
 
         readme
+    }
+    
+    pub fn set_width(&mut self, width: f32) {
+        self.width = width;
     }
 }

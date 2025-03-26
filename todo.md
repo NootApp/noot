@@ -10,12 +10,14 @@ This is a list of things which I want or need to do still
     - [ ] Rsync workspace imports
     - [ ] S3 workspace imports
   - ### Sync
-    - [ ] Git workspace sync
+    - [x] Git workspace sync (partially complete)
     - [ ] Rsync workspace sync
     - [ ] S3 workspace sync
 
 - ## Editor
   - everything.
+  - ### Syntax
+    - figure out how to make definitions for things
 
 
 

@@ -4,6 +4,7 @@ use bitflags::bitflags;
 use iced::futures::StreamExt;
 use lazy_static::lazy_static;
 use regex::bytes::Regex;
+use serde_derive::Serialize;
 
 /// An enum to help the parser decide how to interpret a Markdown document
 pub enum MarkdownSpecification {
@@ -73,7 +74,7 @@ pub enum MarkdownSpecification {
 // }
 
 bitflags! {
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash, Serialize)]
     pub struct TextModifier: u8 {
         const NONE          = 0b0000_0000;
         const BOLD          = 0b0000_0001; // double asterisk
@@ -88,7 +89,7 @@ bitflags! {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]
 pub enum TokenType {
     Whitespace,
     Heading(u8),
@@ -109,7 +110,7 @@ pub enum TokenType {
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Token {
     pub kind: TokenType,
     pub value: String,
@@ -179,13 +180,9 @@ impl Tokenizer {
     pub fn tokenize(&mut self) -> TokenizerResult {
         let mut tokens: Vec<Token> = vec![];
         // Array of modifiers and their starting indexes
-        let mut pending_modifiers: Vec<(usize, TextModifier, Vec<char>)> = vec![];
         let mut start_of_line: bool = true;
         let chars = self.source.chars().collect::<Vec<char>>();
-        // Tokens Since Last Modifier - All the tokens which should be modified if
-        // the modifier is closed, or merged as is if the modifier is left open
-        // let mut modifier_token = Token::new(TokenType::Text(TextModifier::NONE), String::from(""), 0, 0);
-        // let mut tslm
+
 
 
         while self.cursor < self.source.len() {
@@ -273,70 +270,120 @@ impl Tokenizer {
 
                 // Match everything else
                 x => {
+                    let mut consumption = 0;
                     let mut modifier = TextModifier::NONE;
+                    let mut styled_string = x.to_string();
+
+                    println!("Remaining buffer: '{}'", chars[self.cursor..].iter().collect::<String>());
 
                     if x == '*' {
-                        println!("Encountered an asterisk");
-                        let distance_to_next_asterisk = self.peek_while(is_modifier('*'));
-                        if distance_to_next_asterisk == 0 {
-                            println!("Encountered at least a double asterisk");
-                            if self.cursor + 2 < chars.len() {
-                                println!("Checking if triple asterisk");
-                                let next_two: [char;2] = [chars[self.cursor+1], chars[self.cursor+2]];
-                                if next_two[0] == '*' && next_two[1] == '*' {
-                                    println!("Located a triple asterisk");
+                        // Distance to end of line
+                        // let dteol = self.peek_while(|c| c != '\n');
+                        let next_two_chars = self.get_next_x_char(self.cursor, 2)?;
+                        let asterisk_count = next_two_chars.iter().filter(|c| **c == '*').count();
+                        let temp_index = self.cursor.clone();
+                        if asterisk_count == 2 {
+                            // Triple asterisk found (bold + italic)
+                            
+                            // locate the next asterisk on the line
+                            let asterisk_terminator = self.find_next_on_line(self.cursor+2, '*')?;
+                            let next_three_chars = self.get_next_x_char(asterisk_terminator,3)?;
+                            let end_asterisk_count = next_three_chars.iter().filter(|c| **c == '*').count();
 
-                                    // Triple Asterisk
-                                    let next_cursor = self.cursor;
-                                    self.cursor+2;
-                                    let dtna = self.peek_while(is_modifier('*'));
-                                    if dtna == 0 {
-                                        println!("Triple asterisk ignored as no matching pair found");
-                                        // then this likely was not something meant for us to format
-                                        self.cursor -= 2; // restore the original cursor position
-                                    } else {
-                                        // next asterisk index
+                            dbg!(end_asterisk_count, asterisk_terminator, temp_index, self.cursor);
 
-                                        println!("Checking if next asterisk is a triple asterisk");
-
-                                        let nast = self.cursor + dtna;
-                                        let nta: [char;2] = [chars[self.cursor+nast+1], chars[self.cursor+nast+2]];
-                                        if nta[0] == '*' && nta[1] == '*' {
-                                            modifier.insert(TextModifier::BOLD);
-                                            modifier.insert(TextModifier::ITALIC);
-                                        } else {
-                                            dbg!(chars[self.cursor..self.cursor+nast+2].to_vec());
-                                        }
-                                    }
-                                }
-
-                            } else if self.cursor + 1 < self.source.len() {
-
+                            if end_asterisk_count == 3 {
+                                consumption += 6;
+                                styled_string = format!("{}", String::from_iter(&chars[self.cursor+3..asterisk_terminator]));
+                                modifier.insert(TextModifier::ITALIC | TextModifier::BOLD);
+                            } else if end_asterisk_count == 2 {
+                                consumption += 5;
+                                styled_string = format!("*{}", String::from_iter(&chars[self.cursor+2..asterisk_terminator+1]));
+                                modifier.insert(TextModifier::BOLD);
+                            } else if end_asterisk_count == 1 {
+                                consumption += 4;
+                                styled_string = format!("**{}", String::from_iter(&chars[self.cursor+1..asterisk_terminator+2]));
+                                modifier.insert(TextModifier::ITALIC);
                             } else {
-                                // There is
+                                consumption = 1;
+                                modifier.remove(TextModifier::ITALIC | TextModifier::BOLD);
                             }
 
-                            // the asterisk is a double asterisk, we should check if there is more
-                            // let cursor_reset = self.cursor.clone(); // Create a completely seperate
-                            // self.cursor += 1; // push the cursor forward by one token to pass the token (temporarily)
-
-                            // Check for the distance to the next asterisk...
-                            // let dtna = self.peek_while(|c| c != '\n' && c != '*');
-                            // if dtna == 0 {
-
-                            // }
-
-                            // self.cursor = cursor_reset;
-                        } else if distance_to_next_asterisk == chars.len()-self.cursor {
-                            // there was no next token, do nothing
-                            println!("Asterisk had no closing partner");
+                        } else if asterisk_count == 1 {
+                            // Double asterisk found (bold)
+                            self.cursor+=1;
+                            println!("Found Double Asterisk");
+                            dbg!("2", next_two_chars, asterisk_count);
+                        } else if asterisk_count == 0 {
+                            // Single asterisk found (italic)
+                            println!("Found Single Asterisk");
+                            dbg!("1", next_two_chars, asterisk_count);
                         }
+
+                        // let distance_to_next_asterisk = self.peek_while(is_modifier('*'));
+                        //
+                        // if distance_to_next_asterisk < dteol {
+                        //     if distance_to_next_asterisk == 0 {
+                        //         println!("Encountered at least a double asterisk");
+                        //         if self.cursor + 2 < chars.len() {
+                        //             println!("Checking if triple asterisk");
+                        //             let next_two: [char; 2] = [chars[self.cursor + 1], chars[self.cursor + 2]];
+                        //             if next_two[0] == '*' && next_two[1] == '*' {
+                        //                 println!("Located a triple asterisk");
+                        //
+                        //                 // Triple Asterisk
+                        //                 let next_cursor = self.cursor;
+                        //                 self.cursor + 2;
+                        //                 let dtna = self.peek_while(is_modifier('*'));
+                        //                 if dtna == 0 {
+                        //                     println!("Triple asterisk ignored as no matching pair found");
+                        //                     // then this likely was not something meant for us to format
+                        //                     self.cursor -= 2; // restore the original cursor position
+                        //                 } else {
+                        //                     // next asterisk index
+                        //
+                        //                     println!("Checking if next asterisk is a triple asterisk");
+                        //
+                        //                     let nast = self.cursor + dtna;
+                        //                     let nta: [char; 2] = [chars[self.cursor + nast + 1], chars[self.cursor + nast + 2]];
+                        //                     if nta[0] == '*' && nta[1] == '*' {
+                        //                         modifier.insert(TextModifier::BOLD);
+                        //                         modifier.insert(TextModifier::ITALIC);
+                        //                     } else {
+                        //                         dbg!(chars[self.cursor..self.cursor + nast + 2].to_vec());
+                        //                     }
+                        //                 }
+                        //             }
+                        //         } else if self.cursor + 1 < self.source.len() {} else {
+                        //             // There is
+                        //         }
+                        //
+                        //         // the asterisk is a double asterisk, we should check if there is more
+                        //         // let cursor_reset = self.cursor.clone(); // Create a completely seperate
+                        //         // self.cursor += 1; // push the cursor forward by one token to pass the token (temporarily)
+                        //
+                        //         // Check for the distance to the next asterisk...
+                        //         // let dtna = self.peek_while(|c| c != '\n' && c != '*');
+                        //         // if dtna == 0 {
+                        //
+                        //         // }
+                        //
+                        //         // self.cursor = cursor_reset;
+                        //     } else if distance_to_next_asterisk == chars.len() - self.cursor {
+                        //         // there was no next token, do nothing
+                        //         println!("Asterisk had no closing partner");
+                        //     }
+                        // }
                     }
 
+                    consumption += styled_string.chars().count();
+
+
+                    dbg!(consumption, modifier, &styled_string);
 
                     (
-                        Token::new(TokenType::Text(modifier), char::from(x).to_string(), self.cursor, 1),
-                        1
+                        Token::new(TokenType::Text(modifier), styled_string, self.cursor, consumption),
+                        consumption
                     )
                 }
             };
@@ -346,6 +393,49 @@ impl Tokenizer {
         }
 
         Ok(tokens)
+    }
+
+    pub fn get_next_char(&mut self) -> Result<char, TokenizerError> {
+        let chars = self.source.chars().collect::<Vec<char>>();
+        if self.cursor >= self.source.len() {
+            Err(TokenizerError { message: "No more tokens".to_string()})
+        } else if (self.cursor + 1) >= self.source.len() {
+            Err(TokenizerError { message: "No more tokens".to_string()})
+        } else {
+            Ok(chars[self.cursor + 1])
+        }
+    }
+
+    pub fn get_next_x_char(&mut self, start: usize, x: usize) -> Result<Vec<char>, TokenizerError> {
+        let chars = self.source.chars().collect::<Vec<char>>();
+        if start >= self.source.len() {
+            Err(TokenizerError { message: "No more tokens".to_string()})
+        } else if (start + x) >= self.source.len() {
+            Err(TokenizerError { message: "Grabbing tokens would be out of bounds".to_string()})
+        } else {
+            let slice = chars[start..start + x].to_vec();
+
+            Ok(slice)
+        }
+    }
+
+    pub fn find_next_on_line(&mut self, start: usize, c: char) -> Result<usize, TokenizerError> {
+        let mut count = 0;
+        let chars = self.source.chars().collect::<Vec<char>>();
+        let max_time = std::time::SystemTime::now();
+
+        while (start + count) < chars.len() && max_time.elapsed().unwrap().as_secs() < 6 {
+            let t = chars[start+count];
+
+            if t == c {
+                break;
+            } else if t == '\n' {
+                return Err(TokenizerError { message: "No such char on line".to_string()});
+            }
+            count+=1;
+        }
+
+        Ok(count)
     }
 
     // Greedily consume tokens based on a predicate, returning the total tokens consumed

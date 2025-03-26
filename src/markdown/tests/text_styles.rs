@@ -1,3 +1,4 @@
+use crate::markdown::TokenType::Text;
 use super::super::*;
 
 
@@ -15,7 +16,7 @@ fn bold_asterisk() {
     assert_eq!(first_token.value, "this is bold");
 }
 
-// This test is disabled as we will be supporting strikethrough 
+// This test is disabled as we will be supporting strikethrough
 // and underlined text using similar syntax
 
 // #[test]
@@ -71,7 +72,7 @@ fn italic_underscore() {
 //         _ => assert!(false),
 //     }
 // }
-// 
+//
 // STRIKETHROUGH
 #[test]
 fn strikethrough_tilde() {
@@ -81,6 +82,22 @@ fn strikethrough_tilde() {
     let first_token = outcome.first().unwrap();
     match first_token.kind {
         TokenType::Text(modifier) => assert_eq!(modifier, TextModifier::STRIKETHROUGH),
+        _ => assert!(false),
+    }
+}
+
+
+// COMBINATIONS
+#[test]
+fn bold_and_italic() {
+    let expected = (TextModifier::BOLD | TextModifier::ITALIC);
+    println!("Expecting modifier: {:?}", expected);
+    let sample = "***this is bold and italic***, this is not";
+    let mut tokenizer = Tokenizer::new(sample);
+    let outcome = tokenizer.tokenize().unwrap();
+    let first_token = outcome.first().unwrap();
+    match first_token.kind {
+        TokenType::Text(modifier) => assert_eq!(modifier, expected),
         _ => assert!(false),
     }
 }

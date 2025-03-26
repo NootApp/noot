@@ -2,19 +2,21 @@ use serde_derive::{Deserialize, Serialize};
 
 use std::path::PathBuf;
 use iced::{color, Element, Padding};
-use iced::widget::{column, scrollable, text};
+use iced::widget::{button, column, scrollable, text};
 use crate::app::GlobalEvent;
+use crate::windows::editor_window::EditorEvent;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum FileEntry {
     Folder(FileTree),
-    File(String),
+    File(String, String),
     Symlink(String),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct FileTree {
     pub node_count: u32,
+    pub breadcrumb: String,
     pub parent: String,
     pub name: String,
     pub children: Vec<FileEntry>,
@@ -25,6 +27,7 @@ impl FileTree {
         let mut tree = FileTree {
             node_count: 0,
             name: path.file_name().unwrap().to_str().unwrap().to_string(),
+            breadcrumb: path.to_str().unwrap().to_string(),
             parent: path.parent().unwrap().to_str().unwrap().to_string(),
             children: vec![],
         };
@@ -42,7 +45,7 @@ impl FileTree {
             } else if metadata.is_file() {
                 tree.node_count = tree.node_count + 1;
                 tree.children.push(FileEntry::File(
-                    entry.file_name().to_str().unwrap().to_string(),
+                    entry.file_name().to_str().unwrap().to_string(), entry.path().to_str().unwrap().to_string(),
                 ))
             } else if metadata.is_symlink() {
                 tree.node_count = tree.node_count + 1;
@@ -105,8 +108,10 @@ impl FileEntry {
                     subtree.view(true)
                 ).into()
             }
-            FileEntry::File(name) => {
-                text(name).color(color!(0xFF0000)).into()
+            FileEntry::File(name, path) => {
+                button(text(name).color(color!(0xFF0000))).on_press_with(|| {
+                    GlobalEvent::EditorBeam(EditorEvent::OpenFile(PathBuf::from(path.clone())))
+                }).into()
             }
             FileEntry::Symlink(name) => {
                 text(name).color(color!(0x00FF00)).into()

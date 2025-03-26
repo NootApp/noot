@@ -41,7 +41,9 @@ rfd = "0.15.3"
 mouse_position = "0.1.4"
 tray-icon = "0.20.0"
 rdev = "0.5.3"
-
+emojis = "0.6.4"
+pulldown-cmark = "0.13.0"
+ignore = "0.4.23"
 
 [dev-dependencies]
 ctor = "0.4.0"

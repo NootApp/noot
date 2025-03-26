@@ -1,16 +1,16 @@
 use std::collections::BTreeMap;
 use std::fs::read;
-use std::io::read_to_string;
 use std::path::PathBuf;
-use iced::{window, Element, Size, Task, Theme};
-use iced::widget::{row, Container, text, column, markdown, Row};
+use iced::{application, window, Element, Length, Size, Task, Theme};
+use iced::widget::{row, Container, text, column, markdown, Row, Checkbox, scrollable};
 use iced::widget::markdown::Url;
 use iced::window::{icon, Id, Settings};
+use pulldown_cmark::{Event, TextMergeStream};
 use crate::app::GlobalEvent;
+use crate::components::md::{Kind, MarkdownToken};
 use crate::components::tree::TreeWidget;
-use crate::consts::APP_ICON;
+use crate::consts::{APP_ICON, APP_NAME, APP_VERSION};
 use crate::filesystem::workspace::state::WorkspaceState;
-use crate::ViewPort;
 
 
 #[derive(Debug)]
@@ -18,8 +18,9 @@ pub struct EditorWindow {
     pub id: Id,
     pub workspace: WorkspaceState,
     pub file_list: TreeWidget,
-    pub editor: Vec<markdown::Item>,
+    pub editor: Vec<MarkdownToken>,
     pub theme: Theme,
+    pub title: String,
     #[cfg(debug_assertions)]
     pub debug: BTreeMap<String, String>,
 }
@@ -44,6 +45,7 @@ impl EditorWindow {
             file_list: TreeWidget::new(state.manifest.parse_local_path().unwrap()),
             editor: vec![],
             theme,
+            title: format!("{} - {}", APP_NAME, APP_VERSION),
             #[cfg(debug_assertions)]
             debug: BTreeMap::from([("Ready".to_string(), "False".to_string())]),
         };
@@ -81,10 +83,50 @@ impl EditorWindow {
                 }
             }
             EditorEvent::OpenFile(path) => {
-                let buffer = String::from_utf8(read(path.clone()).unwrap()).unwrap();
-                self.editor = markdown::parse(&buffer).collect();
-                dbg!(&self);
-                self.debug("current_file", path.to_str().unwrap())
+                let buffer = read(path.clone()).unwrap();
+
+                let text = String::from_utf8(buffer);
+
+                if let Ok(text) = text {
+                    self.editor = vec![];
+                    let parser = TextMergeStream::new(pulldown_cmark::Parser::new(&text));
+                    let mut current = MarkdownToken::new(Kind::SoftBreak);
+                    let mut has_ended = true;
+                    for event in parser {
+                        match event {
+                            Event::Start(tag) => {
+                                if !has_ended {
+
+                                }
+                            }
+                            Event::Text(content) => {
+                                info!("{:?}", content);
+                                let mut token = MarkdownToken::new(Kind::Text);
+                                token.content = Some(content.to_string());
+                                self.editor.push(token);
+                            },
+                            // Event::
+                            _ => {
+                                warn!("Unsupported token type: {:?}", event);
+                            }
+                        }
+                    }
+
+                } else {
+                    warn!("Unsupported content type found in file (not text): {}", path.display());
+                }
+
+
+                info!("Rendered file with the following editor data");
+                dbg!(&self.editor);
+
+                self.title = format!("{} - {} - Editing {}", APP_NAME, APP_VERSION, path.file_name().unwrap().to_str().unwrap());
+
+                Task::batch([
+                    self.debug("workspace_name", &*self.workspace.manifest.name.clone().unwrap_or("Unknown".to_string())),
+                    self.debug("workspace_path", self.workspace.manifest.parse_local_path().unwrap().to_str().unwrap()),
+                    self.debug("current_file", path.to_str().unwrap())
+                ])
             }
             EditorEvent::Debug(key, value) => {
                 self.debug.insert(key, value);
@@ -101,21 +143,14 @@ impl EditorWindow {
         Container::new(
             row!(
                 self.file_list.view(),
-                column!(
-                    text("Editor Section"),
-                    markdown::view(
-                        &self.editor,
-                        markdown::Settings::default(),
-                        markdown::Style::from_palette(self.theme().palette())
-                    )
-                    .map(|e| GlobalEvent::Editor(self.id, EditorEvent::LinkClicked(e)))
+                scrollable(
+                    column(self.editor.iter().map(|token| token.view())).width(Length::Fill)
                 ),
+                #[cfg(debug_assertions)]
                 column!(
                     text("Right Utility Bar"),
-
-                    #[cfg(debug_assertions)]
                     self.render_debug()
-                )
+                ).width(600.0)
             )
         ).into()
     }
@@ -143,5 +178,9 @@ impl EditorWindow {
                 )
             )
         )
+    }
+
+    pub fn title(&self) -> String {
+        self.title.clone()
     }
 }

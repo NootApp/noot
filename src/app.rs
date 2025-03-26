@@ -23,7 +23,7 @@ pub struct App {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum GlobalEvent {
     Tick,
     OpenWindow(String),
@@ -32,6 +32,7 @@ pub enum GlobalEvent {
     DebugMessage(String),
     DebugState(String, String),
     Editor(Id, EditorEvent),
+    EditorBeam(EditorEvent),
 }
 
 impl App {
@@ -59,6 +60,7 @@ impl App {
     pub fn update(&mut self, event: GlobalEvent) -> Task<GlobalEvent> {
         debug!("{:?}", event);
         match event {
+           
             GlobalEvent::Tick => {
                 if self.has_ticked {
                     return Task::none();
@@ -173,6 +175,19 @@ impl App {
                 } else {
                     Task::none()
                 }
+            },
+            GlobalEvent::EditorBeam(message) => {
+                let mut task = Task::none();
+                for window in self.windows.values_mut() {
+                    match window {
+                        AppWindow::Editor(editor) => {
+                            task = task.chain(editor.update(message.clone()));
+                        },
+                        _ => {}
+                    }
+                }
+
+                task
             }
             e => {
                 error!("Unknown event: {:?}", e);
@@ -191,7 +206,7 @@ impl App {
 
     pub fn title(&self, id: Id) -> String {
         match self.windows.get(&id) {
-            Some(AppWindow::Editor(_)) => format!("{} - {}", APP_NAME, APP_VERSION),
+            Some(AppWindow::Editor(e)) => e.title(),
             None => String::new(),
             Some(&AppWindow::BuildInfo(_)) => format!("{} - {} - Debug Build Window", APP_NAME, APP_VERSION),
         }
