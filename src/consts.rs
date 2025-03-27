@@ -56,3 +56,13 @@ pub const APP_ICON: &[u8] = include_bytes!("../static/favicon.png");
 
 #[cfg(feature = "drpc")]
 pub const DRPC_CLIENT_ID: &'static str = include_str!("../client_id");
+
+
+// Markdown constants
+
+pub const HEADER_SIZE_1: f32 = 32.;
+pub const HEADER_SIZE_2: f32 = 28.;
+pub const HEADER_SIZE_3: f32 = 22.;
+pub const HEADER_SIZE_4: f32 = 18.;
+pub const HEADER_SIZE_5: f32 = 14.;
+pub const TEXT_SIZE: f32 = 12.;

@@ -8,10 +8,12 @@ use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::Arc;
+use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {
-    pub manifest: WorkspaceManifest,
+    pub manifest: Arc<WorkspaceManifest>,
     pub viewport: Screen,
     pub plugins: HashMap<String, PluginManifest>,
     pub cache_dir: PathBuf,
@@ -19,7 +21,7 @@ pub struct MinifiedWorkspaceState {
     pub resolver_method: ResolverMethod,
     pub last_update: DateTime<Local>,
     pub dirty: bool,
-    pub files: HashMap<PathBuf, MinifiedWorkspaceFile>,
+    pub files: HashMap<Url, MinifiedWorkspaceFile>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,11 +77,11 @@ impl MinifiedWorkspaceState {
 impl MinifiedWorkspaceFile {
     pub fn from_state(
         s: WorkspaceState,
-    ) -> HashMap<PathBuf, MinifiedWorkspaceFile> {
+    ) -> HashMap<Url, MinifiedWorkspaceFile> {
         let mut files = HashMap::new();
 
         for (path, file) in s.files {
-            files.insert(path, Self::from_file(file));
+            files.insert(Url::from_file_path(path).unwrap(), Self::from_file(file));
         }
 
         files

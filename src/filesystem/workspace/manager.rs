@@ -11,7 +11,7 @@ use crate::subsystems::cryptography::storage::{
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
 
 lazy_static! {
     pub static ref MANAGER: Mutex<WorkspaceManager> =
@@ -52,7 +52,7 @@ impl WorkspaceManager {
 
             let exists_result = exists(&root_dir);
             let mut workspace = WorkspaceState {
-                manifest: manifest.clone(),
+                manifest: Arc::new(manifest.clone()),
                 viewport: Screen::Empty,
                 plugins: HashMap::from([(
                     "example".to_string(),
@@ -70,7 +70,7 @@ impl WorkspaceManager {
                 last_update: Default::default(),
                 dirty: false,
                 files: Default::default(),
-                media: MediaConfig {},
+                // media: MediaConfig {},
             };
 
             if let Ok(outcome) = exists_result {

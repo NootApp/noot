@@ -15,3 +15,6 @@ pub fn render_view(noot: &Noot) -> iced::Element<AppEvent> {
         ViewPort::SettingsView => container(text("Not Implemented")).into(),
     }
 }
+
+
+pub mod settings;

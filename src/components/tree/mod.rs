@@ -44,7 +44,7 @@ impl TreeWidget {
                 FileEntry::Folder(_) => continue,
                 FileEntry::File(content, _) => {
                     if content.to_lowercase().contains("readme.md") {
-                        readme = Some(PathBuf::from(content));
+                        readme = Some(self.cwd.join(&content));
                         break;
                     }
                     continue;
@@ -53,7 +53,8 @@ impl TreeWidget {
             }
         }
 
-
+        info!("Readme found at {:?}", readme);
+        
         readme
     }
     

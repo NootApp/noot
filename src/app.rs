@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
+use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use discord_rich_presence::activity::{Activity, ActivityType, Assets, Timestamps};
 use iced::{exit, window, Element, Subscription, Task, Theme};
-use iced::application::Title;
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
 use iced::window::{gain_focus, Event, Id};
@@ -10,15 +10,16 @@ use crate::consts::{APP_NAME, APP_VERSION};
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::MANAGER;
 #[cfg(feature = "drpc")]
-use crate::{subsystems::discord::RPC_CLIENT, consts::DRPC_CLIENT_ID};
+use crate::{consts::DRPC_CLIENT_ID, subsystems::discord::RPC_CLIENT};
 
-use crate::windows::{AppWindow};
+use crate::windows::AppWindow;
 use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
-use crate::windows::editor_window::{EditorEvent, EditorWindow};
+use crate::windows::editor_window::EditorEvent;
+use crate::windows::editor_window::EditorWindow;
 
 #[derive(Debug)]
 pub struct App {
-    pub config: Config,
+    pub config: Arc<Config>,
     pub windows: BTreeMap<Id, AppWindow>,
     has_ticked: bool,
     is_initial: bool,
@@ -49,7 +50,7 @@ impl App {
 
         (
             App {
-                config,
+                config: Arc::new(config),
                 windows: BTreeMap::new(),
                 has_ticked: false,
                 is_initial,
@@ -145,7 +146,7 @@ impl App {
 
                         let workspace = MANAGER.lock().unwrap().load_workspace(lo);
                         if let Ok(workspace) = workspace {
-                            let (state, id, task) = EditorWindow::new(workspace, self.theme.clone());
+                            let (state, id, task) = EditorWindow::new(workspace, self.config.clone(), self.theme.clone());
 
                             self.windows.insert(id, AppWindow::Editor(Box::from(state)));
                             return task.discard()

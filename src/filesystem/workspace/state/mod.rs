@@ -5,17 +5,18 @@ use crate::filesystem::workspace::state::plugins::PluginManifest;
 use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
-use std::fs::{File, create_dir_all};
+use std::fs::{File};
 use std::io::Write;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 pub mod minified;
 pub mod plugins;
 
 #[derive(Debug, Clone)]
 pub struct WorkspaceState {
-    // We do not want to serialize the workspace manifest into the workspace state, as this is a seperate entity
-    pub manifest: WorkspaceManifest,
+    // We do not want to serialize the workspace manifest into the workspace state, as this is a separate entity
+    pub manifest: Arc<WorkspaceManifest>,
     pub viewport: Screen,
     pub plugins: HashMap<String, PluginManifest>,
     pub cache_dir: PathBuf,
@@ -24,27 +25,27 @@ pub struct WorkspaceState {
     pub last_update: DateTime<Local>,
     pub dirty: bool,
     pub files: HashMap<PathBuf, WorkspaceFile>,
-    pub media: MediaConfig,
+    // pub media: MediaConfig,
 }
 
 impl WorkspaceState {
-    pub fn create_directories(&mut self) -> Result<(), std::io::Error> {
-        let root = self.manifest.parse_local_path().unwrap();
-        let workspace = root.join(".noot");
-        let cache_dir = root.join(".noot/cache");
-        let plugin_dir = root.join(".noot/plugins");
-        let asset_dir = root.join(".noot/assets");
-        let asset_dir_primary = root.join("assets");
+    // pub fn create_directories(&mut self) -> Result<(), std::io::Error> {
+    //     let root = self.manifest.parse_local_path().unwrap();
+    //     let workspace = root.join(".noot");
+    //     let cache_dir = root.join(".noot/cache");
+    //     let plugin_dir = root.join(".noot/plugins");
+    //     let asset_dir = root.join(".noot/assets");
+    //     let asset_dir_primary = root.join("assets");
+    // 
+    //     if !self.cache_dir.exists() {
+    //         self.cache_dir = cache_dir;
+    //         create_dir_all(&self.cache_dir)?
+    //     }
+    // 
+    //     Ok(())
+    // }
 
-        if !self.cache_dir.exists() {
-            self.cache_dir = cache_dir;
-            create_dir_all(&self.cache_dir)?
-        }
-
-        Ok(())
-    }
-
-    pub fn load_plugins(&mut self) {}
+    // pub fn load_plugins(&mut self) {}
 
     // pub fn resolve_path(&self) -> PathBuf {
     //     match self.resolver_method {
@@ -197,7 +198,7 @@ impl WorkspaceState {
         info!("Attempting to ");
 
         WorkspaceState {
-            manifest,
+            manifest: Arc::new(manifest),
             viewport,
             plugins: Default::default(),
             cache_dir: Default::default(),
@@ -206,7 +207,7 @@ impl WorkspaceState {
             last_update: Default::default(),
             dirty: false,
             files: Default::default(),
-            media: MediaConfig {},
+            // media: MediaConfig {},
         }
     }
 
@@ -221,7 +222,7 @@ impl WorkspaceState {
         // let manifest_core_file = manifest_dir.join(".noot.wsp");
 
         let temporary_state = WorkspaceState {
-            manifest,
+            manifest: Arc::new(manifest),
             viewport: Screen::Welcome,
             plugins: HashMap::new(),
             cache_dir,
@@ -230,7 +231,7 @@ impl WorkspaceState {
             last_update: Default::default(),
             dirty: false,
             files: HashMap::new(),
-            media: MediaConfig {},
+            // media: MediaConfig {},
         };
 
         for asset_directory in temporary_state.assets_dirs.iter() {

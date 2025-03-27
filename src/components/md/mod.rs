@@ -1,10 +1,9 @@
-use std::collections::BTreeMap;
-use iced::{Color, Element, Font, Length};
-use iced::widget::{container, row, span, text, Text};
-use iced::widget::text::Span;
 use crate::app::GlobalEvent;
-use crate::consts::{FONT_BOLD, FONT_BOLD_ITALIC, FONT_ITALIC, FONT_MEDIUM};
+use crate::consts::{FONT_BOLD, FONT_BOLD_ITALIC, FONT_ITALIC, FONT_MEDIUM, HEADER_SIZE_1, HEADER_SIZE_2, HEADER_SIZE_3, HEADER_SIZE_4, HEADER_SIZE_5, TEXT_SIZE};
 use crate::markdown::TextModifier;
+use iced::widget::{container, horizontal_rule, row, text};
+use iced::{Color, Element, Font, Length};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Kind {
@@ -13,6 +12,7 @@ pub enum Kind {
     SoftBreak,
     HardBreak,
     Paragraph,
+    Rule,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +44,6 @@ impl MarkdownToken {
     }
 
     pub fn view(&self) -> Element<GlobalEvent> {
-
         match self.kind {
             Kind::Heading(level) => {
                 if self.content.len() == 0 {
@@ -52,11 +51,12 @@ impl MarkdownToken {
                 }
 
                 match level {
-                    1 => self.render_text(Some(72.), Some(FONT_BOLD), None),
-                    2 => self.render_text(Some(48.), Some(FONT_BOLD), None),
-                    3 => self.render_text(Some(36.), Some(FONT_BOLD), None),
-                    4 => self.render_text(Some(32.), Some(FONT_BOLD), None),
-                    _ => self.render_text(Some(24.), Some(FONT_BOLD), None),
+                    1 => self.render_text(Some(HEADER_SIZE_1), Some(FONT_BOLD), None),
+                    2 => self.render_text(Some(HEADER_SIZE_2), Some(FONT_BOLD), None),
+                    3 => self.render_text(Some(HEADER_SIZE_3), Some(FONT_BOLD), None),
+                    4 => self.render_text(Some(HEADER_SIZE_4), Some(FONT_BOLD), None),
+                    5 => self.render_text(Some(HEADER_SIZE_5), Some(FONT_BOLD), None),
+                    _ => self.render_text(Some(TEXT_SIZE), Some(FONT_BOLD), None),
                 }
             }
             Kind::Paragraph => {
@@ -70,11 +70,14 @@ impl MarkdownToken {
                 container(text("".to_string())).height(5.).width(Length::Fill).into()
             }
 
+            Kind::Rule => {
+                horizontal_rule(3.).into()
+            }
+
             x => {
                 text(format!("{:?} - not implemented", x)).into()
             }
         }
-
     }
 
     fn render_text(&self, size: Option<f32>, font: Option<Font>, color: Option<Color>) -> Element<GlobalEvent> {
@@ -113,6 +116,6 @@ impl MarkdownToken {
             tokens.push(c.into())
         }
 
-        row(tokens).into()
+        row(tokens).width(Length::Fill).into()
     }
 }

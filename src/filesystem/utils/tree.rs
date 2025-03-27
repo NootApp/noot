@@ -37,7 +37,18 @@ impl FileTree {
             // for result in Walk::new(path) {
             //     match result {
             //         Ok(entry) => {
-            //
+            //             let metadata = entry.file_type().unwrap();
+            //             
+            //             if metadata.is_dir() {
+            //                 
+            //             } else if metadata.is_file() {
+            //                 
+            //             } else if metadata.is_symlink() {
+            //                 
+            //             }
+            //         },
+            //         Err(err) => {
+            //             panic!("{}", err);
             //         }
             //     }
             // }

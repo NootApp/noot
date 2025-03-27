@@ -34,7 +34,7 @@ impl Configuration for PerformanceConfiguration {
         } else {
             let max_work_threads = self.max_work_threads.clone().unwrap();
             let system_threads = num_cpus::get();
-            let system_physical_cpus = num_cpus::get_physical();
+            // let system_physical_cpus = num_cpus::get_physical();
             let ratio = max_work_threads as f64 / system_threads as f64;
 
             if ratio > 0.5 {
