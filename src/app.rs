@@ -1,17 +1,17 @@
 use std::collections::BTreeMap;
 use chrono::{DateTime, Utc};
 use discord_rich_presence::activity::{Activity, ActivityType, Assets, Timestamps};
-use discord_rich_presence::DiscordIpcClient;
 use iced::{exit, window, Element, Subscription, Task, Theme};
 use iced::application::Title;
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
 use iced::window::{gain_focus, Event, Id};
-use crate::consts::{APP_NAME, APP_VERSION, DRPC_CLIENT_ID};
+use crate::consts::{APP_NAME, APP_VERSION};
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::MANAGER;
 #[cfg(feature = "drpc")]
-use crate::subsystems::discord::RPC_CLIENT;
+use crate::{subsystems::discord::RPC_CLIENT, consts::DRPC_CLIENT_ID};
+
 use crate::windows::{AppWindow};
 use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
 use crate::windows::editor_window::{EditorEvent, EditorWindow};

@@ -54,5 +54,12 @@ rand = "0.9.0"
 
 
 [features]
-default = ["drpc"]
-drpc = []
+default = ["tpmd", "analytics"]
+enterprise = [
+    "tpmd"
+]
+drpc = [] # Discord RPC support (Rich Presence, primarily). Not available in the "enterprise" build
+discord-social-sdk = [] # Discord Social SDK support. Planned.
+tpmd = [] # Third Party markdown parser (via pulldown-cmark)
+markdown = [] # First Party markdown parser (using custom crate solution)
+analytics = [] # Analytics code

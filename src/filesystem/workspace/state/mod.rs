@@ -24,6 +24,7 @@ pub struct WorkspaceState {
     pub last_update: DateTime<Local>,
     pub dirty: bool,
     pub files: HashMap<PathBuf, WorkspaceFile>,
+    pub media: MediaConfig,
 }
 
 impl WorkspaceState {
@@ -140,6 +141,22 @@ pub struct WorkspaceFile {
     path: PathBuf,
 }
 
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct MediaConfig {
+
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MediaSyncStrategy {
+    LocalHashed,
+    Local,
+    Remote,
+}
+
 impl WorkspaceState {
     pub async fn open_workspace_from_manifest(
         manifest: WorkspaceManifest,
@@ -189,6 +206,7 @@ impl WorkspaceState {
             last_update: Default::default(),
             dirty: false,
             files: Default::default(),
+            media: MediaConfig {},
         }
     }
 
@@ -212,6 +230,7 @@ impl WorkspaceState {
             last_update: Default::default(),
             dirty: false,
             files: HashMap::new(),
+            media: MediaConfig {},
         };
 
         for asset_directory in temporary_state.assets_dirs.iter() {

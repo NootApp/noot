@@ -4,9 +4,7 @@ use crate::filesystem::workspace::global::backups::BackupStrategy;
 use crate::filesystem::workspace::manager::WorkspaceError::WorkspaceCheckFailed;
 use crate::filesystem::workspace::state::minified::MinifiedWorkspaceState;
 use crate::filesystem::workspace::state::plugins::PluginManifest;
-use crate::filesystem::workspace::state::{
-    ResolverMethod, Screen, WorkspaceState,
-};
+use crate::filesystem::workspace::state::{MediaConfig, ResolverMethod, Screen, WorkspaceState};
 use crate::subsystems::cryptography::storage::{
     CONSUMER_MAGIC, ENTERPRISE_MAGIC, retrieve,
 };
@@ -72,6 +70,7 @@ impl WorkspaceManager {
                 last_update: Default::default(),
                 dirty: false,
                 files: Default::default(),
+                media: MediaConfig {},
             };
 
             if let Ok(outcome) = exists_result {

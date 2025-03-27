@@ -1,5 +1,7 @@
-use iced::{Element, Length};
-use iced::widget::{container, text};
+use std::collections::BTreeMap;
+use iced::{Color, Element, Font, Length};
+use iced::widget::{container, row, span, text, Text};
+use iced::widget::text::Span;
 use crate::app::GlobalEvent;
 use crate::consts::{FONT_BOLD, FONT_BOLD_ITALIC, FONT_ITALIC, FONT_MEDIUM};
 use crate::markdown::TextModifier;
@@ -17,9 +19,16 @@ pub enum Kind {
 pub struct MarkdownToken {
     pub kind: Kind,
     pub id: Option<String>,
-    pub content: Option<String>,
+    pub content: Vec<TextToken>,
     pub modifier: TextModifier,
     pub children: Vec<MarkdownToken>,
+    pub metadata: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TextToken {
+    pub modifier: TextModifier,
+    pub content: String,
 }
 
 impl MarkdownToken {
@@ -27,9 +36,10 @@ impl MarkdownToken {
         Self {
             kind,
             id: None,
-            content: None,
+            content: vec![],
             modifier: TextModifier::NONE,
             children: Vec::new(),
+            metadata: BTreeMap::new(),
         }
     }
 
@@ -37,40 +47,23 @@ impl MarkdownToken {
 
         match self.kind {
             Kind::Heading(level) => {
-                if self.content.is_none() {
+                if self.content.len() == 0 {
                     return text("".to_string()).into()
                 }
-
-                let mut heading = text(self.content.clone().unwrap()).font(FONT_BOLD);
 
                 match level {
-                    1 => heading = heading.size(72.),
-                    2 => heading = heading.size(48.),
-                    3 => heading = heading.size(36.),
-                    4 => heading = heading.size(32.),
-                    _ => heading = heading.size(24.),
+                    1 => self.render_text(Some(72.), Some(FONT_BOLD), None),
+                    2 => self.render_text(Some(48.), Some(FONT_BOLD), None),
+                    3 => self.render_text(Some(36.), Some(FONT_BOLD), None),
+                    4 => self.render_text(Some(32.), Some(FONT_BOLD), None),
+                    _ => self.render_text(Some(24.), Some(FONT_BOLD), None),
                 }
-
-                heading.into()
             }
             Kind::Paragraph => {
-                if self.content.is_none() {
+                if self.content.len() == 0 {
                     return text("".to_string()).into()
                 }
-                let mut c = text(self.content.clone().unwrap());
-
-
-                if self.modifier.contains(TextModifier::BOLD) && self.modifier.contains(TextModifier::ITALIC) {
-                    c = c.font(FONT_BOLD_ITALIC);
-                } else if self.modifier.contains(TextModifier::BOLD) {
-                    c = c.font(FONT_BOLD);
-                } else if self.modifier.contains(TextModifier::ITALIC) {
-                    c = c.font(FONT_ITALIC);
-                } else {
-                    c = c.font(FONT_MEDIUM);
-                }
-
-                c.into()
+                self.render_text(None, Some(FONT_MEDIUM), None)
             },
 
             Kind::SoftBreak => {
@@ -82,5 +75,44 @@ impl MarkdownToken {
             }
         }
 
+    }
+
+    fn render_text(&self, size: Option<f32>, font: Option<Font>, color: Option<Color>) -> Element<GlobalEvent> {
+        if self.content.len() == 0 {
+            return text("".to_string()).into()
+        }
+
+        let mut tokens: Vec<Element<GlobalEvent>> = vec![];
+
+        for node in &self.content {
+            let mut c = text(node.content.clone());
+
+            if let Some(font) = font {
+                c = c.font(font);
+            }
+
+            if node.modifier.contains(TextModifier::BOLD) && node.modifier.contains(TextModifier::ITALIC) {
+                c = c.font(FONT_BOLD_ITALIC);
+            } else if node.modifier.contains(TextModifier::BOLD) {
+                c = c.font(FONT_BOLD);
+            } else if node.modifier.contains(TextModifier::ITALIC) {
+                c = c.font(FONT_ITALIC);
+            } else {
+                c = c.font(FONT_MEDIUM);
+            }
+
+            if let Some(unit) = size {
+                c = c.size(unit);
+            }
+
+
+            if let Some(tone) = color {
+                c = c.color(tone);
+            }
+
+            tokens.push(c.into())
+        }
+
+        row(tokens).into()
     }
 }

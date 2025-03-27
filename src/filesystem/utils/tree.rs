@@ -5,6 +5,7 @@ use iced::{color, Element, Padding};
 use iced::widget::{button, column, scrollable, text};
 use crate::app::GlobalEvent;
 use crate::windows::editor_window::EditorEvent;
+use ignore::{types, Walk};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum FileEntry {
@@ -23,7 +24,7 @@ pub struct FileTree {
 }
 
 impl FileTree {
-    pub fn from_path(path: &PathBuf) -> Result<FileTree, std::io::Error> {
+    pub fn from_path(path: &PathBuf, use_ignore: bool) -> Result<FileTree, std::io::Error> {
         let mut tree = FileTree {
             node_count: 0,
             name: path.file_name().unwrap().to_str().unwrap().to_string(),
@@ -32,26 +33,36 @@ impl FileTree {
             children: vec![],
         };
 
-        let mut entries = std::fs::read_dir(path)?;
+        if use_ignore {
+            // for result in Walk::new(path) {
+            //     match result {
+            //         Ok(entry) => {
+            //
+            //         }
+            //     }
+            // }
+        } else {
+            let mut entries = std::fs::read_dir(path)?;
 
-        while let Some(Ok(entry)) = entries.next() {
-            let metadata = entry.file_type()?;
+            while let Some(Ok(entry)) = entries.next() {
+                let metadata = entry.file_type()?;
 
-            if metadata.is_dir() {
-                let subtree = FileTree::from_path(&entry.path())?;
+                if metadata.is_dir() {
+                    let subtree = FileTree::from_path(&entry.path(), false)?;
 
-                tree.node_count = tree.node_count + subtree.node_count;
-                tree.children.push(FileEntry::Folder(subtree));
-            } else if metadata.is_file() {
-                tree.node_count = tree.node_count + 1;
-                tree.children.push(FileEntry::File(
-                    entry.file_name().to_str().unwrap().to_string(), entry.path().to_str().unwrap().to_string(),
-                ))
-            } else if metadata.is_symlink() {
-                tree.node_count = tree.node_count + 1;
-                tree.children.push(FileEntry::Symlink(
-                    entry.file_name().to_str().unwrap().to_string(),
-                ))
+                    tree.node_count = tree.node_count + subtree.node_count;
+                    tree.children.push(FileEntry::Folder(subtree));
+                } else if metadata.is_file() {
+                    tree.node_count = tree.node_count + 1;
+                    tree.children.push(FileEntry::File(
+                        entry.file_name().to_str().unwrap().to_string(), entry.path().to_str().unwrap().to_string(),
+                    ))
+                } else if metadata.is_symlink() {
+                    tree.node_count = tree.node_count + 1;
+                    tree.children.push(FileEntry::Symlink(
+                        entry.file_name().to_str().unwrap().to_string(),
+                    ))
+                }
             }
         }
 
@@ -62,7 +73,7 @@ impl FileTree {
         path: A,
     ) -> Result<FileTree, std::io::Error> {
         let pathbuf = PathBuf::from(path.into());
-        FileTree::from_path(&pathbuf)
+        FileTree::from_path(&pathbuf, false)
     }
 
     pub fn view(&self, recursive: bool) -> Element<GlobalEvent> {
@@ -92,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_file_tree_recursion() {
-        let tree = FileTree::from_path(&PathBuf::from("./static")).unwrap();
+        let tree = FileTree::from_path(&PathBuf::from("./static"), false).unwrap();
         dbg!(&tree);
         assert_eq!(tree.node_count, 6);
     }
@@ -109,7 +120,7 @@ impl FileEntry {
                 ).into()
             }
             FileEntry::File(name, path) => {
-                button(text(name).color(color!(0xFF0000))).on_press_with(|| {
+                button(text(name).color(color!(0xFF0000))).padding(0).on_press_with(|| {
                     GlobalEvent::EditorBeam(EditorEvent::OpenFile(PathBuf::from(path.clone())))
                 }).into()
             }

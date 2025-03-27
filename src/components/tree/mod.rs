@@ -16,7 +16,7 @@ impl TreeWidget {
         let cwd = wd.into();
         Self {
             cwd: cwd.clone(),
-            tree: FileTree::from_path(&cwd).unwrap(),
+            tree: FileTree::from_path(&cwd, false).unwrap(),
             width: 400.
         }
     }
@@ -26,7 +26,7 @@ impl TreeWidget {
     }
 
     pub fn build_tree(&mut self) {
-        self.tree = FileTree::from_path(&self.cwd).unwrap()
+        self.tree = FileTree::from_path(&self.cwd, false).unwrap()
     }
 
     pub fn view(&self) -> Element<GlobalEvent> {
