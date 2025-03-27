@@ -1,14 +1,9 @@
 use crate::events::types::AppEvent;
 use crate::events::types::AppEvent::*;
-use crate::{Noot, events};
-use iced::{exit, task, window, Size, Task};
-use iced::window::{icon, Icon, Position};
-use crate::app::{App, GlobalEvent};
-use crate::consts::{APP_ICON, APP_NAME};
-use crate::windows::AppWindow;
+use crate::Noot;
+use iced::Task;
 
 pub mod config;
-pub mod rpc;
 pub mod thread_pool;
 pub mod workspace;
 
@@ -20,10 +15,7 @@ pub(crate) fn core(noot: &mut Noot, message: AppEvent) -> Task<AppEvent> {
         WorkspaceLoadStart => workspace::on_load_start(noot),
         WorkspaceLoadResult(outcome) => workspace::on_load(noot, outcome),
 
-        RPCConnected => rpc::on_connect(),
-        RPCDisconnected => rpc::on_disconnect(),
-        RPCModified => rpc::on_change(),
-        RPCInit => rpc::on_init(noot),
+
 
 
         WindowOpened(id) => {

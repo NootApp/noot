@@ -1,5 +1,5 @@
-use iced::Element;
-use iced::widget::text;
+use iced::{Element, Length};
+use iced::widget::{container, text};
 use crate::app::GlobalEvent;
 use crate::consts::{FONT_BOLD, FONT_BOLD_ITALIC, FONT_ITALIC, FONT_MEDIUM};
 use crate::markdown::TextModifier;
@@ -16,6 +16,7 @@ pub enum Kind {
 #[derive(Debug, Clone)]
 pub struct MarkdownToken {
     pub kind: Kind,
+    pub id: Option<String>,
     pub content: Option<String>,
     pub modifier: TextModifier,
     pub children: Vec<MarkdownToken>,
@@ -25,6 +26,7 @@ impl MarkdownToken {
     pub fn new(kind: Kind) -> Self {
         Self {
             kind,
+            id: None,
             content: None,
             modifier: TextModifier::NONE,
             children: Vec::new(),
@@ -34,7 +36,24 @@ impl MarkdownToken {
     pub fn view(&self) -> Element<GlobalEvent> {
 
         match self.kind {
-            Kind::Text => {
+            Kind::Heading(level) => {
+                if self.content.is_none() {
+                    return text("".to_string()).into()
+                }
+
+                let mut heading = text(self.content.clone().unwrap()).font(FONT_BOLD);
+
+                match level {
+                    1 => heading = heading.size(72.),
+                    2 => heading = heading.size(48.),
+                    3 => heading = heading.size(36.),
+                    4 => heading = heading.size(32.),
+                    _ => heading = heading.size(24.),
+                }
+
+                heading.into()
+            }
+            Kind::Paragraph => {
                 if self.content.is_none() {
                     return text("".to_string()).into()
                 }
@@ -53,6 +72,11 @@ impl MarkdownToken {
 
                 c.into()
             },
+
+            Kind::SoftBreak => {
+                container(text("".to_string())).height(5.).width(Length::Fill).into()
+            }
+
             x => {
                 text(format!("{:?} - not implemented", x)).into()
             }

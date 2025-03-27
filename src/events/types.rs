@@ -2,11 +2,9 @@ use crate::Noot;
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::WorkspaceResult;
 use crate::filesystem::workspace::state::WorkspaceState;
-use discord_rich_presence::activity::Activity;
-use iced::{Application, Point, Size, Task};
+use iced::{Point, Size, Task};
 use nanoid::nanoid;
 use std::io;
-use std::io::Bytes;
 use std::path::PathBuf;
 use crate::subsystems::events::Task as EventTask;
 use iced::window::Id;
@@ -31,20 +29,6 @@ pub enum AppEvent {
 
     WorkspaceLoadStart,
 
-    /*
-        Rich Presence Events
-    */
-    /// Emitted when it is time for the RPC client to initialize
-    RPCInit,
-
-    /// Emitted when the RPC client connects to Discord
-    RPCConnected,
-
-    /// Emitted when the RPC client disconnects from Discord
-    RPCDisconnected,
-
-    /// Emitted when the RPC client modifies the activity
-    RPCModified,
 
     // Emitted when the RPC client should update the activity
     // RPCModifyTrigger(), // TODO: Figure out how we implement this.

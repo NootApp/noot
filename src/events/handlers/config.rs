@@ -3,9 +3,8 @@ use crate::filesystem::config::Config;
 use crate::filesystem::utils::traits::{
     Configuration, list_validation_results,
 };
-use crate::{Noot, ViewPort, subsystems, views};
-use iced::{window, Task};
-use iced::futures::executor::block_on;
+use crate::{Noot, subsystems};
+use iced::Task;
 
 pub fn on_load(noot: &mut Noot, cfg: Config) -> Task<AppEvent> {
     let outcomes = cfg.validate("");
@@ -34,7 +33,7 @@ pub fn on_load(noot: &mut Noot, cfg: Config) -> Task<AppEvent> {
 
     
     queue.add(AppEvent::WorkspaceIngestManifests);
-    queue.add(AppEvent::RPCInit);
+    // queue.add(AppEvent::RPCInit);
     queue.add(AppEvent::TPSpawn);
     tasks.push(queue.drain(noot));
     

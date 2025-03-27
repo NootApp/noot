@@ -1,9 +1,7 @@
 use std::fmt::Display;
-use std::str::CharIndices;
 use bitflags::bitflags;
 use iced::futures::StreamExt;
 use lazy_static::lazy_static;
-use regex::bytes::Regex;
 use serde_derive::Serialize;
 
 /// An enum to help the parser decide how to interpret a Markdown document

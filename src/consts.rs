@@ -1,5 +1,5 @@
 use iced::Font;
-use git_version::{git_describe, git_version};
+use git_version::git_version;
 
 
 // Build Metadata
@@ -54,3 +54,5 @@ pub const FONT_ITALIC: Font = Font {
 // Icons
 pub const APP_ICON: &[u8] = include_bytes!("../static/favicon.png");
 
+#[cfg(feature = "drpc")]
+pub const DRPC_CLIENT_ID: &'static str = include_str!("../client_id");

@@ -1,13 +1,17 @@
 use std::collections::BTreeMap;
+use chrono::{DateTime, Utc};
+use discord_rich_presence::activity::{Activity, ActivityType, Assets, Timestamps};
+use discord_rich_presence::DiscordIpcClient;
 use iced::{exit, window, Element, Subscription, Task, Theme};
 use iced::application::Title;
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
-use iced::widget::text_editor::Edit;
 use iced::window::{gain_focus, Event, Id};
-use crate::consts::{APP_NAME, APP_VERSION};
+use crate::consts::{APP_NAME, APP_VERSION, DRPC_CLIENT_ID};
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::manager::MANAGER;
+#[cfg(feature = "drpc")]
+use crate::subsystems::discord::RPC_CLIENT;
 use crate::windows::{AppWindow};
 use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
 use crate::windows::editor_window::{EditorEvent, EditorWindow};
@@ -33,6 +37,8 @@ pub enum GlobalEvent {
     DebugState(String, String),
     Editor(Id, EditorEvent),
     EditorBeam(EditorEvent),
+    #[cfg(feature = "drpc")]
+    UpdatePresence(Id),
 }
 
 impl App {
@@ -48,25 +54,78 @@ impl App {
                 has_ticked: false,
                 is_initial,
                 debug_window_id: None,
-                theme: Theme::default()
+                theme: Theme::default(),
             },
             Task::done(GlobalEvent::Tick),
         )
     }
 
 
-
-
     pub fn update(&mut self, event: GlobalEvent) -> Task<GlobalEvent> {
         debug!("{:?}", event);
         match event {
-           
+            #[cfg(feature = "drpc")]
+            GlobalEvent::UpdatePresence(id) => {
+                let presence = match self.windows.get(&id) {
+                    Some(window) => {
+                        match window {
+                            AppWindow::Editor(e) => e.get_presence(),
+                            _ => {
+                                Activity::new()
+                                    .activity_type(ActivityType::Playing)
+                                    .state("Idling")
+                                    .timestamps(
+                                        Timestamps::new()
+                                            .start(
+                                                Utc::now()
+                                                    .timestamp()
+                                            )
+                                    )
+                                    .assets(
+                                        Assets::new()
+                                            .large_image("bruce")
+                                            .large_text(APP_NAME)
+                                            .small_image("ferris")
+                                            .small_text(APP_VERSION)
+                                    )
+                            }
+                        }
+                    }
+                    _ => {
+                        Activity::new()
+                            .activity_type(ActivityType::Playing)
+                            .state("Idling")
+                            .timestamps(
+                                Timestamps::new()
+                                    .start(
+                                        Utc::now()
+                                            .timestamp()
+                                    )
+                            )
+                            .assets(
+                                Assets::new()
+                                    .large_image("bruce")
+                                    .large_text(APP_NAME)
+                                    .small_image("ferris")
+                                    .small_text(APP_VERSION)
+                            )
+                    }
+                };
+
+                RPC_CLIENT.lock().unwrap().set_activity(presence);
+
+                Task::none()
+            }
+
             GlobalEvent::Tick => {
                 if self.has_ticked {
                     return Task::none();
                 }
 
                 self.has_ticked = true;
+
+                #[cfg(feature = "drpc")]
+                RPC_CLIENT.lock().unwrap().connect(DRPC_CLIENT_ID);
 
                 if self.is_initial {
                     Task::done(GlobalEvent::OpenWindow("landing".to_string()))
@@ -123,6 +182,9 @@ impl App {
                 for id in self.windows.keys() {
                     ids.push(*id);
                 }
+
+                #[cfg(feature = "drpc")]
+                RPC_CLIENT.lock().unwrap().disconnect();
 
                 for id in ids {
                     let panel = self.windows.get_mut(&id).unwrap();

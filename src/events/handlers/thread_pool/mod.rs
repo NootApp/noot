@@ -1,6 +1,5 @@
 use crate::Noot;
 use crate::events::types::AppEvent;
-use crossbeam_queue::SegQueue;
 use iced::Task;
 
 pub fn on_spawn(noot: &mut Noot) -> Task<AppEvent> {

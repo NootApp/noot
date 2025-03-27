@@ -6,19 +6,26 @@ use std::sync::Mutex;
 
 pub mod config;
 
+const MIN_WAIT_TIME: u128 = 2500;
+
 #[derive(Debug)]
+#[cfg(feature = "drpc")]
 pub struct RichPresence {
     connected: bool,
     client: DiscordIpcClient,
     inner_config: Mutex<RichPresenceConfig>,
     workspace_config: Mutex<RichPresenceConfig>,
+    last_change: std::time::Instant,
+    has_presence: bool,
 }
 
+#[cfg(feature = "drpc")]
 lazy_static! {
     pub static ref RPC_CLIENT: Mutex<RichPresence> =
         Mutex::new(RichPresence::new());
 }
 
+#[cfg(feature = "drpc")]
 impl RichPresence {
     pub fn new() -> RichPresence {
         RichPresence {
@@ -26,6 +33,8 @@ impl RichPresence {
             client: DiscordIpcClient::new("1343225099834101810").unwrap(),
             inner_config: Mutex::new(RichPresenceConfig::default()),
             workspace_config: Mutex::new(RichPresenceConfig::default()),
+            last_change: std::time::Instant::now(),
+            has_presence: false,
         }
     }
 
@@ -50,6 +59,7 @@ impl RichPresence {
                         .state("Idling"),
                 )
                 .unwrap();
+            self.connected = true;
         }
     }
 
@@ -64,6 +74,21 @@ impl RichPresence {
             error!("{:?}", close_res.err().unwrap());
         } else {
             info!("Disconnected from Discord");
+        }
+    }
+
+    pub fn set_activity(&mut self, activity: Activity) {
+        if self.connected {
+            if self.last_change.elapsed().as_millis() < MIN_WAIT_TIME && self.has_presence {
+                warn!("Tried to update status too fast. discarding changes temporarily");
+                warn!("(Last change was {}ms ago", self.last_change.elapsed().as_millis());
+                return;
+            }
+            self.client.set_activity(activity).unwrap();
+            self.has_presence = true;
+        } else {
+            error!("Failed to set activity");
+            error!("Cannot set activity before logging in");
         }
     }
 }

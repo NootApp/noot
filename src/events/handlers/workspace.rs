@@ -4,7 +4,6 @@ use crate::filesystem::workspace::state::WorkspaceState;
 use crate::views::landing::LandingView;
 use crate::{Noot, ViewPort};
 use iced::Task;
-use iced::futures::executor::block_on;
 
 pub fn on_load(
     noot: &mut Noot,

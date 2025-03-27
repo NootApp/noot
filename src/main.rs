@@ -3,20 +3,23 @@
 //! than you should be
 use hashbrown::HashMap;
 use iced::{daemon, Subscription, Theme};
-use iced::window::{Id, icon, Event};
-use iced::{Size, Task, window};
+use iced::window::{Id, Event};
+use iced::{Task, window};
 use std::env;
 use crossbeam_queue::SegQueue;
-use window::Settings;
 use crate::app::App;
 use crate::consts::{APP_BUILD, APP_VERSION, FONT_BOLD_TTF, FONT_MEDIUM, FONT_MEDIUM_TTF, FONT_REGULAR};
 
 #[macro_use]
 extern crate log;
+
+#[macro_use]
+extern crate cfg_if;
+
 use crate::events::types::AppEvent;
 use crate::filesystem::config::Config;
 use crate::filesystem::workspace::state::WorkspaceState;
-use crate::subsystems::events::{subscribe, EVENT_QUEUE};
+use crate::subsystems::events::subscribe;
 
 mod build_meta;
 mod components;

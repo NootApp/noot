@@ -3797,6 +3797,7 @@ version = "0.1.0"
 dependencies = [
  "aead",
  "bitflags 2.9.0",
+ "cfg-if",
  "chacha20poly1305",
  "chrono",
  "cocoon",

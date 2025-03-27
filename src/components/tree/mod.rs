@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use iced::Element;
-use iced::widget::{column, span, text};
+use iced::widget::{column, text};
 use crate::app::GlobalEvent;
 use crate::filesystem::utils::tree::{FileEntry, FileTree};
 

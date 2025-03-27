@@ -36,6 +36,10 @@ impl BuildInfoWindow {
         state.state.insert("Name".to_string(), APP_NAME.to_string());
         state.state.insert("Version".to_string(), APP_VERSION.to_string());
         state.state.insert("Build ID".to_string(), APP_BUILD.to_string());
+        #[cfg(feature = "drpc")]
+        state.state.insert("Discord RPC".to_string(), "Enabled".to_string());
+        #[cfg(not(feature = "drpc"))]
+        state.state.insert("Discord RPC".to_string(), "Disabled".to_string());
 
         state.redraw();
 

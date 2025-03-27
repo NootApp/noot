@@ -1,10 +1,12 @@
 use crate::filesystem::utils::traits::{Configuration, ValidationError};
 use crate::filesystem::workspace::global::WorkspaceManifest;
-use crate::subsystems::discord::config::RichPresenceConfig;
+
 use serde_derive::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::fs::{create_dir_all, exists, read_to_string, OpenOptions};
 use std::io::Write;
+use crate::subsystems::discord::config::RichPresenceConfig;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]

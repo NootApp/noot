@@ -55,7 +55,7 @@ impl WorkspaceState {
 
     pub fn store(&self) -> Result<(), std::io::Error> {
         info!("Storing workspace state");
-        let mut path = self.manifest.parse_local_path().unwrap();
+        let path = self.manifest.parse_local_path().unwrap();
         let mini = MinifiedWorkspaceState::from_state(self.clone());
         let serial = toml::to_string(&mini).unwrap();
 
