@@ -120,6 +120,10 @@ impl Application {
         w.title()
     }
 
+    pub fn theme(&self, _id: Id) -> iced::Theme {
+        iced::Theme::TokyoNightStorm
+    }
+
     pub fn update(&mut self, message: Message) -> Task {
         match message.kind {
             MessageKind::Tick => self.tick(),

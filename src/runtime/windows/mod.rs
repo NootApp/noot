@@ -65,7 +65,7 @@ impl DesktopWindow<AppWindow, WindowMessage, Message> for AppWindow {
     fn theme(&self) -> Theme {
         match self {
             AppWindow::SplashWindow(window) => window.theme(),
-            _ => Theme::default(),
+            _ => Theme::SolarizedDark,
         }
     }
 

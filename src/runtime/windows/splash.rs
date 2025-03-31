@@ -54,7 +54,7 @@ impl DesktopWindow<SplashWindow, Message, Message> for SplashWindow {
     }
 
     fn theme(&self) -> Theme {
-        Theme::default()
+        Theme::SolarizedDark
     }
 
     fn update(&mut self, _: Message) -> Task {

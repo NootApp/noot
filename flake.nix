@@ -28,15 +28,18 @@
             buildInputs = [
               pkg-config
               rust-bin.nightly.latest.default
-
+              openssl
+              dbus
               xorg.libX11
               xorg.libXcursor
               xorg.libXrandr
               xorg.libXi
               xorg.libxcb
+              xorg.libXtst
               libxkbcommon
               vulkan-loader
               wayland
+              
             ];
 
             shellHook = ''

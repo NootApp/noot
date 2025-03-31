@@ -195,14 +195,14 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
             platform_specific: Default::default(),
             exit_on_close_request: true,
         }
-    }
+   }
 
     fn title(&self) -> String {
         t!("windows.workspace-manager.title", name = APP_NAME).to_string()
     }
 
     fn theme(&self) -> Theme {
-        Theme::default()
+        Theme::SolarizedDark
     }
 
     fn update(&mut self, message: WorkspaceWindowMessage) -> Task {
@@ -301,7 +301,7 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                                 button_with_icon(Icon::FolderOpen, t!("windows.workspace-manager.menu.buttons.open-folder")),
                                 horizontal_space().width(5),
                                 button_with_icon(Icon::CloudDownload, t!("windows.workspace-manager.menu.buttons.cloud-download")),
-                            ).width(500.)
+                            ).width(520.)
                         ),
                         center(
                             if workspace_containers.is_empty() {
