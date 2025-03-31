@@ -4,11 +4,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use chrono::{DateTime, Local};
 use discord_rich_presence::activity::{Activity, ActivityType, Timestamps};
-use iced::{window, Color, Element, Size, Task, Theme};
-use iced::widget::{center, column, container, mouse_area, opaque, row, scrollable, stack, text, Container};
+use iced::{window, Color, Size, Subscription, Task, Theme};
+use iced::advanced::widget::operation::map;
+use iced::widget::{center, column, container, horizontal_space, mouse_area, opaque, row, scrollable, stack, text, Container, PaneGrid};
 use iced::widget::text_editor::Action;
 use iced::window::{icon, Id};
-use crate::app::GlobalEvent;
+use crate::app::{Element, GlobalEvent};
 use crate::components::table::row::TableRow;
 use crate::components::table::Table;
 use crate::components::tree::TreeWidget;
@@ -31,13 +32,32 @@ pub enum EditorEvent {
     // LinkClicked(Url),
     Debug(String, String),
     Edit(PathBuf, Action),
+    WebView,
     CloseSettings,
     OpenSettings
 }
 
+pub struct EditorEventWrapper {
+    pub kind: EditorEvent,
+    pub source: Id
+}
+
+
+impl Into<GlobalEvent> for EditorEventWrapper {
+    fn into(self) -> GlobalEvent {
+        GlobalEvent::Editor(self.source, self.kind)
+    }
+}
+
+impl EditorEventWrapper {
+    pub fn new(kind: EditorEvent, source: Id) -> EditorEventWrapper {
+        Self { kind, source }
+    }
+}
+
 
 #[cfg(feature = "drpc")]
-fn build_activity_from_state(w: &EditorWindow) -> Activity {
+fn build_activity_from_state<'a>(w: &EditorWindow) -> Activity<'a> {
     Activity::new()
         .activity_type(ActivityType::Playing)
         .details(activity_details(w))
@@ -46,12 +66,12 @@ fn build_activity_from_state(w: &EditorWindow) -> Activity {
 }
 
 #[cfg(feature = "drpc")]
-fn activity_details(w: &EditorWindow) -> &str {
+fn activity_details<'a>(w: &EditorWindow) -> &'a str {
     w.workspace.manifest.name.clone().unwrap_or("Unknown Workspace".to_string()).leak()
 }
 
 #[cfg(feature = "drpc")]
-fn activity_state(w: &EditorWindow) -> &str {
+fn activity_state<'a>(w: &EditorWindow) -> &'a str {
     let now = Local::now();
 
     let (idle, _) = activity_is_idle(w);
@@ -89,18 +109,21 @@ fn activity_is_idle(w: &EditorWindow) -> (bool, i64) {
 
 
 #[derive(Debug)]
-pub struct EditorWindow {
+pub struct EditorWindow<'a> {
     pub id: Id,
     pub cfg: Arc<Config>,
     pub workspace: WorkspaceState,
     pub file_list: TreeWidget,
+    
+    // pub panes: PaneGrid<PaneState>,
+    // pub panes_created: usize,
 
     pub theme: Theme,
     pub title: String,
     pub last_file_change: DateTime<Local>,
     pub last_interaction: DateTime<Local>,
     pub tab_order: Vec<String>,
-    pub tabs: BTreeMap<String, EditorPanel>,
+    pub tabs: BTreeMap<String, EditorPanel<'a>>,
     pub current_tab: String,
 
     #[cfg(debug_assertions)]
@@ -113,7 +136,14 @@ pub struct EditorWindow {
     pub resolver: MediaResolver,
 }
 
-impl EditorWindow {
+// #[derive(Debug)]
+// pub struct PaneState {
+//     pub id: usize,
+//     pub can_close: bool,
+//     
+// }
+
+impl EditorWindow<'_> {
     pub fn new(state: WorkspaceState, cfg: Arc<Config>, theme: Theme) -> (Self, Id, Task<Id>) {
         let (id, task) = window::open(Self::config());
 
@@ -167,7 +197,7 @@ impl EditorWindow {
 
     pub fn update(&mut self, event: EditorEvent) -> Task<GlobalEvent> {
         warn!("EditorEvent: {:?}", event);
-        match event {
+        match event.clone() {
             EditorEvent::Ready => {
                 let default_buffer = self.file_list.has_readme();
 
@@ -180,7 +210,7 @@ impl EditorWindow {
                     let editor = EditorPanel::new_from_bytes(self.id, asset.url.clone().into(), &asset.read().unwrap());
 
                     self.tabs.insert(asset.url.clone(), editor);
-                    self.tab_order.push("Landing Page".to_string());
+                    self.tab_order.push(asset.url.clone().into());
                     self.current_tab = asset.url.clone();
                 } else {
                     panic!("Failed to find alternative asset to load")
@@ -271,7 +301,14 @@ impl EditorWindow {
                 self.settings.show = false;
                 Task::none()
             },
+            EditorEvent::WebView => {
+                let mut tasks = vec![];
+                for tab in self.tabs.values_mut() {
+                    tasks.push(tab.update(event.clone()));
+                }
 
+                Task::batch(tasks)
+            }
             #[cfg(debug_assertions)]
             EditorEvent::Debug(key, value) => {
                 self.debug.insert(key, value);
@@ -285,20 +322,20 @@ impl EditorWindow {
         }
     }
 
-    pub fn render_tab_bar(&self) -> Element<GlobalEvent> {
+    pub fn render_tab_bar(&self) -> Element {
         container(
             row(
                 self.tab_order.iter().map(|t| {
                     match self.tabs.get(t) {
-                        Some(tab) => tab.view_tab(),
-                        None => row!(text("Something went wrong")).into()
+                        Some(tab) => row!(horizontal_space().width(5.), tab.view_tab(), horizontal_space().width(5.)).into(),
+                        None =>row!(horizontal_space().width(5.), row!(text("Something went wrong")), horizontal_space().width(10.)).into()
                     }
                 })
             )
         ).into()
     }
 
-    pub fn view(&self) -> Element<GlobalEvent> {
+    pub fn view(&self) -> Element {
         let base_layer = Container::new(
             row!(
                 self.file_list.view(),
@@ -321,7 +358,7 @@ impl EditorWindow {
     }
 
     #[cfg(debug_assertions)]
-    pub fn render_debug(&self) -> Element<GlobalEvent> {
+    pub fn render_debug(&self) -> Element {
         scrollable(
             container(self.dbg_table.view())
                 .padding(10.)
@@ -365,14 +402,11 @@ impl EditorWindow {
     }
 }
 
-fn modal<'a, Message>(
-        base: impl Into<Element<'a, Message>>,
-        content: impl Into<Element<'a, Message>>,
-        on_blur: Message,
-    ) -> Element<'a, Message>
-    where
-        Message: Clone + 'a,
-    {
+fn modal<'a>(
+        base: impl Into<Element<'a>>,
+        content: impl Into<Element<'a>>,
+        on_blur: GlobalEvent,
+    ) -> Element<'a> {
         stack![
             base.into(),
             opaque(

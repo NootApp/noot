@@ -1,0 +1,851 @@
+{
+  "treeType": "documentFragment",
+  "children": [
+    {
+      "name": "h1",
+      "variant": "normal",
+      "children": [
+        "Noot Test Page"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "This page is for testing Noots markdown parsing and rendering capabilities.\nIt serves no other purpose."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Below this point the document is a clone of the README file for pulldown-cmark. The parser which powers Noot’s Markdown renderer."
+      ]
+    },
+    {
+      "name": "hr",
+      "variant": "void"
+    },
+    {
+      "name": "h1",
+      "variant": "normal",
+      "children": [
+        "pulldown-cmark"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://github.com/pulldown-cmark/pulldown-cmark/actions/workflows/rust.yml"
+          },
+          "children": [
+            {
+              "name": "img",
+              "variant": "void",
+              "attributes": {
+                "alt": "Tests",
+                "src": "https://github.com/pulldown-cmark/pulldown-cmark/actions/workflows/rust.yml/badge.svg"
+              }
+            }
+          ]
+        },
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://docs.rs/pulldown-cmark"
+          },
+          "children": [
+            {
+              "name": "img",
+              "variant": "void",
+              "attributes": {
+                "alt": "Docs",
+                "src": "https://docs.rs/pulldown-cmark/badge.svg"
+              }
+            }
+          ]
+        },
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://crates.io/crates/pulldown-cmark"
+          },
+          "children": [
+            {
+              "name": "img",
+              "variant": "void",
+              "attributes": {
+                "alt": "Crates.io",
+                "src": "https://img.shields.io/crates/v/pulldown-cmark.svg?maxAge=2592000"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://docs.rs/pulldown-cmark/"
+          },
+          "children": [
+            "Documentation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "This library is a pull parser for ",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "http://commonmark.org/"
+          },
+          "children": [
+            "CommonMark"
+          ]
+        },
+        ", written\nin ",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "http://www.rust-lang.org/"
+          },
+          "children": [
+            "Rust"
+          ]
+        },
+        ". It comes with a simple command-line tool,\nuseful for rendering to HTML, and is also designed to be easy to use from as\na library."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "It is designed to be:"
+      ]
+    },
+    {
+      "name": "ul",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "li",
+          "variant": "normal",
+          "children": [
+            "Fast; a bare minimum of allocation and copying"
+          ]
+        },
+        {
+          "name": "li",
+          "variant": "normal",
+          "children": [
+            "Safe; written in pure Rust with no unsafe blocks (except in the opt-in SIMD feature)"
+          ]
+        },
+        {
+          "name": "li",
+          "variant": "normal",
+          "children": [
+            "Versatile; in particular source-maps are supported"
+          ]
+        },
+        {
+          "name": "li",
+          "variant": "normal",
+          "children": [
+            "Correct; the goal is 100% compliance with the ",
+            {
+              "name": "a",
+              "variant": "normal",
+              "attributes": {
+                "href": "http://spec.commonmark.org/"
+              },
+              "children": [
+                "CommonMark spec"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Further, it optionally supports parsing footnotes,\n",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://github.github.com/gfm/#tables-extension-"
+          },
+          "children": [
+            "Github flavored tables"
+          ]
+        },
+        ",\n",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://github.github.com/gfm/#task-list-items-extension-"
+          },
+          "children": [
+            "Github flavored task lists"
+          ]
+        },
+        " and\n",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://github.github.com/gfm/#strikethrough-extension-"
+          },
+          "children": [
+            "strikethrough"
+          ]
+        },
+        "."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Rustc 1.71.1 or newer is required to build the crate."
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Example"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Example usage:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-rust"
+          ],
+          "children": [
+            "// Create parser with example Markdown text.\nlet markdown_input = \"hello world\";\nlet parser = pulldown_cmark::Parser::new(markdown_input);\n\n// Write to a new String buffer.\nlet mut html_output = String::new();\npulldown_cmark::html::push_html(&amp;mut html_output, parser);\nassert_eq!(&amp;html_output, \"&lt;p&gt;hello world&lt;/p&gt;\\n\");\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Why a pull parser?"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "There are many parsers for Markdown and its variants, but to my knowledge none\nuse pull parsing. Pull parsing has become popular for XML, especially for\nmemory-conscious applications, because it uses dramatically less memory than\nconstructing a document tree, but is much easier to use than push parsers. Push\nparsers are notoriously difficult to use, and also often error-prone because of\nthe need for user to delicately juggle state in a series of callbacks."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "In a clean design, the parsing and rendering stages are neatly separated, but\nthis is often sacrificed in the name of performance and expedience. Many Markdown\nimplementations mix parsing and rendering together, and even designs that try\nto separate them (such as the popular ",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://github.com/hoedown/hoedown"
+          },
+          "children": [
+            "hoedown"
+          ]
+        },
+        "),\nmake the assumption that the rendering process can be fully represented as a\nserialized string."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Pull parsing is in some sense the most versatile architecture. It’s possible to\ndrive a push interface, also with minimal memory, and quite straightforward to\nconstruct an AST. Another advantage is that source-map information (the mapping\nbetween parsed blocks and offsets within the source text) is readily available;\nyou can call ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "into_offset_iter()"
+          ]
+        },
+        " to create an iterator that yields ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "(Event, Range)"
+          ]
+        },
+        "\npairs, where the second element is the event’s corresponding range in the source\ndocument."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "While manipulating ASTs is the most flexible way to transform documents,\noperating on iterators is surprisingly easy, and quite efficient. Here, for\nexample, is the code to transform soft line breaks into hard breaks:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-rust"
+          ],
+          "children": [
+            "let parser = parser.map(|event| match event {\n\tEvent::SoftBreak =&gt; Event::HardBreak,\n\t_ =&gt; event\n});\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Or expanding an abbreviation in text:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-rust"
+          ],
+          "children": [
+            "let parser = parser.map(|event| match event {\n\tEvent::Text(text) =&gt; Event::Text(text.replace(\"abbr\", \"abbreviation\").into()),\n\t_ =&gt; event\n});\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Another simple example is code to determine the max nesting level:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-rust"
+          ],
+          "children": [
+            "let mut max_nesting = 0;\nlet mut level = 0;\nfor event in parser {\n\tmatch event {\n\t\tEvent::Start(_) =&gt; {\n\t\t\tlevel += 1;\n\t\t\tmax_nesting = std::cmp::max(max_nesting, level);\n\t\t}\n\t\tEvent::End(_) =&gt; level -= 1,\n\t\t_ =&gt; ()\n\t}\n}\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Note that consecutive text events can happen due to the manner in which the\nparser evaluates the source. A utility ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "TextMergeStream"
+          ]
+        },
+        " exists to improve\nthe comfort of iterating the events:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-rust"
+          ],
+          "children": [
+            "use pulldown_cmark::{Event, Parser, Options};\n\nlet markdown_input = \"Hello world, this is a ~~complicated~~ *very simple* example.\";\n\nlet iterator = TextMergeStream::new(Parser::new(markdown_input));\n\nfor event in iterator {\n    match event {\n        Event::Text(text) =&gt; println!(\"{}\", text),\n        _ =&gt; {}\n    }\n}\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "There are some basic but fully functional examples of the usage of the crate in the\n",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "examples"
+          ]
+        },
+        " directory of this repository."
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Using Rust idiomatically"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "A lot of the internal scanning code is written at a pretty low level (it\npretty much scans byte patterns for the bits of syntax), but the external\ninterface is designed to be idiomatic Rust."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Pull parsers are at heart an iterator of events (start and end tags, text,\nand other bits and pieces). The parser data structure implements the\nRust Iterator trait directly, and Event is an enum. Thus, you can use the\nfull power and expressivity of Rust’s iterator infrastructure, including\nfor loops and ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "map"
+          ]
+        },
+        " (as in the examples above), collecting the events into\na vector (for recording, playback, and manipulation), and more."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Further, the ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "Text"
+          ]
+        },
+        " event (representing text) is a small copy-on-write string.\nThe vast majority of text fragments are just\nslices of the source document. For these, copy-on-write gives a convenient\nrepresentation that requires no allocation or copying, but allocated\nstrings are available when they’re needed. Thus, when rendering text to\nHTML, most text is copied just once, from the source document to the\nHTML buffer."
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "When using the pulldown-cmark’s own HTML renderer, make sure to write to a buffered\ntarget like a ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "Vec&lt;u8&gt;"
+          ]
+        },
+        " or ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "String"
+          ]
+        },
+        ". Since it performs many (very) small writes, writing\ndirectly to stdout, files, or sockets is detrimental to performance. Such writers can\nbe wrapped in a ",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "https://doc.rust-lang.org/std/io/struct.BufWriter.html"
+          },
+          "children": [
+            {
+              "name": "code",
+              "variant": "normal",
+              "children": [
+                "BufWriter"
+              ]
+            }
+          ]
+        },
+        "."
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Build options"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "By default, the binary is built as well. If you don’t want/need it, then build like this:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-bash"
+          ],
+          "children": [
+            "&gt; cargo build --no-default-features\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Or add this package as dependency of your project using ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "cargo add"
+          ]
+        },
+        ":"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-bash"
+          ],
+          "children": [
+            "&gt; cargo add pulldown-cmark --no-default-features\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "SIMD accelerated scanners are available for the x64 platform from version 0.5 onwards. To\nenable them, build with simd feature:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-bash"
+          ],
+          "children": [
+            "&gt; cargo build --release --features simd\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "Or add this package as dependency of your project with the feature using ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "cargo add"
+          ]
+        },
+        ":"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-bash"
+          ],
+          "children": [
+            "&gt; cargo add pulldown-cmark --no-default-features --features=simd\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "For a higher release performance you may want this configuration in your profile release:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "lto = true\ncodegen-units = 1\npanic = \"abort\"\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "h3",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "no_std"
+          ]
+        },
+        " support"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "no_std"
+          ]
+        },
+        " support can be enabled by compiling with ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "--no-default-features"
+          ]
+        },
+        " to\ndisable ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "std"
+          ]
+        },
+        " support and ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "--features hashbrown"
+          ]
+        },
+        " for ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "Hash"
+          ]
+        },
+        " collections that are only\ndefined in ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "std"
+          ]
+        },
+        " for internal usages in crate. For example:"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-toml"
+          ],
+          "children": [
+            "[dependencies]\npulldown-cmark = { version = \"*\", default-features = false, features = [\"hashbrown\", \"other features\"] }\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "To support both ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "std"
+          ]
+        },
+        " and ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "no_std"
+          ]
+        },
+        " builds in project, you can use the following\nin your ",
+        {
+          "name": "code",
+          "variant": "normal",
+          "children": [
+            "Cargo.toml"
+          ]
+        },
+        ":"
+      ]
+    },
+    {
+      "name": "pre",
+      "variant": "normal",
+      "children": [
+        {
+          "name": "code",
+          "variant": "normal",
+          "classes": [
+            "language-toml"
+          ],
+          "children": [
+            "[features]\ndefault = [\"std\", \"other features\"]\n\nstd = [\"pulldown-cmark/std\"]\nhashbrown = [\"pulldown-cmark/hashbrown\"]\nother_features = []\n[dependencies]\npulldown-cmark = { version = \"*\", default-features = false }\n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Authors"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "The main author is Raph Levien. The implementation of the new design (v0.3+) was\ncompleted by Marcus Klaas de Vries. Since 2023, the development has been driven\nby Martín Pozo, Michael Howell, Roope Salmi and Martin Geisler."
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "License"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "This software is under the MIT license. See details in ",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "./LICENSE"
+          },
+          "children": [
+            "license file"
+          ]
+        },
+        "."
+      ]
+    },
+    {
+      "name": "h2",
+      "variant": "normal",
+      "children": [
+        "Contributions"
+      ]
+    },
+    {
+      "name": "p",
+      "variant": "normal",
+      "children": [
+        "We gladly accept contributions via GitHub pull requests. Please see\n",
+        {
+          "name": "a",
+          "variant": "normal",
+          "attributes": {
+            "href": "CONTRIBUTING.md"
+          },
+          "children": [
+            "CONTRIBUTING.md"
+          ]
+        },
+        " for more details."
+      ]
+    }
+  ]
+}

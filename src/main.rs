@@ -8,7 +8,7 @@ use iced::{Task, window};
 use std::env;
 use crossbeam_queue::SegQueue;
 use crate::app::App;
-use crate::consts::{APP_BUILD, APP_VERSION, FONT_BOLD_TTF, FONT_MEDIUM, FONT_MEDIUM_TTF, FONT_REGULAR};
+use crate::consts::{APP_BUILD, APP_VERSION, FONT_BOLD_TTF, FONT_MEDIUM, FONT_MEDIUM_TTF, FONT_MONO, FONT_MONOSPACE, FONT_REGULAR};
 
 #[macro_use]
 extern crate log;
@@ -33,6 +33,7 @@ mod windows;
 
 mod app;
 
+#[cfg(feature = "markdown")]
 mod markdown;
 
 #[cfg(test)]
@@ -76,6 +77,7 @@ fn main() -> iced::Result {
         .font(FONT_MEDIUM_TTF)
         .font(FONT_BOLD_TTF)
         .font(FONT_REGULAR)
+        .font(FONT_MONOSPACE)
         .default_font(FONT_MEDIUM)
         .scale_factor(App::scale_factor)
         .style(App::style)

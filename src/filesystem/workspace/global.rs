@@ -103,6 +103,21 @@ impl WorkspaceManifest {
     }
 }
 
+impl From<std::sync::Arc<WorkspaceManifest>> for WorkspaceManifest {
+    fn from(manifest: std::sync::Arc<WorkspaceManifest>) -> Self {
+        Self {
+            id: manifest.id.clone(),
+            name: manifest.name.clone(),
+            local_path: manifest.local_path.clone(),
+            cd: manifest.cd,
+            le: manifest.le,
+            backup_strategy: manifest.backup_strategy.clone(),
+            rpc: manifest.rpc.clone(),
+            flags: manifest.flags,
+        }
+    }
+}
+
 impl Configuration for WorkspaceManifest {
     fn validate(&self, prefix: &str) -> Vec<ValidationError> {
         let errors = Vec::new();

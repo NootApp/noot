@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use discord_rich_presence::activity::{Activity, ActivityType, Assets, Timestamps};
-use iced::{exit, window, Element, Subscription, Task, Theme};
+use iced::{exit, window, Subscription, Task, Theme};
 use iced::daemon::{Appearance, DefaultStyle};
 use iced::widget::horizontal_space;
 use iced::window::{gain_focus, Event, Id};
@@ -17,10 +17,12 @@ use crate::windows::build_info_window::{BuildInfoMessage, BuildInfoWindow};
 use crate::windows::editor_window::EditorEvent;
 use crate::windows::editor_window::EditorWindow;
 
+pub type Element<'a> = iced::Element<'a, GlobalEvent, Theme, iced::Renderer>;
+
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     pub config: Arc<Config>,
-    pub windows: BTreeMap<Id, AppWindow>,
+    pub windows: BTreeMap<Id, AppWindow<'a>>,
     has_ticked: bool,
     is_initial: bool,
     debug_window_id: Option<Id>,
@@ -42,8 +44,8 @@ pub enum GlobalEvent {
     UpdatePresence(Id),
 }
 
-impl App {
-    pub fn new() -> (App, Task<GlobalEvent>) {
+impl App<'_> {
+    pub fn new<'a>() -> (App<'a>, Task<GlobalEvent>) {
         let (config, is_initial) = Config::load_from_disk();
         let mut mgr = MANAGER.lock().unwrap();
         mgr.ingest_config(config.workspaces.clone().unwrap());
@@ -259,7 +261,7 @@ impl App {
         }
     }
 
-    pub fn view(&self, id: Id) -> Element<GlobalEvent> {
+    pub fn view(&self, id: Id) -> Element {
         match &self.windows.get(&id) {
             Some(AppWindow::Editor(editor)) => editor.view(),
             Some(AppWindow::BuildInfo(panel)) => panel.view(id),
@@ -288,26 +290,20 @@ impl App {
     }
 
     pub fn subscription(&self) -> Subscription<GlobalEvent> {
-        let window_events = window::events().map(|(id, e)| {
-            return match e {
-                Event::Closed => {
-                    GlobalEvent::WindowClosed(id)
-                },
-                _ => GlobalEvent::DebugMessage(format!("{:?}", e)),
-            }
-        });
-        //
-        // let handle = std::sync::mpsc::channel();
-        //
-        //
-        //
-        // std::thread::spawn(move || {
-        //
-        // })
+        let mut subscriptions = vec![
+            window::events().map(|(id, e)| {
+                return match e {
+                    Event::Closed => {
+                        GlobalEvent::WindowClosed(id)
+                    },
+                    _ => GlobalEvent::DebugMessage(format!("{:?}", e)),
+                }
+            }),
+            // iced::time::every(std::time::Duration::from_millis(10))
+            //     .map(|_| GlobalEvent::EditorBeam(EditorEvent::WebView))
+        ];
 
-        Subscription::batch([
-            window_events,
-        ])
+        Subscription::batch(subscriptions)
     }
 }
 

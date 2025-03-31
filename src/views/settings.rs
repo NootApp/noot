@@ -1,8 +1,8 @@
 use std::sync::Arc;
-use iced::{Border, Color, Element};
+use iced::{Border, Color};
 use iced::border::Radius;
 use iced::widget::{column, container, horizontal_rule, horizontal_space, row, scrollable, text, text_input};
-use crate::app::GlobalEvent;
+use crate::app::{Element, GlobalEvent};
 use crate::components::form::text_input::TextInput;
 use crate::consts::{HEADER_SIZE_2, HEADER_SIZE_3};
 use crate::filesystem::config::Config;
@@ -43,7 +43,7 @@ impl Settings {
         }
     }
 
-    pub fn view(&self) -> Element<GlobalEvent> {
+    pub fn view(&self) -> Element {
         container(
             scrollable(
                 column!(
@@ -69,17 +69,17 @@ impl Settings {
 }
 
 
-fn section_header<'a>(name: impl Into<String>) -> Element<'a, GlobalEvent> {
+fn section_header<'a>(name: impl Into<String>) -> Element<'a> {
     column!(
         text(name.into()).size(HEADER_SIZE_3),
         horizontal_rule(2),
     ).into()
 }
 
-fn header<'a>(title: impl Into<String>) -> Element<'a, GlobalEvent> {
+fn header<'a>(title: impl Into<String>) -> Element<'a> {
     text(title.into()).size(HEADER_SIZE_2).into()
 }
 
-fn text_field(key: impl Into<String>, bind: &str) -> Element<GlobalEvent> {
+fn text_field(key: impl Into<String>, bind: &str) -> Element {
     row!(text(key.into()), text_input(bind, bind)).into()
 }

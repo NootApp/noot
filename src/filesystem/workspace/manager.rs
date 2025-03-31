@@ -101,7 +101,7 @@ impl WorkspaceManager {
                             let ws2: MinifiedWorkspaceState =
                                 toml::from_str(&cstring).unwrap();
 
-                            workspace.manifest = ws2.manifest;
+                            workspace.manifest = Arc::from(ws2.manifest);
                             workspace.viewport = ws2.viewport;
                             workspace.plugins = ws2.plugins;
                             workspace.cache_dir = ws2.cache_dir;

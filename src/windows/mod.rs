@@ -5,7 +5,7 @@ pub mod editor_window;
 pub mod build_info_window;
 
 #[derive(Debug)]
-pub enum AppWindow {
-    Editor(Box<EditorWindow>),
+pub enum AppWindow<'a> {
+    Editor(Box<EditorWindow<'a>>),
     BuildInfo(Box<BuildInfoWindow>)
 }

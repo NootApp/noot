@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
-use crate::app::GlobalEvent;
+use crate::app::{Element, GlobalEvent};
 use crate::components::table::row::TableRow;
 use crate::components::table::Table;
 use crate::consts::{APP_BUILD, APP_ICON, APP_NAME, APP_VERSION};
 use iced::widget::container;
 use iced::window::{icon, Id, Settings};
-use iced::{window, Element, Size, Task};
+use iced::{window, Size, Task};
 
 #[derive(Debug)]
 pub struct BuildInfoWindow {
@@ -87,7 +87,7 @@ impl BuildInfoWindow {
         }
     }
 
-    pub fn view(&self, id: Id) -> Element<GlobalEvent> {
+    pub fn view(&self, id: Id) -> Element {
         container(self.stats.view())
             .padding(10.)
             .into()

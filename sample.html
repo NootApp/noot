@@ -1,0 +1,170 @@
+<h1>Noot Test Page</h1>
+<p>This page is for testing Noots markdown parsing and rendering capabilities.
+It serves no other purpose.</p>
+<p>Below this point the document is a clone of the README file for pulldown-cmark. The parser which powers Noot’s Markdown renderer.</p>
+<hr />
+<h1>pulldown-cmark</h1>
+<p><a href="https://github.com/pulldown-cmark/pulldown-cmark/actions/workflows/rust.yml"><img src="https://github.com/pulldown-cmark/pulldown-cmark/actions/workflows/rust.yml/badge.svg" alt="Tests" /></a>
+<a href="https://docs.rs/pulldown-cmark"><img src="https://docs.rs/pulldown-cmark/badge.svg" alt="Docs" /></a>
+<a href="https://crates.io/crates/pulldown-cmark"><img src="https://img.shields.io/crates/v/pulldown-cmark.svg?maxAge=2592000" alt="Crates.io" /></a></p>
+<p><a href="https://docs.rs/pulldown-cmark/">Documentation</a></p>
+<p>This library is a pull parser for <a href="http://commonmark.org/">CommonMark</a>, written
+in <a href="http://www.rust-lang.org/">Rust</a>. It comes with a simple command-line tool,
+useful for rendering to HTML, and is also designed to be easy to use from as
+a library.</p>
+<p>It is designed to be:</p>
+<ul>
+<li>Fast; a bare minimum of allocation and copying</li>
+<li>Safe; written in pure Rust with no unsafe blocks (except in the opt-in SIMD feature)</li>
+<li>Versatile; in particular source-maps are supported</li>
+<li>Correct; the goal is 100% compliance with the <a href="http://spec.commonmark.org/">CommonMark spec</a></li>
+</ul>
+<p>Further, it optionally supports parsing footnotes,
+<a href="https://github.github.com/gfm/#tables-extension-">Github flavored tables</a>,
+<a href="https://github.github.com/gfm/#task-list-items-extension-">Github flavored task lists</a> and
+<a href="https://github.github.com/gfm/#strikethrough-extension-">strikethrough</a>.</p>
+<p>Rustc 1.71.1 or newer is required to build the crate.</p>
+<h2>Example</h2>
+<p>Example usage:</p>
+<pre><code class="language-rust">// Create parser with example Markdown text.
+let markdown_input = "hello world";
+let parser = pulldown_cmark::Parser::new(markdown_input);
+
+// Write to a new String buffer.
+let mut html_output = String::new();
+pulldown_cmark::html::push_html(&amp;mut html_output, parser);
+assert_eq!(&amp;html_output, "&lt;p&gt;hello world&lt;/p&gt;\n");
+</code></pre>
+<h2>Why a pull parser?</h2>
+<p>There are many parsers for Markdown and its variants, but to my knowledge none
+use pull parsing. Pull parsing has become popular for XML, especially for
+memory-conscious applications, because it uses dramatically less memory than
+constructing a document tree, but is much easier to use than push parsers. Push
+parsers are notoriously difficult to use, and also often error-prone because of
+the need for user to delicately juggle state in a series of callbacks.</p>
+<p>In a clean design, the parsing and rendering stages are neatly separated, but
+this is often sacrificed in the name of performance and expedience. Many Markdown
+implementations mix parsing and rendering together, and even designs that try
+to separate them (such as the popular <a href="https://github.com/hoedown/hoedown">hoedown</a>),
+make the assumption that the rendering process can be fully represented as a
+serialized string.</p>
+<p>Pull parsing is in some sense the most versatile architecture. It’s possible to
+drive a push interface, also with minimal memory, and quite straightforward to
+construct an AST. Another advantage is that source-map information (the mapping
+between parsed blocks and offsets within the source text) is readily available;
+you can call <code>into_offset_iter()</code> to create an iterator that yields <code>(Event, Range)</code>
+pairs, where the second element is the event’s corresponding range in the source
+document.</p>
+<p>While manipulating ASTs is the most flexible way to transform documents,
+operating on iterators is surprisingly easy, and quite efficient. Here, for
+example, is the code to transform soft line breaks into hard breaks:</p>
+<pre><code class="language-rust">let parser = parser.map(|event| match event {
+	Event::SoftBreak =&gt; Event::HardBreak,
+	_ =&gt; event
+});
+</code></pre>
+<p>Or expanding an abbreviation in text:</p>
+<pre><code class="language-rust">let parser = parser.map(|event| match event {
+	Event::Text(text) =&gt; Event::Text(text.replace("abbr", "abbreviation").into()),
+	_ =&gt; event
+});
+</code></pre>
+<p>Another simple example is code to determine the max nesting level:</p>
+<pre><code class="language-rust">let mut max_nesting = 0;
+let mut level = 0;
+for event in parser {
+	match event {
+		Event::Start(_) =&gt; {
+			level += 1;
+			max_nesting = std::cmp::max(max_nesting, level);
+		}
+		Event::End(_) =&gt; level -= 1,
+		_ =&gt; ()
+	}
+}
+</code></pre>
+<p>Note that consecutive text events can happen due to the manner in which the
+parser evaluates the source. A utility <code>TextMergeStream</code> exists to improve
+the comfort of iterating the events:</p>
+<pre><code class="language-rust">use pulldown_cmark::{Event, Parser, Options};
+
+let markdown_input = "Hello world, this is a ~~complicated~~ *very simple* example.";
+
+let iterator = TextMergeStream::new(Parser::new(markdown_input));
+
+for event in iterator {
+    match event {
+        Event::Text(text) =&gt; println!("{}", text),
+        _ =&gt; {}
+    }
+}
+</code></pre>
+<p>There are some basic but fully functional examples of the usage of the crate in the
+<code>examples</code> directory of this repository.</p>
+<h2>Using Rust idiomatically</h2>
+<p>A lot of the internal scanning code is written at a pretty low level (it
+pretty much scans byte patterns for the bits of syntax), but the external
+interface is designed to be idiomatic Rust.</p>
+<p>Pull parsers are at heart an iterator of events (start and end tags, text,
+and other bits and pieces). The parser data structure implements the
+Rust Iterator trait directly, and Event is an enum. Thus, you can use the
+full power and expressivity of Rust’s iterator infrastructure, including
+for loops and <code>map</code> (as in the examples above), collecting the events into
+a vector (for recording, playback, and manipulation), and more.</p>
+<p>Further, the <code>Text</code> event (representing text) is a small copy-on-write string.
+The vast majority of text fragments are just
+slices of the source document. For these, copy-on-write gives a convenient
+representation that requires no allocation or copying, but allocated
+strings are available when they’re needed. Thus, when rendering text to
+HTML, most text is copied just once, from the source document to the
+HTML buffer.</p>
+<p>When using the pulldown-cmark’s own HTML renderer, make sure to write to a buffered
+target like a <code>Vec&lt;u8&gt;</code> or <code>String</code>. Since it performs many (very) small writes, writing
+directly to stdout, files, or sockets is detrimental to performance. Such writers can
+be wrapped in a <a href="https://doc.rust-lang.org/std/io/struct.BufWriter.html"><code>BufWriter</code></a>.</p>
+<h2>Build options</h2>
+<p>By default, the binary is built as well. If you don’t want/need it, then build like this:</p>
+<pre><code class="language-bash">&gt; cargo build --no-default-features
+</code></pre>
+<p>Or add this package as dependency of your project using <code>cargo add</code>:</p>
+<pre><code class="language-bash">&gt; cargo add pulldown-cmark --no-default-features
+</code></pre>
+<p>SIMD accelerated scanners are available for the x64 platform from version 0.5 onwards. To
+enable them, build with simd feature:</p>
+<pre><code class="language-bash">&gt; cargo build --release --features simd
+</code></pre>
+<p>Or add this package as dependency of your project with the feature using <code>cargo add</code>:</p>
+<pre><code class="language-bash">&gt; cargo add pulldown-cmark --no-default-features --features=simd
+</code></pre>
+<p>For a higher release performance you may want this configuration in your profile release:</p>
+<pre><code>lto = true
+codegen-units = 1
+panic = "abort"
+</code></pre>
+<h3><code>no_std</code> support</h3>
+<p><code>no_std</code> support can be enabled by compiling with <code>--no-default-features</code> to
+disable <code>std</code> support and <code>--features hashbrown</code> for <code>Hash</code> collections that are only
+defined in <code>std</code> for internal usages in crate. For example:</p>
+<pre><code class="language-toml">[dependencies]
+pulldown-cmark = { version = "*", default-features = false, features = ["hashbrown", "other features"] }
+</code></pre>
+<p>To support both <code>std</code> and <code>no_std</code> builds in project, you can use the following
+in your <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">[features]
+default = ["std", "other features"]
+
+std = ["pulldown-cmark/std"]
+hashbrown = ["pulldown-cmark/hashbrown"]
+other_features = []
+[dependencies]
+pulldown-cmark = { version = "*", default-features = false }
+</code></pre>
+<h2>Authors</h2>
+<p>The main author is Raph Levien. The implementation of the new design (v0.3+) was
+completed by Marcus Klaas de Vries. Since 2023, the development has been driven
+by Martín Pozo, Michael Howell, Roope Salmi and Martin Geisler.</p>
+<h2>License</h2>
+<p>This software is under the MIT license. See details in <a href="./LICENSE">license file</a>.</p>
+<h2>Contributions</h2>
+<p>We gladly accept contributions via GitHub pull requests. Please see
+<a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for more details.</p>

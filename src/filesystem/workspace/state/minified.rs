@@ -7,13 +7,14 @@ use chrono::{DateTime, Local};
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::io::Write;
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::Arc;
 use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinifiedWorkspaceState {
-    pub manifest: Arc<WorkspaceManifest>,
+    pub manifest: WorkspaceManifest,
     pub viewport: Screen,
     pub plugins: HashMap<String, PluginManifest>,
     pub cache_dir: PathBuf,
@@ -61,7 +62,7 @@ impl WorkspaceFile {
 impl MinifiedWorkspaceState {
     pub fn from_state(s: WorkspaceState) -> Self {
         Self {
-            manifest: s.manifest.clone(),
+            manifest: s.manifest.clone().try_into().unwrap(),
             viewport: s.viewport.clone(),
             plugins: s.plugins.clone(),
             cache_dir: s.cache_dir.clone(),

@@ -16,6 +16,9 @@ pub const APP_VERSION: &str = "0.1.0";
 
 // Fonts
 pub const FONT_NAME: &str = "Roboto";
+pub const FONT_NAME_MONO: &str = "Roboto Mono";
+
+pub const FONT_MONOSPACE: &[u8] = include_bytes!("../static/fonts/RobotoMono-Medium.ttf");
 
 pub const FONT_REGULAR: &[u8] = include_bytes!("../static/fonts/Roboto-Regular.ttf");
 
@@ -28,6 +31,14 @@ pub const FONT_MEDIUM: Font = Font {
     weight: iced::font::Weight::Medium,
     stretch: iced::font::Stretch::Normal,
     style: iced::font::Style::Normal,
+};
+
+pub const FONT_MONO: Font = Font {
+    family: iced::font::Family::Name(FONT_NAME_MONO),
+    weight: iced::font::Weight::Medium,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+
 };
 
 pub const FONT_BOLD: Font = Font {
