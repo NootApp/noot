@@ -3,9 +3,12 @@ use std::sync::{Arc, Mutex};
 use iced::{application, exit, Subscription};
 use iced::widget::text;
 use iced::window::Id;
+use notify_rust::Notification;
 use lazy_static::lazy_static;
 use rusqlite::fallible_iterator::FallibleIterator;
+use chrono::Local;
 use crate::config::Config;
+use crate::consts::APP_NAME;
 use crate::runtime::messaging::{Message, MessageKind};
 use crate::runtime::windows::{AppWindow, DesktopWindow};
 use crate::runtime::windows::editor::EditorWindow;
@@ -14,18 +17,13 @@ use crate::storage::process::ProcessStorageManager;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::storage::workspace::WorkspaceManager;
+use crate::hotkey::Keybind;
 
 /// Holds all the message passing code for the base layer of the app. All roads lead to `crate::runtime::messaging`.
 pub mod messaging;
 
 /// Holds the definitions for each of the applications window types, and their respective internal runtimes.
 pub mod windows;
-
-// #[feature(type_alias_impl_trait)]
-// pub type Task = iced::Task<impl Into<Message>>;
-// #[feature(type_alias_impl_trait)]
-// pub type Element<'a> = iced::Element<'a, impl Into<Message>>;
-
 
 /// Globally used alias for this applications task type.
 pub type Task = iced::Task<Message>;
@@ -121,7 +119,7 @@ impl Application {
     }
 
     pub fn theme(&self, _id: Id) -> iced::Theme {
-        iced::Theme::TokyoNightStorm
+        iced::Theme::Dark
     }
 
     pub fn update(&mut self, message: Message) -> Task {
@@ -137,10 +135,40 @@ impl Application {
                 }
             }
             MessageKind::Keybind(event) => {
-                dbg!(event);
-                Task::none()
+                match event {
+                    Keybind::OpenLastEditor => {
+                        let workspaces = self.state.lock().unwrap().store.list_workspaces();
+                        let last_workspace = workspaces.first().unwrap();
+                        Task::done(Message::open_workspace(last_workspace.id.clone()))
+                    },
+                    _ => Task::none()
+                }
             }
             MessageKind::OpenWorkspace(workspace_id) => self.open_workspace(workspace_id),
+            MessageKind::WindowClose(id) => {
+                let reference = self.rt.windows.get_mut(&id);
+
+                if let Some(window) = reference {
+                    info!("Attempting to close window with ID: {}", id);
+                    let task = window.close();
+
+                    self.rt.windows.remove(&id);
+
+                    if self.rt.windows.len() == 0 {
+                        warn!("Window count is 0, showing daemon notification");
+                        Notification::new()
+                            .summary("Background Mode")
+                            .body("Noot is running in the background.\nSummon me again using alt + n")
+                            .appname(APP_NAME)
+                            .timeout(5)
+                            .show().unwrap();
+                    }
+
+                    task
+                } else {
+                    Task::none()
+                }
+            }
             _ => {
                 info!("UnhandledMessage: {:?}", message);
                 Task::none()
@@ -160,19 +188,12 @@ impl Application {
 
         let mut state = maybe_lock.unwrap();
         let workspaces = state.store.list_workspaces();
-
+        //state.store.set_setting("workspace.load_last", None::<()>, true);
 
         if workspaces.is_empty() {
             // This is probably an uninitialized installation.
             // Let's show the "getting started" window.
             return Message::window_open("workspace-manager").into();
-
-
-            // We need to panic, because it should not be empty
-            // error!("No workspaces found");
-            // error!("High probability of database corruption");
-            // error!("Exiting to release database lock");
-            // return exit()
         }
 
         for workspace in &workspaces {
@@ -182,7 +203,8 @@ impl Application {
         let load_last_used = state.store.get_setting::<String>("workspace.load_last").unwrap_or(Setting{key: "workspace.load_last".to_string(), value:None, enabled:false});
 
         if load_last_used.enabled {
-            // let last_used = workspaces.last().unwrap();
+            let last_used = workspaces.last().unwrap();
+            return Message::open_workspace(last_used.id.clone()).into();
 
             // TODO: some logic to load an editor window with the last opened workspace
         } else {
@@ -206,7 +228,7 @@ impl Application {
                 let mgr = WorkspaceManager::new(source.clone()).unwrap();
                 let (context, task) = EditorWindow::new(mgr);
                 self.rt.windows.insert(context.id, AppWindow::EditorWindow(context));
-
+                temp_lock.store.update_workspace(source.id, Local::now());
                 task.discard()
             }
             _ => Task::none()
@@ -231,6 +253,9 @@ impl Application {
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
-        Subscription::run(crate::hotkey::start)
+        Subscription::batch([
+            iced::window::close_events().map(|id| Message::window_close(id)),
+            Subscription::run(crate::hotkey::start)
+        ])
     }
 }

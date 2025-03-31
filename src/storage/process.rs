@@ -69,6 +69,11 @@ impl ProcessStorageManager {
         }).unwrap();
     }
 
+    pub fn update_workspace(&self, id: impl Into<String>, ts: chrono::DateTime<chrono::Local>) {
+        let mut statement = self.db.prepare("UPDATE workspaces SET last_accessed = ? WHERE id = ?").unwrap();
+        statement.execute((local_to_sqlstr(ts), id.into())).unwrap();
+    }
+
     pub fn get_setting<T: Encode + Decode<()> + Debug>(&self, key: impl Into<String>) -> Option<Setting<T>> {
         let k = key.into();
         let mut stmt = self.db.prepare("SELECT * FROM settings WHERE id = ?").unwrap();
