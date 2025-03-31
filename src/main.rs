@@ -18,10 +18,14 @@ extern crate rust_i18n;
 
 i18n!("locales", fallback = "en");
 
+/// # Noot
+/// An experimental markdown desktop editor.
 
+
+/// The testing framework harness entrypoint.
 #[cfg(test)]
 #[ctor::ctor]
-fn init() {
+pub fn init() {
     // This is definitely safe :|
     unsafe {
         env::set_var("NOOT_LOG", "debug");
@@ -29,7 +33,8 @@ fn init() {
     pretty_env_logger::init_custom_env("NOOT_LOG");
 }
 
-fn main() -> iced::Result {
+/// Application entrypoint.
+pub fn main() -> iced::Result {
     // This is definitely safe :|
 
     let log_level =
@@ -107,15 +112,31 @@ fn main() -> iced::Result {
         .run_with(Application::new)
 }
 
+
+/// Constant values used frequently within the application.
 pub mod consts;
+
+/// The runtime core of the app.
 pub mod runtime;
+
+/// The configuration management section.
 pub mod config;
+
+/// The security management section.
 pub mod security;
+
+/// The asset management section.
 pub mod assets;
+
+/// The storage management section.
 pub mod storage;
+
+/// Utility functions available throughout the app.
 pub mod utils;
 
+/// The hotkey management section.
 pub mod hotkey;
 
+/// The inter-process communication management section.
 #[cfg(feature = "ipc")]
 pub mod ipc;

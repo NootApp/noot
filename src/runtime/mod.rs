@@ -14,7 +14,10 @@ use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::storage::workspace::WorkspaceManager;
 
+/// Holds all the message passing code for the base layer of the app. All roads lead to `crate::runtime::messaging`.
 pub mod messaging;
+
+/// Holds the definitions for each of the applications window types, and their respective internal runtimes.
 pub mod windows;
 
 // #[feature(type_alias_impl_trait)]
@@ -23,11 +26,16 @@ pub mod windows;
 // pub type Element<'a> = iced::Element<'a, impl Into<Message>>;
 
 
+/// Globally used alias for this applications task type.
 pub type Task = iced::Task<Message>;
+
+/// Globally used alias for the element type returned by all windows when calling `.view()`.
 pub type Element<'a> = iced::Element<'a, Message>;
 
 lazy_static!(
-  pub static ref GLOBAL_STATE: Arc<Mutex<AppState>> = Arc::new(
+    /// A global state instance shared across the application, used by each window to ensure that it can update the app
+    /// state as is necessary. (which isn't very much)
+    pub static ref GLOBAL_STATE: Arc<Mutex<AppState>> = Arc::new(
         Mutex::new(
             AppState {
                 config: Config::default(),
@@ -41,33 +49,58 @@ lazy_static!(
 );
 
 
-
+/// Private runtime state information, used by `crate::runtime::Application` for internal
+/// logic and managing of windows and how they are rendered.
 pub struct RuntimeState {
+    /// A `BTreeMap` containing each window and their respective identifiers for use when rendering or updating.
     pub windows: BTreeMap<Id, AppWindow>
 }
 
 impl RuntimeState {
+    /// Builds a new `RuntimeState` instance.
     fn new() -> RuntimeState {
         RuntimeState { windows: Default::default() }
     }
 }
 
+/// A global runtime state that can be modified by anyone with a copy of it at any time.
 #[derive(Debug)]
 pub struct AppState {
+    /// The configuration data as it has been loaded from the disk.
+    /// > :warning: Caution: This is currently loaded via `Default::default()` and is not persisted to disk.
     pub config: Config,
+
+    /// The storage manager for the current application. Manages the information within the main database file.
     pub store: ProcessStorageManager,
+
+    /// A map of the available workspaces (as found by the `ProcessStoreManager`),
+    /// this contains the ID of the workspace as its key, and stores a
+    /// partial workspace entry for referencing in the GUI.
     pub workspaces: BTreeMap<String, Workspace>,
+
+    /// Whether IPC is running. (always false at this time)
     pub run_ipc: bool,
+
+    /// The current process ID. (as assigned by the OS)
+    /// This is used alongside the IPC subsystem to route messages.
     pub pid: u32,
 }
 
+/// The application and its primary runtime.
+/// 
+/// This handles all the logic behind running the application,
+/// including message routing window management and system monitoring.
 pub struct Application {
+    /// Internal runtime state - Not exposed to the rest of the application.
     rt: RuntimeState,
+    /// Global runtime state - Exposed to the rest of the application.
     state: Arc<Mutex<AppState>>,
+    /// The workspace ID that should be opened when a new editor is called.
     open_workspace: Option<String>
 }
 
 impl Application {
+    /// Spawn a new Application runtime, returns a trigger task and an instance of the application to run the daemon with.
     pub fn new() -> (Application, Task) {
         (Application {
             rt: RuntimeState::new(),
@@ -76,6 +109,7 @@ impl Application {
         }, Message::tick().into())
     }
 
+    /// Returns the current process title for the given window, can be localised.
     pub fn title(&self, window: Id) -> String {
         let w = self.rt.windows.get(&window).unwrap();
         w.title()

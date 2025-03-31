@@ -4,7 +4,7 @@ use rust_i18n::t;
 use iced::{window, Theme, Task as IcedTask, Size, Length, Background, color, Border, Padding};
 use iced::widget::{button, center, column, container, horizontal_space, mouse_area, row, scrollable, text, text_input, vertical_space};
 use iced::widget::container::Style;
-use iced::window::{icon, Id, Settings};
+use iced::window::{icon, Id, Position, Settings};
 use material_icons::Icon;
 use stringcase::kebab_case;
 use regex::Regex;
@@ -183,7 +183,7 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
     fn settings() -> Settings {
         Settings {
             size: Size::new(720., 700.),
-            position: Default::default(),
+            position: Position::Centered,
             min_size: None,
             max_size: None,
             visible: true,
