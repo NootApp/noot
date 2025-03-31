@@ -62,11 +62,15 @@ pub const FONT_ITALIC: Font = Font {
     style: iced::font::Style::Italic,
 };
 
+pub const FONT_ICON: Font = Font {
+    family: iced::font::Family::Name("Material Icons"),
+    weight: iced::font::Weight::Normal,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+};
+
 // Icons
 pub const APP_ICON: &[u8] = include_bytes!("../static/favicon.png");
-
-#[cfg(feature = "drpc")]
-pub const DRPC_CLIENT_ID: &'static str = include_str!("../client_id");
 
 
 // Markdown constants
@@ -77,3 +81,21 @@ pub const HEADER_SIZE_3: f32 = 22.;
 pub const HEADER_SIZE_4: f32 = 18.;
 pub const HEADER_SIZE_5: f32 = 14.;
 pub const TEXT_SIZE: f32 = 12.;
+
+
+// Window Level Constants
+// Splash Window
+pub const SPLASH_ART: &[u8] = include_bytes!("../static/splash.gif");
+
+
+
+// Colors
+
+pub const BUTTON_DEFAULT_BACKGROUND: i32 = 0x233fa0;
+pub const BUTTON_CONFIRM_BACKGROUND: i32 = 0x355E3B;
+pub const BUTTON_DANGER_BACKGROUND: i32 = 0xc34a30;
+pub const BUTTON_DEFAULT_TEXT: i32 = 0xfafafa;
+// pub const BUTTON_CONFIRM_TEXT: i32 = 0x
+
+
+pub const TEXT_INPUT_INVALID: i32 = BUTTON_DANGER_BACKGROUND;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/database/program.seed.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/database/program.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/database/workspace.seed.sql" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/database/workspace.sql" dialect="SQLite" />
+    <file url="PROJECT" dialect="SQLite" />
+  </component>
+</project>

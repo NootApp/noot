@@ -1,40 +1,23 @@
-//! Welcome to the Noot docs.
-//! If you're reading this, congrats, you're probably more invested
-//! than you should be
-use hashbrown::HashMap;
-use iced::{daemon, Subscription, Theme};
-use iced::window::{Id, Event};
-use iced::{Task, window};
 use std::env;
-use crossbeam_queue::SegQueue;
-use crate::app::App;
-use crate::consts::{APP_BUILD, APP_VERSION, FONT_BOLD_TTF, FONT_MEDIUM, FONT_MEDIUM_TTF, FONT_MONO, FONT_MONOSPACE, FONT_REGULAR};
+use iced::daemon;
+use log::info;
+use rust_i18n::set_locale;
+use sys_locale::get_locale;
+use consts::*;
+use crate::runtime::{Application, GLOBAL_STATE};
 
 #[macro_use]
 extern crate log;
-
 #[macro_use]
-extern crate cfg_if;
+extern crate lazy_static;
+#[macro_use]
+extern crate nanoid;
+#[macro_use]
+extern crate rust_i18n;
 
-use crate::events::types::AppEvent;
-use crate::filesystem::config::Config;
-use crate::filesystem::workspace::state::WorkspaceState;
-use crate::subsystems::events::subscribe;
 
-mod build_meta;
-mod components;
-mod events;
-mod filesystem;
-mod subsystems;
-mod views;
-mod tray;
-mod consts;
-mod windows;
+i18n!("locales", fallback = "en");
 
-mod app;
-
-#[cfg(feature = "markdown")]
-mod markdown;
 
 #[cfg(test)]
 #[ctor::ctor]
@@ -46,7 +29,6 @@ fn init() {
     pretty_env_logger::init_custom_env("NOOT_LOG");
 }
 
-// #[tokio::main]
 fn main() -> iced::Result {
     // This is definitely safe :|
 
@@ -67,161 +49,73 @@ fn main() -> iced::Result {
         );
     }
 
-    info!("{} - {}", APP_VERSION, APP_BUILD);
+
+    info!("{} - {}", APP_NAME, APP_VERSION);
+    info!("Compiled with features:");
+    #[cfg(feature = "ipc")]
+    info!("- IPC");
+    #[cfg(feature = "rich-presence")]
+    info!("- Rich Presence");
+    #[cfg(feature = "i18n")]
+    info!("- I18N");
+
+    info!("");
+    info!("Compiled with languages");
+    let locales = available_locales!();
+    for locale in locales {
+        info!("- {}", locale);
+    }
+
+
+    info!("Getting system locale");
+    let locale = get_locale().unwrap_or_else(|| "en-US".to_string());
+    info!("System locale: {}", locale);
+
+
+    let config_locale = GLOBAL_STATE.lock().unwrap().store.get_setting::<String>("language.locale");
+
+    if let Some(user_locale) = config_locale {
+        if user_locale.value.is_some() {
+            let upl = user_locale.value.clone().unwrap();
+            info!("User requested locale: {}", upl);
+            info!("Updating locale");
+            set_locale(&upl);
+        } else {
+            GLOBAL_STATE.lock().unwrap().store.set_setting("language.locale", locale.clone(), true);
+
+            info!("User locale is nullified - using system default");
+            set_locale(&locale);
+            info!("Setting default locale");
+        }
+    } else {
+        info!("User locale not configured - using system default");
+        set_locale(&locale);
+        info!("Setting default locale");
+    }
 
     daemon(
-        App::title,
-        App::update,
-        App::view
+        Application::title,
+        Application::update,
+        Application::view
     )
+        .font(FONT_MONOSPACE)
+        .font(FONT_REGULAR)
         .font(FONT_MEDIUM_TTF)
         .font(FONT_BOLD_TTF)
-        .font(FONT_REGULAR)
-        .font(FONT_MONOSPACE)
-        .default_font(FONT_MEDIUM)
-        .scale_factor(App::scale_factor)
-        .style(App::style)
-        .theme(App::theme)
-        .antialiasing(true)
-        .subscription(App::subscription)
-        .run_with(App::new)
-
-
-    // debug!("Starting Noot runtime");
-    // iced::application("Noot", Noot::update, Noot::view)
-    //     .theme(Noot::theme)
-    //     .subscription(Noot::subscription)
-    //     .window(Settings {
-    //         size: Default::default(),
-    //         position: Default::default(),
-    //         min_size: Some(Size::new(540., 405.)),
-    //         max_size: Some(Size::new(540., 405.)),
-    //         visible: true,
-    //         // fullscreen: false,
-    //         // maximized: false,
-    //         resizable: false,
-    //         decorations: true,
-    //         transparent: false,
-    //         level: Default::default(),
-    //         icon: Some(
-    //             icon::from_file_data(
-    //                 include_bytes!("../static/favicon.png").as_slice(),
-    //                 None,
-    //             )
-    //             .unwrap(),
-    //         ),
-    //         platform_specific: Default::default(),
-    //         exit_on_close_request: true,
-    //     })
-    //     .font(
-    //         include_bytes!("../static/fonts/Roboto-VariableFont_wdth,wght.ttf")
-    //             .as_slice(),
-    //     )
-    //     .default_font(iced::Font {
-    //         family: iced::font::Family::Monospace,
-    //         weight: iced::font::Weight::Normal,
-    //         stretch: iced::font::Stretch::Normal,
-    //         style: iced::font::Style::Normal,
-    //     })
-    //     .run_with(Noot::new)
+        .font(material_icons::FONT)
+        .subscription(Application::subscription)
+        .run_with(Application::new)
 }
 
-/// The runtime struct that manages the whole app flow
-#[derive(Debug)]
-struct Noot {
-    /// the current application viewport
-    viewport: ViewPort,
+pub mod consts;
+pub mod runtime;
+pub mod config;
+pub mod security;
+pub mod assets;
+pub mod storage;
+pub mod utils;
 
-    /// the currently loaded configuration (if one is present)
-    config: Option<Config>,
+pub mod hotkey;
 
-    windows: HashMap<Id, Window>,
-    queue: SegQueue<AppEvent>
-}
-
-
-
-#[derive(Debug)]
-enum ViewPort {
-    LoadingView,
-    WorkspaceView(WorkspaceState),
-    LandingView(views::landing::LandingView),
-    SettingsView,
-}
-
-#[derive(Debug)]
-enum Window {
-    Splash,
-    Main,
-    Settings
-}
-
-
-impl Noot {
-
-    fn new() -> (Self, Task<AppEvent>) {
-        debug!("Creating Noot runtime");
-
-        let window_map = HashMap::new();
-        (
-            Self {
-                viewport: ViewPort::LoadingView,
-                config: None,
-                windows: window_map,
-                queue: SegQueue::new(),
-            },
-            Task::none() //done(Config::load_from_disk(), AppEvent::ConfigLoaded),
-        )
-    }
-
-    fn update(&mut self, message: AppEvent) -> Task<AppEvent> {
-        events::handlers::core(self, message)
-    }
-
-    fn theme(&self) -> Theme {
-        // if self.theme.is_dark() {
-            Theme::TokyoNightStorm
-        // } else {
-        //     Theme::Light
-        // }
-    }
-
-    fn view(&self) -> iced::Element<AppEvent> {
-        // debug!("Viewing window with id {}", id);
-        views::render_view(self)
-    }
-
-    fn subscription(&self) -> Subscription<AppEvent> {
-        error!("Subscribing to noot runtime");
-
-        let window_sub = window::events().map(|(id, e)| {
-           match e {
-               Event::Opened {..} => AppEvent::WindowOpened(id),
-               Event::Closed => AppEvent::WindowClosed(id),
-               Event::Moved(position) => AppEvent::WindowMoved(id, position),
-               Event::Resized(dimensions) => AppEvent::WindowResized(id, dimensions),
-               Event::CloseRequested => AppEvent::WindowCloseRequested(id),
-               Event::Focused => AppEvent::WindowFocused(id),
-               Event::Unfocused => AppEvent::WindowUnfocused(id),
-               Event::FileHovered(file) => AppEvent::WindowFileHovered(id, file),
-               Event::FileDropped(file) => AppEvent::WindowFileDropped(id, file),
-               Event::FilesHoveredLeft => AppEvent::WindowFilesHoveredLeft(id),
-               _ => AppEvent::Ignored
-           }
-        });
-
-        Subscription::batch(
-            vec![
-                window_sub,
-                Subscription::run(subscribe)
-            ]
-        )
-
-    }
-    //
-    // fn open_window(&mut self, kind: Window, settings: window::Settings) {
-    //     let (id, task) = window::open(settings);
-    //     self.windows.insert(id, kind);
-    //
-    // }
-}
+#[cfg(feature = "ipc")]
+pub mod ipc;

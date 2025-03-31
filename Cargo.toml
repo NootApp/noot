@@ -3,13 +3,10 @@ name = "noot"
 version = "0.1.0"
 edition = "2024"
 
-
 [dependencies]
-iced = {version = "0.13.1", features = ["advanced", "multi-window", "debug", "tokio", "image", "markdown"] }
-tokio = { version = "1.43.0", features = ["fs", "full"] }
-serde = { version = "1", features = ["derive"] }
+iced = {version = "0.13.1", features = ["multi-window", "debug", "image"]}
+serde = { version = "1", features = ["derive"]}
 serde_derive = "1"
-discord-rich-presence = "0.2.5"
 dirs = "6.0.0"
 lazy_static = "1.5.0"
 chrono = { version = "0.4.39", features = ["serde"] }
@@ -19,55 +16,33 @@ log = "0.4.26"
 pretty_env_logger = "0.5.0"
 git-version = "0.3.9"
 hashbrown = { version = "0.15.2", features = ["serde"] }
-cocoon = "0.4.3"
-bitflags = { version = "2.9.0", features = ["serde"] }
 infer = "0.19"
-keyring = { version = "3.6.2", features = ["tokio", "windows-native", "apple-native", "linux-native", "linux-native-sync-persistent"] }
-pbkdf2 = { version = "0.12.2", features = ["std"] }
-sha2 = "0.10"
-hmac = "0.12"
-secp256k1 = "0.30.0"
-zeroize = "1.8"
-rand = "0.9.0"
-git2 = "0.20.0"
-regex = "1.11.1"
-crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
-num_cpus = "1.16.0"
-crossbeam-queue = "0.3.12"
-#libsql = { git = "https://github.com/tursodatabase/libsql", rev = "38cfab7d5dd2f294ce36493ad02f26bfd26cef33" }
+keyring = "4.0.0-rc.1"
+git2 = "0.20"
+num_cpus = "1.16"
 aead = "0.5.2"
-#iced_anim = "0.2.0"
-#rfd = "0.15.3"
-#mouse_position = "0.1.4"
-#tray-icon = "0.20.0"
-rdev = "0.5.3"
-emojis = "0.6.4"
+crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
 pulldown-cmark = "0.13.0"
-ignore = "0.4.23"
-cfg-if = "1.0.0"
-mime-sniffer = "0.1.3"
-url = { version = "2.5.4", features = ["serde"] }
-iced_webview = { version = "0.0.5", features = ["ultralight-resources"] }
-html_parser = "0.7.0"
 highlight-pulldown = "0.2.2"
-#iced_wgpu = { version = "0.13.5", features = ["geometry", "image", "resvg", "svg", "web-colors", "webgl"] }
-#iced_glow = "0.8.0"
-#velopack = "0.0.1053"
+native-dialog = "0.7.0"
+rusqlite = { version = "0.34.0", features = ["bundled"] }
+sys-locale = "0.3.2"
+iced_gif = "0.13.0"
+material-icons = "0.2.0"
+bincode = { version = "2.0.1", features = ["serde"] }
+interprocess = "2.2.3"
+tokio = { version = "1.44.1", features = ["full"] }
+rdev = "0.5.3"
+stringcase = "0.4.0"
+regex = "1.11.1"
+rust-i18n = "3.1.3"
 
 [dev-dependencies]
 ctor = "0.4.0"
 
-[build-dependencies]
-rand = "0.9.0"
-
-
 [features]
-default = ["tpmd", "analytics"]
-enterprise = [
-    "tpmd"
-]
-drpc = [] # Discord RPC support (Rich Presence, primarily). Not available in the "enterprise" build
-discord-social-sdk = [] # Discord Social SDK support. Planned.
-tpmd = [] # Third Party markdown parser (via pulldown-cmark)
-markdown = [] # First Party markdown parser (using custom crate solution)
-analytics = [] # Analytics code
+default = ["i18n"]
+ipc = []
+rich-presence = []
+i18n = []
+enterprise = ["i18n"]
