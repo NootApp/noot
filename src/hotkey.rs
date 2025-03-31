@@ -2,7 +2,6 @@ use std::time::Duration;
 use iced::futures::{SinkExt, Stream, StreamExt};
 use iced::{stream};
 use iced::futures::channel::mpsc;
-use tokio::runtime::Runtime;
 use crate::runtime::messaging::Message;
 
 use rdev::{listen, EventType, Key};
@@ -23,7 +22,7 @@ pub fn start() -> impl Stream<Item = Message> {
         let mut altgr_pressed = false;
         let mut lshift_pressed = false;
         let mut rshift_pressed = false;
-        let mut lmeta_pressed = false;
+        let mut lmeta_pressed= false;
         let mut rmeta_pressed = false;
         loop {
             let event = receiver.select_next_some().await;
@@ -36,8 +35,12 @@ pub fn start() -> impl Stream<Item = Message> {
                         Key::ShiftRight => rshift_pressed = true,
                         Key::MetaLeft => lmeta_pressed = true,
                         Key::MetaRight => rmeta_pressed = true,
-                        Key::KeyN if alt_pressed | altgr_pressed => {
-                            let _ = output.send(Message::hotkey(Keybind::OpenLastEditor));
+                        Key::KeyN => {
+                            if altgr_pressed || alt_pressed {
+                                info!("Hotkey OpenLastEditor");
+                                let _ = output.send(Message::hotkey(Keybind::OpenLastEditor)).await;
+
+                            }
                         }
                         _ => ()
                     }

@@ -1,12 +1,19 @@
+use std::thread::sleep;
 use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::ops::{Deref, DerefMut};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::Duration;
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
+use iced::futures::{SinkExt, Stream};
+use iced::stream;
+use notify::{Event, RecursiveMode, Watcher};
 use rusqlite::{params, Connection};
+use tokio::sync::mpsc;
 use crate::runtime::{AppState, GLOBAL_STATE};
+use crate::runtime::messaging::Message;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 
@@ -20,6 +27,8 @@ pub struct WorkspaceManager {
     pub source: Workspace,
     pub tree: Vec<FileEntry>
 }
+
+
 
 #[derive(Debug)]
 pub enum FileEntry {
@@ -69,12 +78,17 @@ pub enum WorkspaceError {
 
 impl WorkspaceManager {
     pub fn new(source: Workspace) -> WorkspaceResult<WorkspaceManager> {
+        info!("Creating workspace manager instance for {}", source.id);
         let workspace_dir = PathBuf::from(&source.disk_path);
+        info!("Workspace dir: {:?}", workspace_dir);
 
         if workspace_dir.exists() && workspace_dir.is_dir() {
+            info!("Workspace dir already exists");
             // The workspace is a folder and does exist
             let noot_dir = workspace_dir.join(".noot");
             let connection = Connection::open(&noot_dir.join("workspace.db")).unwrap();
+
+            info!("Workspace Loaded");
 
             Ok(Self {
                 state: GLOBAL_STATE.clone(),
@@ -182,6 +196,62 @@ impl WorkspaceManager {
         self
     }
 }
+
+// pub fn watch_dir() -> impl Stream<Item = Message> {
+//     let state = GLOBAL_STATE.clone();
+//
+//
+//     stream::channel(1, move |mut output| {
+//         let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
+//         let state = state;
+//
+//         let mut temp_lock = state.lock().unwrap();
+//         let mut workspace_id = temp_lock.open_workspace.clone().unwrap_or_default();
+//
+//         while workspace_id.len() == 0 {
+//             drop(temp_lock);
+//             sleep(Duration::from_millis(200));
+//             temp_lock = state.lock().unwrap();
+//             workspace_id = temp_lock.open_workspace.clone().unwrap_or_default()
+//         }
+//
+//         let mut path = temp_lock.workspaces.get(&workspace_id).cloned().unwrap().disk_path;
+//         drop(temp_lock);
+//
+//
+//         let mut watcher = notify::recommended_watcher(tx).unwrap();
+//
+//         watcher.watch(Path::new(&path), RecursiveMode::Recursive).unwrap();
+//
+//         loop {
+//             let try_result = rx.try_recv();
+//             if let Ok(result) = try_result {
+//                 match result {
+//                     Ok(event) => {
+//                         info!("{:?}", event);
+//                         output.try_send(Message::tick()).unwrap()
+//                     },
+//                     Err(err) => error!("{:?}", err)
+//                 }
+//             }
+//
+//             let temp_lock = state.lock().unwrap();
+//             let new_workspace_id = temp_lock.open_workspace.clone().unwrap();
+//             let new_path = temp_lock.workspaces.get(&new_workspace_id).cloned().unwrap().disk_path;
+//             drop(temp_lock);
+//
+//             if path != new_path {
+//                 warn!("Watcher path changed");
+//
+//                 watcher.unwatch(Path::new(&path)).unwrap();
+//                 path = new_path;
+//                 watcher.watch(Path::new(&path), RecursiveMode::Recursive).unwrap();
+//             }
+//
+//             sleep(Duration::from_millis(50));
+//         }
+//     })
+// }
 
 
 pub fn render_directory(path: String, workspace_directory: PathBuf) -> PathBuf {

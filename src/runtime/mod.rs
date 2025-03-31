@@ -4,6 +4,7 @@ use iced::{application, exit, Subscription};
 use iced::widget::text;
 use iced::window::Id;
 use lazy_static::lazy_static;
+use rusqlite::fallible_iterator::FallibleIterator;
 use crate::config::Config;
 use crate::runtime::messaging::{Message, MessageKind};
 use crate::runtime::windows::{AppWindow, DesktopWindow};
@@ -43,6 +44,7 @@ lazy_static!(
                 store: ProcessStorageManager::new(),
                 workspaces: BTreeMap::new(),
                 pid: std::process::id(),
+                open_workspace: None,
             }
         )
     );
@@ -84,10 +86,13 @@ pub struct AppState {
     /// The current process ID. (as assigned by the OS)
     /// This is used alongside the IPC subsystem to route messages.
     pub pid: u32,
+
+    /// The workspace ID that should be opened when a new editor is called.
+    pub open_workspace: Option<String>
 }
 
 /// The application and its primary runtime.
-/// 
+///
 /// This handles all the logic behind running the application,
 /// including message routing window management and system monitoring.
 pub struct Application {
@@ -95,8 +100,8 @@ pub struct Application {
     rt: RuntimeState,
     /// Global runtime state - Exposed to the rest of the application.
     state: Arc<Mutex<AppState>>,
-    /// The workspace ID that should be opened when a new editor is called.
-    open_workspace: Option<String>
+
+    active_workspace: Arc<tokio::sync::Mutex<Option<Workspace>>>,
 }
 
 impl Application {
@@ -105,7 +110,7 @@ impl Application {
         (Application {
             rt: RuntimeState::new(),
             state: GLOBAL_STATE.clone(),
-            open_workspace: None,
+            active_workspace: Arc::new(Default::default()),
         }, Message::tick().into())
     }
 
@@ -184,6 +189,7 @@ impl Application {
 
     /// Helper function for managing internal window state of the application
     pub fn open_window(&mut self, name: String) -> Task {
+        info!("Opening window: {}", name);
         match name.as_str() {
             "workspace-manager" => {
                 let (context, task) = WorkspaceWindow::new();
@@ -191,8 +197,9 @@ impl Application {
                 task.discard()
             }
             "editor" => {
-                let source = self.state.lock().unwrap().workspaces.get(&self.open_workspace.clone().unwrap()).cloned().unwrap();
-                let mgr = WorkspaceManager::new(source).unwrap();
+                let temp_lock = self.state.lock().unwrap();
+                let source = temp_lock.workspaces.get(&temp_lock.open_workspace.clone().unwrap()).cloned().unwrap();
+                let mgr = WorkspaceManager::new(source.clone()).unwrap();
                 let (context, task) = EditorWindow::new(mgr);
                 self.rt.windows.insert(context.id, AppWindow::EditorWindow(context));
 
@@ -202,8 +209,9 @@ impl Application {
         }
     }
 
-    pub fn open_workspace(&mut self, name: String) -> Task {
-        self.open_workspace = Some(name);
+    pub fn open_workspace(&mut self, id: String) -> Task {
+        info!("Opening workspace {}", id);
+        self.state.lock().unwrap().open_workspace = Some(id);
         let task = self.open_window("editor".to_string());
         task
     }

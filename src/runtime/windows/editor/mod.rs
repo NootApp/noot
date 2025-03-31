@@ -1,5 +1,5 @@
 use std::sync::{Arc, Mutex};
-use iced::{window, Size, Task as IcedTask, Theme};
+use iced::{window, Size, Subscription, Task as IcedTask, Theme};
 use iced::widget::text;
 use iced::window::{Id, Position, Settings};
 use rust_i18n::t;
@@ -9,7 +9,7 @@ use crate::runtime::messaging::Message;
 use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::{EditorMessage, EditorMessageKind};
 use crate::runtime::windows::editor::settings::EditorSettings;
-use crate::storage::workspace::{AssetCachingStrategy, RemoteDataStrategy, WorkspaceManager};
+use crate::storage::workspace::{WorkspaceManager};
 
 pub mod settings;
 pub mod messaging;
@@ -26,7 +26,6 @@ pub struct EditorWindow {
 impl EditorWindow {
     pub fn new(mut mgr: WorkspaceManager) -> (Self, IcedTask<Id>) {
         let (id, task) = window::open(Self::settings());
-        let mgr_ref = &mut mgr;
         let window = Self {
             id,
             state: GLOBAL_STATE.clone(),
@@ -35,13 +34,18 @@ impl EditorWindow {
         };
         (
             window,
-            task.discard()
+            task
         )
     }
 
     pub fn emit(&self, kind: EditorMessageKind) -> Message {
         EditorMessage::new(kind, self.id).into()
     }
+
+    // pub fn subscription(&self) -> Subscription<Message> {
+    //
+    //     Subscription::run(watch_dir)
+    // }
 }
 
 impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
@@ -58,7 +62,7 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
             level: Default::default(),
             icon: Some(window::icon::from_file_data(APP_ICON, None).unwrap()),
             platform_specific: Default::default(),
-            exit_on_close_request: false,
+            exit_on_close_request: true,
         }
     }
 
