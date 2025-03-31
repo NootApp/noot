@@ -1,9 +1,9 @@
 use iced::{window, Length, Size, Theme, Task as IcedTask};
 use iced::widget::container;
-use iced::window::{icon, Icon, Id, Level, Position, Settings};
-use iced_gif::{gif, Frames, Gif};
+use iced::window::{icon, Id, Level, Position, Settings};
+use iced_gif::{gif, Frames};
 use crate::consts::{APP_ICON, APP_NAME, APP_VERSION, SPLASH_ART};
-use crate::runtime::messaging::{Message, WindowMessageKind};
+use crate::runtime::messaging::Message;
 use crate::runtime::{Element, Task};
 use crate::runtime::windows::DesktopWindow;
 

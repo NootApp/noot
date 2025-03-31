@@ -3,7 +3,7 @@ use iced::application::Update;
 use iced::widget::{container, text};
 use iced::window::{Id, Settings};
 use crate::runtime::{Element, Task};
-use crate::runtime::messaging::{Message, MessageKind, WindowMessage, WindowMessageKind};
+use crate::runtime::messaging::{Message, WindowMessage};
 use crate::runtime::windows::editor::EditorWindow;
 use crate::runtime::windows::splash::SplashWindow;
 use crate::runtime::windows::workspace::WorkspaceWindow;

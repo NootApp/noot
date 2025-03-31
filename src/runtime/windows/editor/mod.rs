@@ -1,7 +1,9 @@
 use std::sync::{Arc, Mutex};
-use iced::{window, Size, Subscription, Task as IcedTask, Theme};
-use iced::widget::text;
+use iced::{window, Size, Task as IcedTask, Theme};
+use iced::widget::{text, container, row, column, scrollable};
 use iced::window::{Id, Position, Settings};
+use iced::{Length, color, Padding};
+
 use rust_i18n::t;
 use crate::consts::{APP_ICON, APP_NAME};
 use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
@@ -9,7 +11,7 @@ use crate::runtime::messaging::Message;
 use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::{EditorMessage, EditorMessageKind};
 use crate::runtime::windows::editor::settings::EditorSettings;
-use crate::storage::workspace::{WorkspaceManager};
+use crate::storage::workspace::WorkspaceManager;
 
 pub mod settings;
 pub mod messaging;
@@ -24,7 +26,7 @@ pub struct EditorWindow {
 
 
 impl EditorWindow {
-    pub fn new(mut mgr: WorkspaceManager) -> (Self, IcedTask<Id>) {
+    pub fn new(mgr: WorkspaceManager) -> (Self, IcedTask<Id>) {
         let (id, task) = window::open(Self::settings());
         let window = Self {
             id,
@@ -41,11 +43,6 @@ impl EditorWindow {
     pub fn emit(&self, kind: EditorMessageKind) -> Message {
         EditorMessage::new(kind, self.id).into()
     }
-
-    // pub fn subscription(&self) -> Subscription<Message> {
-    //
-    //     Subscription::run(watch_dir)
-    // }
 }
 
 impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
@@ -79,7 +76,26 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
     }
 
     fn view(&self) -> Element {
-        text(format!("{:?}", self.state)).into()
+        let mut status_bar_padding = Padding::new(5.);
+        status_bar_padding.left = 10.;
+        status_bar_padding.right = 10.;
+
+        column!(
+            container(
+                text("Status Bar")
+            ).width(Length::Fill).height(30).padding(status_bar_padding).style(|_| {
+                    container::Style::default()
+                        .background(color!(0xa30000))
+                }),
+            row!(
+                container(
+                    scrollable(
+                        text("File List")
+                    )
+                ).width(250),
+                text(format!("{:?}", self.state))
+            )
+        ).into()
     }
 
     fn close(&mut self) -> Task {

@@ -1,9 +1,6 @@
 use std::fmt::Debug;
 use bincode::{Decode, Encode};
-use rusqlite::{Row, ToSql};
-use rusqlite::types::{FromSql, ToSqlOutput};
-use serde::{Deserialize, Serialize};
-use serde::de::DeserializeOwned;
+use rusqlite::Row;
 
 #[derive(Debug)]
 pub struct Setting<T: Encode + Decode<()> + Debug> {
@@ -14,7 +11,7 @@ pub struct Setting<T: Encode + Decode<()> + Debug> {
 
 impl <T: Encode + Decode<()> + Debug> From<&Row<'_>> for Setting<T> {
     fn from(row: &Row) -> Self {
-        let mut value_bytes: Vec<u8>  = row.get(1).unwrap_or(vec![]);
+        let value_bytes: Vec<u8>  = row.get(1).unwrap_or(vec![]);
 
         dbg!(&value_bytes);
 

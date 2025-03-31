@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
-use std::sync::mpsc::{channel, Receiver, SendError, Sender};
 use iced::window::Id;
 use crate::runtime::Element;
 use crate::runtime::messaging::Message;
@@ -8,6 +7,7 @@ use crate::utils::components::buttons::ButtonMessage;
 
 pub mod buttons;
 pub mod icons;
+pub mod widgets;
 
 lazy_static!(
     pub static ref COMPONENT_TRACKER: Arc<Mutex<ComponentRegistry>> = Arc::new(Mutex::new(ComponentRegistry::new()));

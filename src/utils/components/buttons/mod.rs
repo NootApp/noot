@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use iced::{color, Background, Border, Color, Element, Length, Shadow, Theme};
+use iced::{color, Background, Border, Color, Element, Length, Shadow};
 use iced::border::Radius;
-use iced::widget::{button, center, horizontal_space, row, text, Text};
+use iced::widget::{button, center, horizontal_space, row, text};
 use iced::widget::button::Style;
 use iced::window::Id;
 use crate::consts::{BUTTON_DEFAULT_BACKGROUND, BUTTON_DEFAULT_TEXT, FONT_ICON};

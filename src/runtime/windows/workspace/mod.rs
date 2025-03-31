@@ -2,20 +2,19 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use rust_i18n::t;
 use iced::{window, Theme, Task as IcedTask, Size, Length, Background, color, Border, Padding};
-use iced::widget::{button, center, column, container, horizontal_space, mouse_area, row, scrollable, text, text_input, vertical_space};
+use iced::widget::{center, column, container, horizontal_space, mouse_area, row, scrollable, text, text_input, vertical_space};
 use iced::widget::container::Style;
 use iced::window::{icon, Id, Position, Settings};
 use material_icons::Icon;
 use stringcase::kebab_case;
 use regex::Regex;
-use crate::consts::{APP_ICON, APP_NAME, BUTTON_CONFIRM_BACKGROUND, FONT_BOLD, FONT_ICON, TEXT_INPUT_INVALID};
+use crate::consts::{APP_ICON, APP_NAME, BUTTON_CONFIRM_BACKGROUND, FONT_BOLD, TEXT_INPUT_INVALID};
 use crate::runtime::messaging::{Message, WindowMessage, WindowMessageKind};
 use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
 use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessageKind::{CreateWorkspace, LoadWorkspaceFromClick, PhaseChange, WorkspaceHovered};
-use crate::storage::process::structs::workspace::Workspace;
-use crate::storage::workspace::{minify_directory, render_directory, WorkspaceError, WorkspaceManager};
+use crate::storage::workspace::{render_directory, WorkspaceError, WorkspaceManager};
 use crate::utils::components::buttons::{button_with_icon, ButtonStyle};
 
 #[derive(Debug)]
@@ -250,7 +249,7 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                 container_padding.left = 10.;
                 container_padding.right = 10.;
 
-                let mut workspace_containers: Vec<Element> = lock.workspaces.iter().map(|(id, workspace)| {
+                let workspace_containers: Vec<Element> = lock.workspaces.iter().map(|(id, workspace)| {
                     let id = id.clone();
                     let id2 = id.clone();
 

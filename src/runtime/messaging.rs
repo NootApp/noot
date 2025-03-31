@@ -3,7 +3,7 @@ use crate::hotkey::Keybind;
 use crate::runtime::Task;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessage;
-use crate::utils::components::{ComponentMessage, ComponentMessageKind};
+use crate::utils::components::ComponentMessage;
 
 #[derive(Debug, Clone)]
 pub enum MessageKind {

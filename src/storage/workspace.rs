@@ -1,19 +1,13 @@
-use std::thread::sleep;
 use std::fmt::Debug;
 use std::fs::create_dir_all;
-use std::ops::{Deref, DerefMut};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, MutexGuard};
-use std::time::Duration;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
-use iced::futures::{SinkExt, Stream};
-use iced::stream;
-use notify::{Event, RecursiveMode, Watcher};
-use rusqlite::{params, Connection};
-use tokio::sync::mpsc;
+use iced::futures::SinkExt;
+use notify::Watcher;
+use rusqlite::Connection;
 use crate::runtime::{AppState, GLOBAL_STATE};
-use crate::runtime::messaging::Message;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 
@@ -151,7 +145,7 @@ impl WorkspaceManager {
 
         let mut connection = Connection::open(noot_path.with_file_name("workspace.db")).unwrap();
 
-        let mut tx = connection.transaction().unwrap();
+        let tx = connection.transaction().unwrap();
 
         tx.execute_batch(WORKSPACE_SEED).unwrap();
 

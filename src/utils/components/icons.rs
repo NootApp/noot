@@ -2,7 +2,6 @@ use std::sync::Arc;
 use iced::widget::text;
 use iced::window::Id;
 use material_icons::icon_to_char;
-use crate::consts::FONT_ICON;
 use crate::runtime::Element;
 use crate::utils::components::{Component, ComponentMessage, ComponentRegistration, COMPONENT_TRACKER};
 

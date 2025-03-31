@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
-use iced::{application, exit, Subscription};
+use iced::{exit, Subscription};
 use iced::widget::text;
 use iced::window::Id;
 use notify_rust::Notification;

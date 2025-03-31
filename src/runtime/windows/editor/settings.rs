@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use crate::storage::workspace::{AssetCachingStrategy, RemoteDataStrategy, WorkspaceManager};
 
 pub fn null() -> Option<()> {
