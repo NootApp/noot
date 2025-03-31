@@ -25,6 +25,8 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Clean docs folder
         run: cargo clean --doc
+      - name: Install build deps
+        run: sudo apt install libdbus-1-dev pkg-config
       - name: Build docs
         run: cargo doc --no-deps --all-features
       - name: Add redirect
