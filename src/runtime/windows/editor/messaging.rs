@@ -1,20 +1,17 @@
 use std::path::PathBuf;
 use iced::window::Id;
 use crate::runtime::messaging::{Message, WindowMessage, WindowMessageKind};
-use crate::utils::components::widgets::status_bar::{StatusBarWidget, StatusBarWidgetMessage, clock};
 
 #[derive(Clone, Debug)]
 pub enum EditorMessageKind {
     Tick,
     FileChanged(PathBuf),
-    StatusBarMessage(impl StatusBarWidgetMessage)
 }
 
 #[derive(Clone, Debug)]
 pub struct EditorMessage {
     pub kind: EditorMessageKind,
     pub source_id: Option<Id>
-    pub widgets: BTreeMap<String, Box<impl StatusBarWidget>>
 }
 
 impl EditorMessage {

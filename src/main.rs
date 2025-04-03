@@ -3,8 +3,9 @@ use iced::daemon;
 use log::info;
 use rust_i18n::set_locale;
 use sys_locale::get_locale;
-use consts::*;
+use clap::Parser;
 use crate::runtime::{Application, GLOBAL_STATE};
+use crate::consts::*;
 
 #[macro_use]
 extern crate log;
@@ -35,15 +36,20 @@ pub fn init() {
 
 /// Application entrypoint.
 pub fn main() -> iced::Result {
-    // This is definitely safe :|
+    let args = cli::Args::parse();
 
+    args.process();
+
+    dbg!(args);
+
+    // This is definitely safe :|
     let log_level =
         env::var("NOOT_LOG").unwrap_or_else(|_| "info".to_uppercase());
 
     unsafe {
         env::set_var("NOOT_LOG", format!("{},iced=off", log_level));
     }
-
+    
     pretty_env_logger::init_custom_env("NOOT_LOG");
 
     #[cfg(debug_assertions)]
@@ -141,3 +147,6 @@ pub mod hotkey;
 /// The inter-process communication management section.
 #[cfg(feature = "ipc")]
 pub mod ipc;
+
+/// Command-line arguments
+pub mod cli;

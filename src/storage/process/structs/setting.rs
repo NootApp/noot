@@ -12,9 +12,6 @@ pub struct Setting<T: Encode + Decode<()> + Debug> {
 impl <T: Encode + Decode<()> + Debug> From<&Row<'_>> for Setting<T> {
     fn from(row: &Row) -> Self {
         let value_bytes: Vec<u8>  = row.get(1).unwrap_or(vec![]);
-
-        dbg!(&value_bytes);
-
         let mut value: Option<T> = None;
 
         if value_bytes.len() > 0 {

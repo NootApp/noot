@@ -1,5 +1,4 @@
-use iced::{Theme, Task as IcedTask, window};
-use iced::application::Update;
+use iced::{Theme, Task as IcedTask};
 use iced::widget::{container, text};
 use iced::window::{Id, Settings};
 use crate::runtime::{Element, Task};
@@ -36,14 +35,6 @@ pub enum AppWindow {
     SettingsWindow
 }
 
-
-impl AppWindow {
-    fn new() -> (AppWindow, IcedTask<Id>) {
-        let (id, task) = window::open(Self::settings());
-        (AppWindow::Ticker(id), task)
-    }
-}
-
 impl DesktopWindow<AppWindow, WindowMessage, Message> for AppWindow {
 
 
@@ -75,7 +66,7 @@ impl DesktopWindow<AppWindow, WindowMessage, Message> for AppWindow {
 
         match self {
             AppWindow::DebugWindow => Task::none(),
-            AppWindow::SplashWindow(window) => window.update(message.into()),
+            AppWindow::SplashWindow(window) => window.update(message.kind.into()),
             AppWindow::WorkspaceWindow(window) => window.update(message.kind.into()),
             AppWindow::EditorWindow(window) => window.update(message.kind.into()),
             AppWindow::SettingsWindow => Task::none(),

@@ -220,9 +220,9 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                 } else {
                     let err = wm.unwrap_err();
                     match err {
-                        WorkspaceError::WorkspaceInvalid(message) => {}
-                        WorkspaceError::WorkspaceNotFound(message) => {}
-                        WorkspaceError::RootNotFound(message) => {}
+                        WorkspaceError::WorkspaceInvalid(_message) => {}
+                        WorkspaceError::WorkspaceNotFound(_message) => {}
+                        WorkspaceError::RootNotFound(_message) => {}
                     }
                 }
 

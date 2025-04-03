@@ -1,8 +1,10 @@
+use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 use iced::{window, Size, Task as IcedTask, Theme};
 use iced::widget::{text, container, row, column, scrollable};
 use iced::window::{Id, Position, Settings};
 use iced::{Length, color, Padding};
+use iced::Subscription;
 
 use rust_i18n::t;
 use crate::consts::{APP_ICON, APP_NAME};
@@ -12,16 +14,23 @@ use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::{EditorMessage, EditorMessageKind};
 use crate::runtime::windows::editor::settings::EditorSettings;
 use crate::storage::workspace::WorkspaceManager;
+use crate::utils::components::widgets::status_bar::StatusBarWidget;
 
 pub mod settings;
 pub mod messaging;
 
-#[derive(Debug)]
 pub struct EditorWindow {
     pub id: Id,
     state: Arc<Mutex<AppState>>,
     pub mgr: WorkspaceManager,
     pub settings: EditorSettings,
+    pub widgets: Vec<Box<dyn StatusBarWidget>> 
+}
+
+impl Debug for EditorWindow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{{\n\tid: {:?},\n\tstate: {:?},\n\tmgr: {:?},\n\tsettings: {:?},\n\twidgets: Vec<Length={}>\n}}", self.id, self.state, self.mgr, self.settings, self.widgets.len()))
+    }
 }
 
 
@@ -32,7 +41,8 @@ impl EditorWindow {
             id,
             state: GLOBAL_STATE.clone(),
             mgr,
-            settings: EditorSettings::new()
+            settings: EditorSettings::new(),
+            widgets: vec![],
         };
         (
             window,
@@ -40,8 +50,24 @@ impl EditorWindow {
         )
     }
 
+    pub fn register_status_widget<W: StatusBarWidget + 'static>(&mut self, widget: W) {
+        self.widgets.push(Box::new(widget));
+    }
+
     pub fn emit(&self, kind: EditorMessageKind) -> Message {
         EditorMessage::new(kind, self.id).into()
+    }
+
+    pub fn subscribe(&self) -> Subscription<Message> {
+        let mut subscriptions = vec![];
+
+
+        for widget in self.widgets.iter() {
+            subscriptions.push(widget.subscribe());
+        }
+
+
+        Subscription::batch(subscriptions)
     }
 }
 
@@ -71,7 +97,7 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
         Theme::default()
     }
 
-    fn update(&mut self, message: EditorMessage) -> Task {
+    fn update(&mut self, _message: EditorMessage) -> Task {
         Task::none()
     }
 

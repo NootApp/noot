@@ -1,18 +1,15 @@
-use crate::runtime::Element;
 use iced::Subscription;
+use crate::runtime::{Element, Task};
 use crate::runtime::messaging::Message;
-
-pub trait StatusBarWidgetMessage: Into<Message> {
-    type Id;
-}
+use crate::runtime::windows::editor::messaging::EditorMessage;
 
 
 pub trait StatusBarWidget {
-    fn update<m: StatusBarWidgetMessage>(&mut self, message: m) -> crate::runtime::Task;
+    fn update(&mut self, message: EditorMessage) -> Task;
     fn render(&self) -> Element;
     fn subscribe(&self) -> Subscription<Message>;
 }
 
 
-/// A clock widget for the status bar
-pub mod clock;
+///// A clock widget for the status bar
+//pub mod clock;

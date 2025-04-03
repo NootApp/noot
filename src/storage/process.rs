@@ -60,8 +60,8 @@ impl ProcessStorageManager {
     }
 
     pub(crate) fn create_workspace(&self, workspace: Workspace) {
-        let mut statement = self.db.prepare("INSERT INTO workspaces (id, name, disk_path, last_accessed) VALUES (?, ?, ?, ?) RETURNING *").unwrap();
-        statement.query((workspace.id, workspace.name, workspace.disk_path, local_to_sqlstr(workspace.last_accessed))).unwrap().for_each(|row| {
+        let mut statement = self.db.prepare("INSERT INTO workspaces (id, long_id, name, disk_path, last_accessed) VALUES (?, ?, ?, ?, ?) RETURNING *").unwrap();
+        statement.query((workspace.id, workspace.long_id, workspace.name, workspace.disk_path, local_to_sqlstr(workspace.last_accessed))).unwrap().for_each(|row| {
             debug!("Created workspace row: {:?}", row);
         }).unwrap();
     }

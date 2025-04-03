@@ -183,12 +183,13 @@ pub fn button_style(background: Option<Background>, color: Option<Color>, border
         width: 1.,
         radius: Radius::new(5.),
     });
+    let shadow = shadow.unwrap_or_default();
 
     Style {
         background,
         text_color,
         border,
-        shadow: Default::default(),
+        shadow,
     }
 }
 

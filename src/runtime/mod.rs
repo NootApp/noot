@@ -5,7 +5,6 @@ use iced::widget::text;
 use iced::window::Id;
 use notify_rust::Notification;
 use lazy_static::lazy_static;
-use rusqlite::fallible_iterator::FallibleIterator;
 use chrono::Local;
 use crate::config::Config;
 use crate::consts::APP_NAME;
@@ -13,6 +12,7 @@ use crate::runtime::messaging::{Message, MessageKind};
 use crate::runtime::windows::{AppWindow, DesktopWindow};
 use crate::runtime::windows::editor::EditorWindow;
 use crate::runtime::windows::workspace::WorkspaceWindow;
+use crate::runtime::windows::splash::SplashWindow;
 use crate::storage::process::ProcessStorageManager;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
@@ -95,21 +95,26 @@ pub struct AppState {
 /// including message routing window management and system monitoring.
 pub struct Application {
     /// Internal runtime state - Not exposed to the rest of the application.
-    rt: RuntimeState,
+    pub rt: RuntimeState,
     /// Global runtime state - Exposed to the rest of the application.
-    state: Arc<Mutex<AppState>>,
+    pub state: Arc<Mutex<AppState>>,
 
-    active_workspace: Arc<tokio::sync::Mutex<Option<Workspace>>>,
+    pub splash_window: Id,
 }
 
 impl Application {
     /// Spawn a new Application runtime, returns a trigger task and an instance of the application to run the daemon with.
     pub fn new() -> (Application, Task) {
-        (Application {
+        let (splash_window, task) = SplashWindow::new();
+        let mut app = Application {
             rt: RuntimeState::new(),
             state: GLOBAL_STATE.clone(),
-            active_workspace: Arc::new(Default::default()),
-        }, Message::tick().into())
+            splash_window: splash_window.id.clone(),
+        };
+
+        app.rt.windows.insert(splash_window.id, AppWindow::SplashWindow(splash_window));
+
+        (app, task)
     }
 
     /// Returns the current process title for the given window, can be localised.
@@ -131,7 +136,13 @@ impl Application {
                     let window = self.rt.windows.get_mut(&id).unwrap();
                     window.update(wm)
                 } else {
-                    Task::none()
+                    let window = self.rt.windows.get_mut(&self.splash_window);
+                    
+                    if let Some(window) = window {
+                        window.update(wm)
+                    } else {
+                        Task::none()
+                    }
                 }
             }
             MessageKind::Keybind(event) => {
@@ -140,8 +151,7 @@ impl Application {
                         let workspaces = self.state.lock().unwrap().store.list_workspaces();
                         let last_workspace = workspaces.first().unwrap();
                         Task::done(Message::open_workspace(last_workspace.id.clone()))
-                    },
-                    _ => Task::none()
+                    }
                 }
             }
             MessageKind::OpenWorkspace(workspace_id) => self.open_workspace(workspace_id),
@@ -210,7 +220,6 @@ impl Application {
         } else {
             return Message::window_open("workspace-manager").into();
         }
-        Task::none()
     }
 
     /// Helper function for managing internal window state of the application
@@ -253,9 +262,19 @@ impl Application {
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
-        Subscription::batch([
+        let mut subscriptions: Vec<Subscription<Message>> = vec![
             iced::window::close_events().map(|id| Message::window_close(id)),
             Subscription::run(crate::hotkey::start)
-        ])
+        ];
+
+        for window in self.rt.windows.values() {
+            match window {
+                AppWindow::SplashWindow(splash) => subscriptions.push(splash.subscribe()),
+                AppWindow::EditorWindow(editor) => subscriptions.push(editor.subscribe()),
+                _ => {}
+            }
+        }
+
+        Subscription::batch(subscriptions)
     }
 }

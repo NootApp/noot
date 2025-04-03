@@ -3,7 +3,6 @@ coming-soon = "Coming soon"
 [settings.program.workspace]
 load_last = "Load previously opened workspace"
 
-
 [settings.program.rpc]
 enabled = "Enable Rich Presence Support"
 danger = "Warning, only change these settings if you know what you are doing"
@@ -22,7 +21,7 @@ new.text.heading = "Create a workspace"
 new.fields.name.text = "Workspace Name"
 new.fields.name.validation.too-long = "Name must be less than 30 characters"
 new.fields.name.validation.too-short = "Name must be 2 or more characters"
-new.fields.name.validation.invalid-characters = "Name may onyl include letters and numbers"
+new.fields.name.validation.invalid-characters = "Name may only include letters and numbers"
 new.fields.name.placeholder = "My Awesome Workspace"
 new.fields.path.text = "Workspace Path"
 new.fields.path.validation.invalid-characters = "Path may only include letters and numbers"
@@ -32,3 +31,4 @@ new.buttons.create = "Create"
 
 [windows.editor]
 title = "%{name} - Editing %{workspace}"
+

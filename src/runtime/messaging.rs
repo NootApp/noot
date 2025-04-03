@@ -3,6 +3,7 @@ use crate::hotkey::Keybind;
 use crate::runtime::Task;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessage;
+use crate::runtime::windows::splash::SplashWindowMessage;
 use crate::utils::components::ComponentMessage;
 
 #[derive(Debug, Clone)]
@@ -63,6 +64,7 @@ impl Into<Task> for Message {
 
 #[derive(Debug, Clone)]
 pub enum WindowMessageKind {
+    Splash(SplashWindowMessage),
     Debug(DebugMessage),
     Editor(EditorMessage),
     Component(ComponentMessage),

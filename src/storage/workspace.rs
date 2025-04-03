@@ -1,22 +1,18 @@
 use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
-use iced::futures::SinkExt;
-use notify::Watcher;
 use rusqlite::Connection;
-use crate::runtime::{AppState, GLOBAL_STATE};
+use crate::runtime::GLOBAL_STATE;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
-
+use crate::utils::cryptography::hashing::hash_str;
 
 const WORKSPACE_SEED: &'static str = include_str!("../../database/workspace.sql");
 
 #[derive(Debug)]
 pub struct WorkspaceManager {
-    state: Arc<Mutex<AppState>>,
     db: Connection,
     pub source: Workspace,
     pub tree: Vec<FileEntry>
@@ -85,7 +81,6 @@ impl WorkspaceManager {
             info!("Workspace Loaded");
 
             Ok(Self {
-                state: GLOBAL_STATE.clone(),
                 db: connection,
                 source,
                 tree: Vec::new()
@@ -102,8 +97,11 @@ impl WorkspaceManager {
 
     /// Utility method to create a new empty workspace given a name and drive path
     pub fn create(name: String, path: String) -> WorkspaceResult<WorkspaceManager> {
+        let source_id = nanoid!(5);
+
         let source = Workspace {
-            id: nanoid!(),
+            id: source_id.clone(),
+            long_id: hash_str(source_id),
             name,
             disk_path: path.clone(),
             last_accessed: Local::now(),
