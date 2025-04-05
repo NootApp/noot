@@ -41,13 +41,22 @@ notify-rust = { version = "4.11.6", features = ["env_logger"] }
 clap = { version = "4.5.35", features = ["color", "derive", "env", "wrap_help"] }
 tabled = "0.18.0"
 sha2 = "0.10.8"
+bitflags = "2.9.0"
+mlua = { version = "0.10.3", features = ["lua54"] }
+semver = { version = "1.0.26", features = ["serde"] }
+html_parser = "0.7.0"
+urls = "2.5.0"
+html-escape = "0.2.13"
+open = "5.3.2"
 
 [dev-dependencies]
 ctor = "0.4.0"
 
 [features]
-default = ["i18n"]
+default = ["i18n", "plugins"]
 ipc = []
 rich-presence = []
 i18n = []
 enterprise = ["i18n"]
+plugins = []
+keybinds = []

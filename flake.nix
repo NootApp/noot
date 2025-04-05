@@ -39,7 +39,7 @@
               libxkbcommon
               vulkan-loader
               wayland
-              
+              lua54Packages.lua
             ];
 
             shellHook = ''

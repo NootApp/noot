@@ -1,30 +1,36 @@
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
+
 use iced::{window, Size, Task as IcedTask, Theme};
 use iced::widget::{text, container, row, column, scrollable};
 use iced::window::{Id, Position, Settings};
 use iced::{Length, color, Padding};
 use iced::Subscription;
-
 use rust_i18n::t;
+
 use crate::consts::{APP_ICON, APP_NAME};
 use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
 use crate::runtime::messaging::Message;
 use crate::runtime::windows::DesktopWindow;
-use crate::runtime::windows::editor::messaging::{EditorMessage, EditorMessageKind};
-use crate::runtime::windows::editor::settings::EditorSettings;
 use crate::storage::workspace::WorkspaceManager;
 use crate::utils::components::widgets::status_bar::StatusBarWidget;
 
+use self::buffer::Buffer;
+use self::messaging::{EditorMessage, EditorMessageKind};
+use self::settings::EditorSettings;
+
 pub mod settings;
 pub mod messaging;
+pub mod buffer;
+    
 
 pub struct EditorWindow {
     pub id: Id,
     state: Arc<Mutex<AppState>>,
     pub mgr: WorkspaceManager,
     pub settings: EditorSettings,
-    pub widgets: Vec<Box<dyn StatusBarWidget>> 
+    pub widgets: Vec<Box<dyn StatusBarWidget>>,
+    pub buffers: Vec<Buffer>
 }
 
 impl Debug for EditorWindow {
@@ -43,7 +49,11 @@ impl EditorWindow {
             mgr,
             settings: EditorSettings::new(),
             widgets: vec![],
+            buffers: vec![
+                Buffer::from_md("Test".to_string(), "noot://internal/test", include_str!("../../../../static/experiences/test.md").to_string())
+            ],
         };
+
         (
             window,
             task
@@ -119,7 +129,16 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
                         text("File List")
                     )
                 ).width(250),
-                text(format!("{:?}", self.state))
+                container(
+                    column!(
+                        row!(
+                            text("tab bar")
+                        ),
+                        scrollable(
+                            self.buffers[0].view()
+                        )
+                    )
+                )
             )
         ).into()
     }

@@ -15,6 +15,8 @@ extern crate lazy_static;
 extern crate nanoid;
 #[macro_use]
 extern crate rust_i18n;
+#[macro_use]
+extern crate bitflags;
 
 
 i18n!("locales", fallback = "en");
@@ -36,11 +38,16 @@ pub fn init() {
 
 /// Application entrypoint.
 pub fn main() -> iced::Result {
-    let args = cli::Args::parse();
+    let mut args = cli::Args::parse();
 
     args.process();
 
-    dbg!(args);
+    if args.load_workspace.is_some() {
+        args.skip_splash = true;
+    }
+
+    GLOBAL_STATE.lock().unwrap().skip_splash = args.skip_splash;
+    GLOBAL_STATE.lock().unwrap().load_workspace = args.load_workspace;
 
     // This is definitely safe :|
     let log_level =
@@ -69,6 +76,8 @@ pub fn main() -> iced::Result {
     info!("- Rich Presence");
     #[cfg(feature = "i18n")]
     info!("- I18N");
+    #[cfg(feature = "plugins")]
+    info!("- Plugins");
 
     info!("");
     info!("Compiled with languages");
@@ -150,3 +159,7 @@ pub mod ipc;
 
 /// Command-line arguments
 pub mod cli;
+
+/// Plugin API management section.
+#[cfg(feature = "plugins")]
+pub mod plugins;

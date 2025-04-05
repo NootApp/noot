@@ -1,0 +1,11 @@
+# This is the manifest file for an example plugin
+
+name: "example"
+version: "0.1.0"
+description: "An example plugin to show you the basics"
+entrypoint: "main.lua"
+scopes:
+  - workspace.files.view
+  - workspace.files.modify
+  - keybinds.view
+  - keybinds.modify

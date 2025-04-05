@@ -15,6 +15,7 @@ pub enum MessageKind {
     Component(ComponentMessage),
     Keybind(Keybind),
     OpenWorkspace(String),
+    LinkOpened(Option<String>),
 }
 
 #[derive(Debug, Clone)]

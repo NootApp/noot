@@ -3,6 +3,8 @@
 This page is for testing Noots markdown parsing and rendering capabilities.
 It serves no other purpose.
 
+<div style="background:pink">This is a test div</div>
+
 Below this point the document is a clone of the README file for pulldown-cmark. The parser which powers Noot's Markdown renderer.
 
 ---
