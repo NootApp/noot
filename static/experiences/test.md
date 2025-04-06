@@ -234,3 +234,9 @@ This software is under the MIT license. See details in [license file](./LICENSE)
 
 We gladly accept contributions via GitHub pull requests. Please see
 [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Entry    | Value    |
+
