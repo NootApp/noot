@@ -207,7 +207,7 @@ impl Application {
             MessageKind::LinkOpened(url) => {
                 if let Some(link) = url {
                     info!("Opening link - {}", link);
-                    open::that(link);
+                    let _ = open::that(link);
                 }
 
                 Task::none()

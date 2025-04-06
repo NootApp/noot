@@ -1,13 +1,16 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
+use highlight_pulldown::highlight_with_theme;
 use url::Url;
 use html_parser::{Dom, Node};
-use pulldown_cmark::{Parser, Options};
-use iced::{color, Length, Padding};
-use iced::widget::{span, rich_text};
-use iced::widget::{row, column, tooltip, container, text, horizontal_space, horizontal_rule, mouse_area};
-
+use pulldown_cmark::{Parser, Options, Event, Tag};
+use iced::{color, Border, Font, Length, Padding};
+use iced::border::Radius;
+use iced::widget::{row, column, tooltip, span, container, text, horizontal_space, horizontal_rule, mouse_area};
+use iced::widget::text::{Fragment, Span};
 use crate::consts::*;
+use crate::utils::components::widgets::rich_text;
+use crate::utils::components::widgets::rich_text::Rich;
 use crate::runtime::Element;
 use crate::runtime::Message;
 use crate::runtime::messaging::MessageKind;
@@ -57,19 +60,36 @@ impl Buffer {
 
         let mut html_output = String::new();
 
-        pulldown_cmark::html::push_html(&mut html_output, parser);
+        let mut highlighted: Vec<Event> = vec![];
+
+        for event in parser {
+            match event {
+                // TODO: Implement code highlighting
+                // Event::Start(Tag::CodeBlock(kind)) => {
+                //
+                // },
+                // Event::End(Tag::CodeBlock(_)) => {
+                //
+                // }
+                _ => highlighted.push(event),
+            }
+        }
+
+        // highlight_with_theme(parser, "base16-ocean.dark").unwrap();
+
+        pulldown_cmark::html::push_html(&mut html_output, highlighted.into_iter());
 
         Self::new(name, url, html_output)
     }
 
     pub fn view(&self) -> Element {
         let start = std::time::Instant::now();
+
+
+
+
         let view = container(
-            column(
-                self.doc.iter().map(|e| {
-                    e.view()
-                })
-            )
+            greedy_render(&self.doc)
         )
         .padding(Padding {top:5., right: 20., bottom: 5., left: 5.})
         .width(Length::Fill)
@@ -90,6 +110,12 @@ pub struct ElWrapper {
     classes: Vec<String>,
     children: Vec<ElWrapper>,
     pub display_text: String
+}
+
+
+pub enum Render<'a> {
+    Element(Element<'a>),
+    Span(Span<'a, Message>)
 }
 
 
@@ -140,136 +166,133 @@ impl ElWrapper {
         }
     }
 
-    pub fn view(&self) -> Element {
+    pub fn view(&self) -> Render {
         match self.name.as_str() {
-            "TEXT" => text(unescape_html_text(self.display_text.as_str())).into(),
-            "hr" => horizontal_rule(2).into(),
+            "TEXT" =>
+                Render::Span(span(unescape_html_text(self.display_text.as_str()))),
+            "hr" => Render::Element(horizontal_rule(2).into()),
             "h1" => {
-                row(
-                    self.children.iter().map(|c| {
-                        text(unescape_html_text(c.display_text.as_str()))
+                Render::Element(
+                    rich_text(
+                        self.children.iter().map(|c| {
+                            span(unescape_html_text(c.display_text.as_str()))
                             .font(FONT_BOLD)
                             .size(HEADER_SIZE_1)
-                            .into()
-                    })
-                ).wrap().into()
+                        }).collect::<Vec<Span<Message>>>()
+                    ).into()
+                )
             },
             "h2" => {
-                row(
-                    self.children.iter().map(|c| {
-                        text(unescape_html_text(c.display_text.as_str()))
-                            .font(FONT_BOLD)
-                            .size(HEADER_SIZE_2)
-                            .into()
-                    })
-                ).wrap().into()
+                Render::Element(
+                    rich_text(
+                        self.children.iter().map(|c| {
+                            span(unescape_html_text(c.display_text.as_str()))
+                                .font(FONT_BOLD)
+                                .size(HEADER_SIZE_2)
+                        }).collect::<Vec<Span<Message>>>()
+                    ).into()
+                )
             },
             "h3" => {
-                row(
-                    self.children.iter().map(|c| {
-                        text(unescape_html_text(c.display_text.as_str()))
-                            .font(FONT_BOLD)
-                            .size(HEADER_SIZE_3)
-                            .into()
-                    })
-                ).wrap().into()
+                Render::Element(
+                    rich_text(
+                        self.children.iter().map(|c| {
+                            span(unescape_html_text(c.display_text.as_str()))
+                                .font(FONT_BOLD)
+                                .size(HEADER_SIZE_3)
+                        }).collect::<Vec<Span<Message>>>()
+                    ).into()
+                )
             },
             "h4" => {
-                row(
-                    self.children.iter().map(|c| {
-                        text(unescape_html_text(c.display_text.as_str()))
-                            .font(FONT_BOLD)
-                            .size(HEADER_SIZE_4)
-                            .into()
-                    })
-                ).wrap().into()
+                Render::Element(
+                    rich_text(
+                        self.children.iter().map(|c| {
+                            span(unescape_html_text(c.display_text.as_str()))
+                                .font(FONT_BOLD)
+                                .size(HEADER_SIZE_4)
+                        }).collect::<Vec<Span<Message>>>()
+                    ).into()
+                )
             },
             "h5" => {
-                row(
-                    self.children.iter().map(|c| {
-                        text(unescape_html_text(c.display_text.as_str()))
-                            .font(FONT_BOLD)
-                            .size(HEADER_SIZE_5)
-                            .into()
-                    })
-                ).wrap().into()
+                Render::Element(
+                    rich_text(
+                        self.children.iter().map(|c| {
+                            span(unescape_html_text(c.display_text.as_str()))
+                                .font(FONT_BOLD)
+                                .size(HEADER_SIZE_5)
+                        }).collect::<Vec<Span<Message>>>()
+                    ).into()
+                )
             },
             "p" => {
-                row(self.children.iter().map(|c| c.view())).into()
+                Render::Element(greedy_render(&self.children))
             }
             "div" => {
-                row(
-                    self.children.iter().map(|c| {
-                        c.view()
-                    })
-                ).wrap().into()
+                Render::Element(greedy_render(&self.children))
             },
             "pre" => {
-                container(
-                    row(
-                        self.children[0].children.iter().map(|c| {
-                            text(unescape_html_text(c.display_text.as_str()))
-                                .font(FONT_MONO)
-                                .into()
-                        })
+                Render::Element(
+                    container(
+                        rich_text(
+                            self.children[0].children.iter().map(|c| {
+                                span(unescape_html_text(c.display_text.as_str()))
+                                    .font(FONT_MONO)
+                            }).collect::<Vec<Span<Message>>>()
+                        )
                     )
-                    .wrap()
-                )
-                .padding(5)
-                .width(Length::Fill)
-                .style(|_| {
-                    container::Style {
-                        background: Some(iced::Background::Color(color!(0x1a1a1a))),
-                        border: iced::Border {
-                            color: color!(0x2a2a2a),
-                            width: 2.,
-                            radius: iced::border::Radius::new(5)
-                        },
-                        .. Default::default()
-                    }
-                })
+                    .padding(5)
+                    .width(Length::Fill)
+                    .style(|_| {
+                        container::Style {
+                            background: Some(iced::Background::Color(color!(0x1a1a1a))),
+                            border: iced::Border {
+                                color: color!(0x2a2a2a),
+                                width: 2.,
+                                radius: iced::border::Radius::new(5)
+                            },
+                            .. Default::default()
+                        }
+                    })
                     .into()
+                )
 
             }
             "code" => {
+                let mut padding = Padding::new(2.);
+                padding.left = 3.;
+                padding.right = 3.;
+
                 // All children should be text elements, so we can safely render as text
-                container(
-                    row(
-                        self.children.iter().map(|c| {
-                            text(unescape_html_text(c.display_text.as_str()))
-                                .font(FONT_MONO)
-                                .into()
-                        })
-                    )
-                    .wrap()
-                )
-                .padding(1)
-                .style(|_| {
-                    container::Style {
-                        background: Some(iced::Background::Color(color!(0x1a1a1a))),
-                        border: iced::Border {
+                Render::Span(
+                    span(
+                        self.children.iter().map(|c| unescape_html_text(c.display_text.as_str()))
+                            .collect::<Vec<String>>()
+                            .join(" ")
+                    ).font(FONT_MONO)
+                        .background(color!(0x1a1a1a))
+                        .border(Border {
                             color: color!(0x2a2a2a),
-                            width: 2.,
-                            radius: iced::border::Radius::new(5)
-                        },
-                        .. Default::default()
-                    }
-                })
-                    .into()
+                            width: 2.0,
+                            radius: Radius::new(5),
+                        })
+                        .padding(padding)
+                )
             },
             "li" => {
-                row(
-                    self.children.iter().map(|c| {
-                        c.view().into()
-                    })
-                ).wrap().into()
+                Render::Span(
+                    span(format!("- {}", greedy_text(&self.children)))
+                )
             },
             "ul" => {
-                column(
-                    self.children.iter().map(|c| {
-                        row!(text("- "), c.view()).wrap().into()
-                    })
-                ).into()
+                Render::Element(
+                    column(
+                        self.children.iter().map(|c| {
+                            row!(text(format!("- {}", greedy_text(&c.children)))).wrap().into()
+                        })
+                    ).into()
+                )
             }
             "a" => {
                 let path_opt = self.attributes.get("href");
@@ -281,25 +304,30 @@ impl ElWrapper {
                         url = Some(path.clone());
                     }
                 }
-
-                mouse_area(
-                    tooltip(
-                        row(
-                            self.children.iter().map(|c| {
-                                text(unescape_html_text(c.display_text.as_str())).color(color!(0x0000ff)).into()
-                            })
-                        ).wrap(), 
-                        container(text(tooltip_text)).style(container::rounded_box),
-                        tooltip::Position::Bottom
-                    )
+                Render::Span(
+                    span(unescape_html_text(greedy_text(&self.children).as_str()))
+                        .link(Message::new(MessageKind::LinkOpened(url), None))
+                        .color(color!(0x0000fa))
                 )
-                    .on_release(Message::new(MessageKind::LinkOpened(url), None))
-                    .into()
-                
+                // Render::Element(
+                //     mouse_area(
+                //         tooltip(
+                //             rich_text(
+                //                 self.children.iter().map(|c| {
+                //                     span(unescape_html_text(c.display_text.as_str())).color(color!(0x0000ff))
+                //                 }).collect::<Vec<Span<Message>>>()
+                //             ),
+                //             container(text(tooltip_text)).style(container::rounded_box),
+                //             tooltip::Position::Bottom
+                //         )
+                //     )
+                //         .on_release()
+                //         .into()
+                // )
             }
             _ => {
                 dbg!(&self);
-                text(format!("{} - Not Supported", self.name)).into()
+                Render::Element(rich_text([span(format!("{} - Not Supported", self.name))]).into())
             }
         }
     }
@@ -309,4 +337,33 @@ impl ElWrapper {
 fn unescape_html_text(src: &str) -> String {
     let after: String = html_escape::decode_html_entities(src).into();
     after.replace("\t", " ")
+}
+
+
+fn greedy_render(elements: &[ElWrapper]) -> Element {
+    let mut col = vec![];
+    let mut spans = vec![];
+
+    for element in elements {
+        match element.view() {
+            Render::Element(e) => {
+                col.push(rich_text(spans).into());
+                spans = vec![];
+                col.push(e);
+            }
+            Render::Span(s) => spans.push(s.into()),
+        }
+    }
+    col.push(rich_text(spans).into());
+
+
+    column(
+        col
+    ).into()
+}
+
+fn greedy_text(elements: &[ElWrapper]) -> String {
+    elements.iter().map(|c| unescape_html_text(c.display_text.as_str()))
+        .collect::<Vec<String>>()
+        .join(" ")
 }

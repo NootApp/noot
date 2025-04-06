@@ -131,11 +131,15 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
                 ).width(250),
                 container(
                     column!(
-                        row!(
-                            text("tab bar")
+                        row(
+                            self.buffers.iter().map(|b| {
+                                text(b.name.to_string()).into()
+                            })
                         ),
                         scrollable(
-                            self.buffers[0].view()
+                            column!(
+                                self.buffers[0].view()
+                            )
                         )
                     )
                 )

@@ -49,6 +49,7 @@ urls = "2.5.0"
 html-escape = "0.2.13"
 open = "5.3.2"
 syntect = "5.2.0"
+iced_core = "0.13.2"
 
 [dev-dependencies]
 ctor = "0.4.0"
