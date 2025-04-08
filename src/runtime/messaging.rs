@@ -1,9 +1,11 @@
+use iced::system;
 use iced::window::Id;
 use crate::hotkey::Keybind;
 use crate::runtime::Task;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessage;
 use crate::runtime::windows::splash::SplashWindowMessage;
+use crate::runtime::workers::Job;
 use crate::utils::components::ComponentMessage;
 
 #[derive(Debug, Clone)]
@@ -16,6 +18,8 @@ pub enum MessageKind {
     Keybind(Keybind),
     OpenWorkspace(String),
     LinkOpened(Option<String>),
+    Queue(Vec<Job>),
+    SysInfo(system::Information),
 }
 
 #[derive(Debug, Clone)]

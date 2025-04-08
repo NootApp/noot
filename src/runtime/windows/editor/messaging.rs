@@ -1,11 +1,13 @@
 use std::path::PathBuf;
 use iced::window::Id;
 use crate::runtime::messaging::{Message, WindowMessage, WindowMessageKind};
+use crate::storage::workspace::buffer::Buffer;
 
 #[derive(Clone, Debug)]
 pub enum EditorMessageKind {
     Tick,
     FileChanged(PathBuf),
+    BufferRendered(Buffer)
 }
 
 #[derive(Clone, Debug)]

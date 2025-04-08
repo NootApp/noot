@@ -223,6 +223,7 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                         WorkspaceError::WorkspaceInvalid(_message) => {}
                         WorkspaceError::WorkspaceNotFound(_message) => {}
                         WorkspaceError::RootNotFound(_message) => {}
+                        _ => {}
                     }
                 }
 

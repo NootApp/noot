@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
-use iced::{exit, Subscription};
+use iced::{exit, system, Subscription};
 use iced::widget::text;
 use iced::window::Id;
 use notify_rust::{Notification, Timeout};
 use lazy_static::lazy_static;
-use chrono::Local;
+use crossbeam_queue::ArrayQueue;
 use crate::config::Config;
 use crate::consts::APP_NAME;
-use crate::runtime::messaging::{Message, MessageKind};
+pub(crate) use crate::runtime::messaging::{Message, MessageKind};
 use crate::runtime::windows::{AppWindow, DesktopWindow};
 use crate::runtime::windows::editor::EditorWindow;
 use crate::runtime::windows::workspace::WorkspaceWindow;
@@ -16,14 +16,18 @@ use crate::runtime::windows::splash::SplashWindow;
 use crate::storage::process::ProcessStorageManager;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
-use crate::storage::workspace::WorkspaceManager;
 use crate::hotkey::Keybind;
+use crate::runtime::workers::Job;
+use crate::storage::workspace::WorkspaceManager;
 
 /// Holds all the message passing code for the base layer of the app. All roads lead to `crate::runtime::messaging`.
 pub mod messaging;
 
 /// Holds the definitions for each of the applications window types, and their respective internal runtimes.
 pub mod windows;
+
+/// Holds the definitions for the worker thread management system
+pub mod workers;
 
 /// Globally used alias for this applications task type.
 pub type Task = iced::Task<Message>;
@@ -45,6 +49,7 @@ lazy_static!(
                 open_workspace: None,
                 skip_splash: false,
                 load_workspace: None,
+                queue: Arc::new(ArrayQueue::new(100))
             }
         )
     );
@@ -94,7 +99,10 @@ pub struct AppState {
     pub skip_splash: bool,
 
     /// A mirror value of the CLI argument
-    pub load_workspace: Option<String>
+    pub load_workspace: Option<String>,
+
+    /// Job queue
+    pub queue: Arc<ArrayQueue<Job>>,
 }
 
 /// The application and its primary runtime.
@@ -107,20 +115,23 @@ pub struct Application {
     /// Global runtime state - Exposed to the rest of the application.
     pub state: Arc<Mutex<AppState>>,
 
+    /// The ID of the splash window (if present), only necessary because it is handled differently than other windows are
     pub splash_window: Option<Id>,
 }
 
 impl Application {
     /// Spawn a new Application runtime, returns a trigger task and an instance of the application to run the daemon with.
     pub fn new() -> (Application, Task) {
-        let mut task = Task::done(Message::tick());
+        let mut task = system::fetch_information().map(|i| Message::new(MessageKind::SysInfo(i), None)).chain(Task::done(Message::tick()));
         let skip_splash = GLOBAL_STATE.lock().unwrap().skip_splash;
-        
+
         let mut app = Application {
             rt: RuntimeState::new(),
             state: GLOBAL_STATE.clone(),
             splash_window: None,
         };
+
+
 
         if !skip_splash {
             let splash = SplashWindow::new();
@@ -148,6 +159,27 @@ impl Application {
 
     pub fn update(&mut self, message: Message) -> Task {
         match message.kind {
+            MessageKind::SysInfo(i) => {
+                info!("CPU Info");
+                info!("Manufacturer: {}", i.cpu_brand);
+                info!("Core Count: {}", i.cpu_cores.unwrap_or_default());
+                info!("");
+                info!("Memory Info");
+                info!("Installed: {}", i.memory_total);
+                info!("Used: {}", i.memory_used.unwrap_or_default());
+                info!("");
+                info!("Graphics Info");
+                info!("Adapter: {}", i.graphics_adapter);
+                info!("Backend: {}", i.graphics_backend);
+                info!("");
+                info!("System Information");
+                info!("Name: {}", i.system_name.unwrap_or_default());
+                info!("Kernel: {}", i.system_kernel.unwrap_or_default());
+                info!("Version: {}", i.system_version.unwrap_or_default());
+                info!("Short Version: {}", i.system_short_version.unwrap_or_default());
+
+                Task::none()
+            }
             MessageKind::Tick => self.tick(),
             MessageKind::WindowOpen(name) => self.open_window(name),
             MessageKind::WindowMessage(wm) => {
@@ -212,6 +244,13 @@ impl Application {
 
                 Task::none()
             }
+            MessageKind::Queue(jobs) => {
+                let queue = GLOBAL_STATE.lock().unwrap().queue.clone();
+                for job in jobs {
+                    queue.push(job).unwrap();
+                }
+                Task::none()
+            }
             _ => {
                 info!("UnhandledMessage: {:?}", message);
                 Task::none()
@@ -251,24 +290,22 @@ impl Application {
             if sources.len() > 0 && sources.len() < 2 {
                 // There is only one option
                 let source = sources[0];
-                return Message::open_workspace(source.id.clone()).into()
+                Message::open_workspace(source.id.clone()).into()
             } else if sources.len() > 1 {
                 // There are conflicting IDs, this should not 
                 // be possible, but we should handle it in case
                 error!("Workspace ID matched more than one workspace");
                 error!("This should be impossible. But has happened anyway");
                 error!("The program will now exit to protect your data");
-                return exit();
+                exit()
             } else {
                 // The workspace ID didn't match any we know
                 error!("Invalid workspace ID");
-                return exit();
+                exit()
             }
         } else if load_last_used.enabled {
             let last_used = workspaces.last().unwrap();
             return Message::open_workspace(last_used.id.clone()).into();
-
-            // TODO: some logic to load an editor window with the last opened workspace
         } else {
             return Message::window_open("workspace-manager").into();
         }
@@ -286,10 +323,9 @@ impl Application {
             "editor" => {
                 let temp_lock = self.state.lock().unwrap();
                 let source = temp_lock.workspaces.get(&temp_lock.open_workspace.clone().unwrap()).cloned().unwrap();
-                let mgr = WorkspaceManager::new(source.clone()).unwrap();
+                let mgr = WorkspaceManager::new(source.clone(), temp_lock).unwrap();
                 let (context, task) = EditorWindow::new(mgr);
                 self.rt.windows.insert(context.id, AppWindow::EditorWindow(context));
-                temp_lock.store.update_workspace(source.id, Local::now());
                 task.discard()
             }
             _ => Task::none()
@@ -299,6 +335,7 @@ impl Application {
     pub fn open_workspace(&mut self, id: String) -> Task {
         info!("Opening workspace {}", id);
         self.state.lock().unwrap().open_workspace = Some(id);
+
         let task = self.open_window("editor".to_string());
         task
     }
@@ -314,10 +351,15 @@ impl Application {
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
+
+
         let mut subscriptions: Vec<Subscription<Message>> = vec![
             iced::window::close_events().map(|id| Message::window_close(id)),
-            Subscription::run(crate::hotkey::start)
+            Subscription::run(crate::hotkey::start),
+            Subscription::run(workers::spawn)
         ];
+
+
 
         for window in self.rt.windows.values() {
             match window {

@@ -15,13 +15,11 @@ use crate::runtime::windows::DesktopWindow;
 use crate::storage::workspace::WorkspaceManager;
 use crate::utils::components::widgets::status_bar::StatusBarWidget;
 
-use self::buffer::Buffer;
 use self::messaging::{EditorMessage, EditorMessageKind};
 use self::settings::EditorSettings;
 
 pub mod settings;
 pub mod messaging;
-pub mod buffer;
     
 
 pub struct EditorWindow {
@@ -30,7 +28,8 @@ pub struct EditorWindow {
     pub mgr: WorkspaceManager,
     pub settings: EditorSettings,
     pub widgets: Vec<Box<dyn StatusBarWidget>>,
-    pub buffers: Vec<Buffer>
+    pub buffers: Vec<String>,
+    pub current_buffer: String
 }
 
 impl Debug for EditorWindow {
@@ -43,16 +42,22 @@ impl Debug for EditorWindow {
 impl EditorWindow {
     pub fn new(mgr: WorkspaceManager) -> (Self, IcedTask<Id>) {
         let (id, task) = window::open(Self::settings());
-        let window = Self {
+        let mut window = Self {
             id,
             state: GLOBAL_STATE.clone(),
             mgr,
             settings: EditorSettings::new(),
             widgets: vec![],
             buffers: vec![
-                Buffer::from_md("Test".to_string(), "noot://internal/test", include_str!("../../../../static/experiences/test.md").to_string())
+                "noot://internal/test".to_string(),
             ],
+            current_buffer: "internal/test".to_string()
         };
+
+        window.mgr.set_window_id(id);
+        window.mgr.preload().unwrap();
+
+        window.mgr.open_buffer(window.buffers[0].clone()).unwrap();
 
         (
             window,
@@ -107,8 +112,15 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
         Theme::default()
     }
 
-    fn update(&mut self, _message: EditorMessage) -> Task {
-        Task::none()
+    fn update(&mut self, message: EditorMessage) -> Task {
+        match message.kind {
+            EditorMessageKind::BufferRendered(buffer) => {
+                info!("Adding buffer to list: {}", buffer.id);
+                self.mgr.buffers.insert(buffer.id.clone(), buffer);
+                Task::none()
+            }
+            _ => Task::none()
+        }
     }
 
     fn view(&self) -> Element {
@@ -133,12 +145,17 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
                     column!(
                         row(
                             self.buffers.iter().map(|b| {
-                                text(b.name.to_string()).into()
+                                let maybe_buf = self.mgr.buffers.get(b);
+                                if let Some(buf) = maybe_buf {
+                                    text(buf.name.to_string()).into()
+                                } else {
+                                    text("Unable to find Buffer").into()
+                                }
                             })
                         ),
                         scrollable(
                             column!(
-                                self.buffers[0].view()
+                                self.mgr.buffers.get(&self.buffers[0]).unwrap().view()
                             )
                         )
                     )

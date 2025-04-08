@@ -1,21 +1,34 @@
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
+use std::sync::{Arc, MutexGuard};
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
+use crossbeam_queue::ArrayQueue;
 use rusqlite::Connection;
-use crate::runtime::GLOBAL_STATE;
+use iced::window::Id;
+use crate::runtime::{AppState, GLOBAL_STATE};
+use crate::runtime::workers::{Job, JobType};
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::utils::cryptography::hashing::hash_str;
+use crate::assets::{AssetManager};
+use self::buffer::Buffer;
 
-const WORKSPACE_SEED: &'static str = include_str!("../../database/workspace.sql");
+const WORKSPACE_SEED: &'static str = include_str!("../../../database/workspace.sql");
+
+pub mod buffer;
 
 #[derive(Debug)]
 pub struct WorkspaceManager {
     db: Connection,
+    pub source_window: Option<Id>,
     pub source: Workspace,
-    pub tree: Vec<FileEntry>
+    pub tree: Vec<FileEntry>,
+    pub(crate) assets: AssetManager,
+    pub(crate) buffers: BTreeMap<String, Buffer>,
+    pub(crate) queue: Arc<ArrayQueue<Job>>,
 }
 
 
@@ -63,11 +76,12 @@ pub type WorkspaceResult<T> = Result<T, WorkspaceError>;
 pub enum WorkspaceError {
     WorkspaceInvalid(String),
     WorkspaceNotFound(String),
-    RootNotFound(String)
+    RootNotFound(String),
+    BufferNotFound(String),
 }
 
 impl WorkspaceManager {
-    pub fn new(source: Workspace) -> WorkspaceResult<WorkspaceManager> {
+    pub fn new(source: Workspace, temp_lock: MutexGuard<AppState>) -> WorkspaceResult<WorkspaceManager> {
         info!("Creating workspace manager instance for {}", source.id);
         let workspace_dir = PathBuf::from(&source.disk_path);
         info!("Workspace dir: {:?}", workspace_dir);
@@ -78,12 +92,16 @@ impl WorkspaceManager {
             let noot_dir = workspace_dir.join(".noot");
             let connection = Connection::open(&noot_dir.join("workspace.db")).unwrap();
 
-            info!("Workspace Loaded");
+            temp_lock.store.update_workspace(&source.id, Local::now());
+            let queue = temp_lock.queue.clone();
 
             Ok(Self {
                 db: connection,
+                source_window: None,
                 source,
-                tree: Vec::new()
+                tree: Vec::new(),
+                buffers: Default::default(),
+                queue
             })
         } else if workspace_dir.exists() && !workspace_dir.is_dir() {
             // The workspace exists but is not a folder
@@ -151,7 +169,7 @@ impl WorkspaceManager {
 
         connection.close().unwrap();
 
-        let mut mgr = WorkspaceManager::new(source)?;
+        let mut mgr = WorkspaceManager::new(source, GLOBAL_STATE.lock().unwrap())?;
 
         mgr.set_setting("plugins.enable", None::<()>, false)
             .set_setting("plugins.allow-unpacked", None::<()>, false)
@@ -161,6 +179,50 @@ impl WorkspaceManager {
 
         Ok(mgr)
 
+    }
+
+    pub fn preload(&mut self) -> WorkspaceResult<()> {
+
+        // TODO: Implement file indexing
+        self.queue.push(Job::new(JobType::BuildTree(PathBuf::from(&self.source.disk_path), self.source_window.unwrap()))).unwrap();
+
+
+        // TODO: Implement asset caching on workspace open
+        // TODO: Implement buffer pre-rendering to improve performance
+
+        info!("Workspace Loaded");
+        Ok(())
+    }
+
+    pub fn set_window_id(&mut self, id: Id) {
+        self.source_window = Some(id);
+    }
+
+    pub fn open_buffer(&mut self, id: String) -> WorkspaceResult<()> {
+       if id.contains("noot://internal/") {
+           let internal_id = id.split("noot://internal/").collect::<Vec<&str>>().pop().unwrap();
+           info!("Opening internal buffer '{}'", id);
+           let maybe_buffer = match internal_id {
+               "test" => self.open_buffer_from_bytes(include_bytes!("../../../static/experiences/test.md"), id.clone(), id.clone()),
+               _ => Err(WorkspaceError::BufferNotFound(id.clone()))
+           };
+
+           if let Ok(buffer) = maybe_buffer {
+               self.buffers.insert(id.clone(), buffer);
+               Ok(())
+           } else {
+               Err(WorkspaceError::BufferNotFound(id))
+           }
+       } else {
+           Err(WorkspaceError::BufferNotFound(id))
+       }
+
+    }
+
+    fn open_buffer_from_bytes(&self, bytes: &[u8], url: String, name: String) -> WorkspaceResult<Buffer> {
+        let b = Buffer::from_md(name, url, String::from_utf8_lossy(bytes).to_string());
+
+        Ok(b)
     }
 
     pub fn get_setting<T: Encode + Decode<()> + Debug>(&mut self, key: impl Into<String>) -> Option<Setting<T>> {
