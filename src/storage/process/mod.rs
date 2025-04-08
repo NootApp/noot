@@ -9,16 +9,12 @@ use crate::utils::time::local_to_sqlstr;
 
 pub mod structs;
 
-const SEED_TABLES: &'static str = include_str!("../../database/program.sql");
-const SEED_DATA: &'static str = include_str!("../../database/program.seed.sql");
+const SEED_TABLES: &'static str = include_str!("../../../database/program.sql");
+const SEED_DATA: &'static str = include_str!("../../../database/program.seed.sql");
 
 #[derive(Debug)]
 pub struct ProcessStorageManager {
     db: Connection,
-}
-
-impl ProcessStorageManager {
-
 }
 
 impl ProcessStorageManager {

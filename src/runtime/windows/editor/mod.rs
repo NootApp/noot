@@ -12,16 +12,15 @@ use crate::consts::{APP_ICON, APP_NAME};
 use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
 use crate::runtime::messaging::Message;
 use crate::runtime::windows::DesktopWindow;
+use crate::storage::workspace::buffer::Buffer;
 use crate::storage::workspace::WorkspaceManager;
 use crate::utils::components::widgets::status_bar::StatusBarWidget;
 
-use self::buffer::Buffer;
 use self::messaging::{EditorMessage, EditorMessageKind};
 use self::settings::EditorSettings;
 
 pub mod settings;
 pub mod messaging;
-pub mod buffer;
     
 
 pub struct EditorWindow {

@@ -1,21 +1,30 @@
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
+use std::sync::{Arc, MutexGuard};
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
+use crossbeam_queue::{ArrayQueue, SegQueue};
 use rusqlite::Connection;
-use crate::runtime::GLOBAL_STATE;
+use crate::runtime::{AppState, GLOBAL_STATE};
+use crate::runtime::workers::{Job, JobType};
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::utils::cryptography::hashing::hash_str;
+use self::buffer::Buffer;
 
-const WORKSPACE_SEED: &'static str = include_str!("../../database/workspace.sql");
+const WORKSPACE_SEED: &'static str = include_str!("../../../database/workspace.sql");
+
+pub mod buffer;
 
 #[derive(Debug)]
 pub struct WorkspaceManager {
     db: Connection,
     pub source: Workspace,
-    pub tree: Vec<FileEntry>
+    pub tree: Vec<FileEntry>,
+    pub(crate) buffers: BTreeMap<String, Buffer>,
+    pub(crate) queue: Arc<ArrayQueue<Job>>,
 }
 
 
@@ -67,7 +76,7 @@ pub enum WorkspaceError {
 }
 
 impl WorkspaceManager {
-    pub fn new(source: Workspace) -> WorkspaceResult<WorkspaceManager> {
+    pub fn new(source: Workspace, temp_lock: MutexGuard<AppState>) -> WorkspaceResult<WorkspaceManager> {
         info!("Creating workspace manager instance for {}", source.id);
         let workspace_dir = PathBuf::from(&source.disk_path);
         info!("Workspace dir: {:?}", workspace_dir);
@@ -78,12 +87,25 @@ impl WorkspaceManager {
             let noot_dir = workspace_dir.join(".noot");
             let connection = Connection::open(&noot_dir.join("workspace.db")).unwrap();
 
+            temp_lock.store.update_workspace(&source.id, Local::now());
+
+            // TODO: Implement file indexing
+            let queue = temp_lock.queue.clone();
+            queue.push(Job::new(JobType::BuildTree(workspace_dir.clone()))).unwrap();
+
+
+            // TODO: Implement asset caching on workspace open
+            // TODO: Implement buffer pre-rendering to improve performance
+            drop(temp_lock);
+
             info!("Workspace Loaded");
 
             Ok(Self {
                 db: connection,
                 source,
-                tree: Vec::new()
+                tree: Vec::new(),
+                buffers: Default::default(),
+                queue
             })
         } else if workspace_dir.exists() && !workspace_dir.is_dir() {
             // The workspace exists but is not a folder
@@ -151,7 +173,7 @@ impl WorkspaceManager {
 
         connection.close().unwrap();
 
-        let mut mgr = WorkspaceManager::new(source)?;
+        let mut mgr = WorkspaceManager::new(source, GLOBAL_STATE.lock().unwrap())?;
 
         mgr.set_setting("plugins.enable", None::<()>, false)
             .set_setting("plugins.allow-unpacked", None::<()>, false)

@@ -5,7 +5,17 @@ It serves no other purpose.
 
 <div style="background:pink">This is a test div</div>
 
-Below this point the document is a clone of the README file for pulldown-cmark. The parser which powers Noot's Markdown renderer.
+Below this point the document is a clone of the README file for pulldown-cmark,
+the parser which powers Noot's Markdown renderer.
+
+| Column 1 | Column 2 | Column 3 | Column 4 |
+|:---------|:--------:|---------:|----------|
+| Left     |  Center  |    Right | Unset    |
+
+> [!WARNING] this is a test document
+
+defining a word 1
+: 1 a single distinct meaningful element of speech or writing, used with others (or sometimes alone) to form a sentence and typically shown with a space on either side when written or printed.
 
 ---
 
@@ -235,8 +245,4 @@ This software is under the MIT license. See details in [license file](./LICENSE)
 We gladly accept contributions via GitHub pull requests. Please see
 [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
-
-| Column 1 | Column 2 |
-|----------|----------|
-| Entry    | Value    |
 
