@@ -6,7 +6,7 @@ edition = "2024"
 
 [dependencies]
 iced = {version = "0.13.1", features = ["advanced", "multi-window", "debug", "tokio", "image", "markdown"] }
-tokio = { version = "1.43.0", features = ["fs", "full"] }
+tokio = { version = "1.43.1", features = ["fs", "full"] }
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 discord-rich-presence = "0.2.5"
