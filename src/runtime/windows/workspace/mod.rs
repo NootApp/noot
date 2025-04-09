@@ -2,9 +2,11 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use rust_i18n::t;
 use iced::{window, Theme, Task as IcedTask, Size, Length, Background, color, Border, Padding};
+use iced::advanced::graphics::gradient::Linear;
 use iced::widget::{center, column, container, horizontal_space, mouse_area, row, scrollable, text, text_input, vertical_space};
 use iced::widget::container::Style;
 use iced::window::{icon, Id, Position, Settings};
+use iced_core::{gradient, Gradient};
 use material_icons::Icon;
 use stringcase::kebab_case;
 use regex::Regex;
@@ -253,28 +255,69 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                 let workspace_containers: Vec<Element> = lock.workspaces.iter().map(|(id, workspace)| {
                     let id = id.clone();
                     let id2 = id.clone();
-
+                    let is_hovered = id2 == self.hovered_workspace.as_str();
                     column!(
                         mouse_area(
-                            container(
-                                column!(
-                                    row!(text(workspace.name.clone()), horizontal_space().width(Length::Fill), text(workspace.last_accessed.format("%y-%m-%d %H:%M:%S").to_string())),
-                                    row!(text(workspace.disk_path.clone()))
-                                )
-                            )
-                                .style(move |_| {
-                                    Style {
-                                        text_color: None,
-                                        background: if id2 == self.hovered_workspace.as_str() {
-                                            Some(Background::Color(color!(0x1a1a1a)))
-                                        } else {
-                                            None
-                                        },
-                                        border: Border::default().width(1).rounded(5.).color(color!(0x1a1a1a)),
-                                        shadow: Default::default(),
-                                    }
-                                })
-                                .padding(container_padding.clone())
+                            match is_hovered {
+                                true => {
+                                    container(
+                                        container(
+                                            column!(
+                                                row!(text(workspace.name.clone()), horizontal_space().width(Length::Fill), text(workspace.last_accessed.format("%y-%m-%d %H:%M:%S").to_string())),
+                                                row!(text(workspace.disk_path.clone()))
+                                            )
+                                        )
+                                        .style(move |_| {
+                                            Style {
+                                                text_color: None,
+                                                background: Some(Background::Color(color!(0x1a1a1a))),
+                                                border: Border::default().rounded(5.).color(color!(0x1a1a1a)),
+                                                shadow: Default::default(),
+                                            }
+                                        })
+                                        .padding(container_padding.clone())
+                                    )
+                                    .style(move |_| {
+                                        Style {
+                                            background: Some(
+                                                Background::Gradient(
+                                                    Gradient::Linear(
+                                                        gradient::Linear::new(45)
+                                                            .add_stop(0.0, color!(0x00d4ff))                                                    .add_stop(0.75, color!(0x3f3fb9))
+                                                            .add_stop(0.25, color!(0x3f3fb9))
+                                                            .add_stop(0.5, color!(0x020024))
+                                                            .add_stop(0.75, color!(0x3f3fb9))
+                                                            .add_stop(1.0, color!(0x00d4ff))
+                                                    )
+                                                )
+                                            ),
+                                            border: Border::default().rounded(5),
+                                            ..Default::default()
+                                        }
+                                    })
+                                    .padding(1)
+                                },
+                                false => {
+                                    container(
+                                    container(
+                                        column!(
+                                            row!(text(workspace.name.clone()), horizontal_space().width(Length::Fill), text(workspace.last_accessed.format("%y-%m-%d %H:%M:%S").to_string())),
+                                            row!(text(workspace.disk_path.clone()))
+                                        )
+                                    )
+                                    .style(move |_| {
+                                        Style {
+                                            text_color: None,
+                                            background: None,
+                                            border: Border::default().width(1).rounded(5.).color(color!(0x1a1a1a)),
+                                            shadow: Default::default(),
+                                        }
+                                    })
+                                    .padding(container_padding.clone())
+                                    ).padding(1)
+                                }
+                            }
+
                         )
                             .on_press(WorkspaceWindowMessage::load_from_click(&id, self.id).into())
                             .on_enter(WorkspaceWindowMessage::hovered(&id, self.id).into())
@@ -290,12 +333,37 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                         center(text(t!("windows.workspace-manager.menu.workspaces")).font(FONT_BOLD).size(32)).height(Length::Shrink),
                         center(
                             row!(
-                                button_with_icon(Icon::Add, t!("windows.workspace-manager.menu.buttons.new"))
-                                .on_press_with(|| {
-                                    WorkspaceWindowMessage::phase_change(
-                                        WorkspacePhase::New(NewWorkspaceData::new()),
-                                        self.id
-                                    ).into()
+                                container(
+                                    button_with_icon(Icon::Add, t!("windows.workspace-manager.menu.buttons.new"))
+                                    .on_press_with(|| {
+                                        WorkspaceWindowMessage::phase_change(
+                                            WorkspacePhase::New(NewWorkspaceData::new()),
+                                            self.id
+                                        ).into()
+                                    })
+                                    .style(|_,_| ButtonStyle::new()
+                                        .with_background_color(0x000000)
+                                        .compile()
+                                    )
+                                ).padding(1)
+                                .style(|_| {
+                                    Style {
+                                        text_color: None,
+                                        background: Some(
+                                            Background::Gradient(
+                                                Gradient::Linear(
+                                                    gradient::Linear::new(45)
+                                                        .add_stop(0.0, color!(0x00d4ff))                                                    .add_stop(0.75, color!(0x3f3fb9))
+                                                        .add_stop(0.25, color!(0x3f3fb9))
+                                                        .add_stop(0.5, color!(0x020024))
+                                                        .add_stop(0.75, color!(0x3f3fb9))
+                                                        .add_stop(1.0, color!(0x00d4ff))
+                                                )
+                                            )
+                                        ),
+                                        border: Border::default().rounded(5),
+                                        ..Style::default()
+                                    }
                                 }),
                                 horizontal_space().width(5),
                                 button_with_icon(Icon::FolderOpen, t!("windows.workspace-manager.menu.buttons.open-folder")),

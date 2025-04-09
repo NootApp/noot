@@ -1,6 +1,7 @@
 use std::collections::BTreeSet;
 use mlua::Lua;
-
+use crate::plugins::manifest::PluginManifest;
+use crate::plugins::scopes::PluginScopes;
 
 pub mod manifest;
 pub mod scopes;
@@ -33,4 +34,17 @@ impl PluginManager {
     }
 
     //pub fn load_plugins() {}
+}
+
+
+impl Plugin {
+    pub fn new(manifest: PluginManifest) -> Self {
+        let rt = Lua::new();
+        Self {
+            state: PluginState::NotLoaded,
+            rt,
+            manifest,
+            scope: PluginScopes::empty(),
+        }
+    }
 }

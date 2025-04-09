@@ -1,0 +1,8 @@
+name: "noot-themes"
+version: "0.1.0"
+description: "The default theme collection"
+entrypoint: "main.lua"
+authors:
+  - "Noot Developers <noot@totallyfake.dev>"
+scopes:
+  - theme

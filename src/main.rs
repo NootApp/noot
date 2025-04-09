@@ -151,6 +151,7 @@ pub mod storage;
 pub mod utils;
 
 /// The hotkey management section.
+#[cfg(feature = "keybinds")]
 pub mod hotkey;
 
 /// The inter-process communication management section.

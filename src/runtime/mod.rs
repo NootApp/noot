@@ -355,6 +355,7 @@ impl Application {
 
         let mut subscriptions: Vec<Subscription<Message>> = vec![
             iced::window::close_events().map(|id| Message::window_close(id)),
+            #[cfg(feature = "keybinds")]
             Subscription::run(crate::hotkey::start),
             Subscription::run(workers::spawn)
         ];

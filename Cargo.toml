@@ -53,12 +53,13 @@ iced_aw = "0.12.2"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 crossbeam-queue = "0.3.12"
 walkdir = "2.5.0"
+csscolorparser = { version = "0.7.0", features = ["lab"] }
 
 [dev-dependencies]
 ctor = "0.4.0"
 
 [features]
-default = ["i18n", "plugins"]
+default = ["i18n", "plugins", "keybinds"]
 ipc = []
 rich-presence = []
 i18n = []

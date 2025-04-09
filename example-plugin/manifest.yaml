@@ -4,6 +4,8 @@ name: "example"
 version: "0.1.0"
 description: "An example plugin to show you the basics"
 entrypoint: "main.lua"
+authors:
+  - "Noot Developers <noot@totallyfake.dev>"
 scopes:
   - workspace.files.view
   - workspace.files.modify
