@@ -99,6 +99,7 @@ impl WorkspaceManager {
                 db: connection,
                 source_window: None,
                 source,
+                assets: AssetManager::new(),
                 tree: Vec::new(),
                 buffers: Default::default(),
                 queue
@@ -184,7 +185,7 @@ impl WorkspaceManager {
     pub fn preload(&mut self) -> WorkspaceResult<()> {
 
         // TODO: Implement file indexing
-        self.queue.push(Job::new(JobType::BuildTree(PathBuf::from(&self.source.disk_path), self.source_window.unwrap()))).unwrap();
+        self.queue.push(Job::new(JobType::BuildTree(PathBuf::from(&self.source.disk_path), self.source_window.unwrap(), true))).unwrap();
 
 
         // TODO: Implement asset caching on workspace open
