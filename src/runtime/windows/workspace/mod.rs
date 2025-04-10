@@ -17,7 +17,7 @@ use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessageKind::{CreateWorkspace, LoadWorkspaceFromClick, PhaseChange, WorkspaceHovered};
 use crate::storage::workspace::{render_directory, WorkspaceError, WorkspaceManager};
-use crate::utils::components::buttons::{button_with_icon, ButtonStyle};
+use crate::utils::components::buttons::{button_with_icon, ButtonStyle, RichButton};
 
 #[derive(Debug)]
 pub struct WorkspaceWindow {
@@ -334,37 +334,35 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                         center(
                             row!(
                                 container(
-                                    button_with_icon(Icon::Add, t!("windows.workspace-manager.menu.buttons.new"))
+                                    RichButton::new_with_icon(
+                                        Icon::Add,
+                                    text(t!("windows.workspace-manager.menu.buttons.new"))
+                                    )
                                     .on_press_with(|| {
                                         WorkspaceWindowMessage::phase_change(
                                             WorkspacePhase::New(NewWorkspaceData::new()),
                                             self.id
                                         ).into()
                                     })
-                                    .style(|_,_| ButtonStyle::new()
-                                        .with_background_color(0x000000)
-                                        .compile()
-                                    )
-                                ).padding(1)
-                                .style(|_| {
+                                ).style(|_| {
                                     Style {
                                         text_color: None,
                                         background: Some(
                                             Background::Gradient(
                                                 Gradient::Linear(
                                                     gradient::Linear::new(45)
-                                                        .add_stop(0.0, color!(0x00d4ff))                                                    .add_stop(0.75, color!(0x3f3fb9))
-                                                        .add_stop(0.25, color!(0x3f3fb9))
-                                                        .add_stop(0.5, color!(0x020024))
-                                                        .add_stop(0.75, color!(0x3f3fb9))
-                                                        .add_stop(1.0, color!(0x00d4ff))
+                                                    .add_stop(0.0, color!(0x00d4ff))                                                    .add_stop(0.75, color!(0x3f3fb9))
+                                                    .add_stop(0.25, color!(0x3f3fb9))
+                                                    .add_stop(0.5, color!(0x020024))
+                                                    .add_stop(0.75, color!(0x3f3fb9))
+                                                    .add_stop(1.0, color!(0x00d4ff))
                                                 )
                                             )
                                         ),
                                         border: Border::default().rounded(5),
                                         ..Style::default()
                                     }
-                                }),
+                                }).padding(1),
                                 horizontal_space().width(5),
                                 button_with_icon(Icon::FolderOpen, t!("windows.workspace-manager.menu.buttons.open-folder")),
                                 horizontal_space().width(5),
@@ -439,12 +437,12 @@ impl DesktopWindow<WorkspaceWindow, WorkspaceWindowMessage, Message> for Workspa
                                         button_with_icon(Icon::Cancel, t!("windows.workspace-manager.new.buttons.cancel"))
                                          .on_press(WorkspaceWindowMessage::phase_change(WorkspacePhase::Menu, self.id).into()),
                                         horizontal_space().width(5.),
-                                        button_with_icon(Icon::Add, t!("windows.workspace-manager.new.buttons.create"))
-                                            .style(|_, _| {
-                                                ButtonStyle::new()
-                                                    .with_background_color(BUTTON_CONFIRM_BACKGROUND)
-                                                    .compile()
-                                            })
+                                        RichButton::new_with_icon(Icon::Add, text(t!("windows.workspace-manager.new.buttons.create")))
+                                            // .style(|_, _| {
+                                            //     ButtonStyle::new()
+                                            //         .with_background_color(BUTTON_CONFIRM_BACKGROUND)
+                                            //         .compile()
+                                            // })
                                             .on_press(WorkspaceWindowMessage::create_workspace(metadata.clone(), self.id).into())
                                     )
                                 )
