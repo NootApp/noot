@@ -8,7 +8,7 @@ permissions:
   id-token: write
 concurrency:
   group: deploy
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
     name: Build
@@ -26,7 +26,7 @@ jobs:
       - name: Clean docs folder
         run: cargo clean --doc
       - name: Install build deps
-        run: sudo apt install libasound2-dev libdbus-1-dev pkg-config libx11-dev libxi-dev libxtst-dev liblua5.4-dev
+        run: sudo apt install libasound2-dev speech-dispatcher libdbus-1-dev pkg-config libx11-dev libxi-dev libxtst-dev liblua5.4-dev
       - name: Build docs
         run: cargo doc --no-deps --all-features
       - name: Add redirect
