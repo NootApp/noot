@@ -3,7 +3,6 @@ use bincode::{Decode, Encode};
 use dark_light::Mode;
 use rusqlite::Connection;
 use rusqlite::fallible_streaming_iterator::FallibleStreamingIterator;
-use crate::config::appearance::ThemeVariant;
 use crate::config::locate_config_dir;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;

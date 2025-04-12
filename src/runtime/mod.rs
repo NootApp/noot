@@ -18,7 +18,6 @@ use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::hotkey::Keybind;
 use crate::runtime::state::AppState;
-use crate::runtime::workers::Job;
 use crate::storage::workspace::WorkspaceManager;
 
 /// Holds all the message passing code for the base layer of the app. All roads lead to `crate::runtime::messaging`.

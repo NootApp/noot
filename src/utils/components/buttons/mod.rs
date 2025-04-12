@@ -11,7 +11,7 @@ use material_icons::Icon;
 use crate::consts::{BUTTON_DEFAULT_BACKGROUND, BUTTON_DEFAULT_TEXT, FONT_ICON};
 use crate::runtime::messaging::Message;
 use crate::runtime::Task;
-use crate::utils::components::{buttons, ComponentMessage, ComponentRegistration, COMPONENT_TRACKER};
+use crate::utils::components::{ComponentMessage, ComponentRegistration, COMPONENT_TRACKER};
 use crate::utils::components::icons::Icon as NootIcon;
 
 #[derive(Clone, Debug)]

@@ -1,24 +1,21 @@
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use rust_i18n::t;
 use iced::{window, Theme, Task as IcedTask, Size, Length, Background, color, Border, Padding};
-use iced::advanced::graphics::gradient::Linear;
 use iced::widget::{center, column, container, horizontal_space, mouse_area, row, scrollable, text, text_input, vertical_space};
 use iced::widget::container::Style;
 use iced::window::{icon, Id, Position, Settings};
-use iced_core::{gradient, Gradient};
 use material_icons::Icon;
 use stringcase::kebab_case;
 use regex::Regex;
-use crate::consts::{APP_ICON, APP_NAME, BUTTON_CONFIRM_BACKGROUND, FONT_BOLD, TEXT_INPUT_INVALID};
+use crate::consts::{APP_ICON, APP_NAME, FONT_BOLD, TEXT_INPUT_INVALID};
 use crate::runtime::messaging::{Message, WindowMessage, WindowMessageKind};
-use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
+use crate::runtime::{Element, Task, GLOBAL_STATE};
 use crate::runtime::windows::DesktopWindow;
 use crate::runtime::windows::editor::messaging::EditorMessage;
 use crate::runtime::windows::workspace::WorkspaceWindowMessageKind::{CreateWorkspace, LoadWorkspaceFromClick, PhaseChange, WorkspaceHovered};
 use crate::storage::workspace::{render_directory, WorkspaceError, WorkspaceManager};
-use crate::utils::components::buttons::{button_with_icon, ButtonStyle, RichButton, NEON_BUTTON_CONTAINER};
+use crate::utils::components::buttons::{button_with_icon, RichButton, NEON_BUTTON_CONTAINER};
 
 #[derive(Debug)]
 pub struct WorkspaceWindow {

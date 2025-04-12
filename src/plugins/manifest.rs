@@ -1,7 +1,6 @@
 use std::collections::BTreeSet;
 use semver::Version;
 use serde_derive::{Deserialize, Serialize};
-use crate::plugins::scopes::PluginScopes;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginManifest {
