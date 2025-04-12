@@ -164,3 +164,6 @@ pub mod cli;
 /// Plugin API management section.
 #[cfg(feature = "plugins")]
 pub mod plugins;
+
+/// Theme engine section
+pub mod ui;

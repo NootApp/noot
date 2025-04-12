@@ -1,9 +1,10 @@
 use std::sync::Arc;
 use iced::{color, Background, Border, Color, Element, Length, Shadow};
+use iced::gradient::Gradient;
 use iced::border::Radius;
 use iced::widget::{button, center, container, horizontal_space, row};
 use iced::window::Id;
-use iced_core::{border, event, layout, mouse, overlay, renderer, touch, Clipboard, Event, Layout, Padding, Rectangle, Shell, Size, Theme, Vector, Widget};
+use iced_core::{border, event, gradient, layout, mouse, overlay, renderer, touch, Clipboard, Event, Layout, Padding, Rectangle, Shell, Size, Theme, Vector, Widget};
 use iced_core::theme::palette;
 use iced_core::widget::{tree, Operation, Tree};
 use material_icons::Icon;
@@ -770,3 +771,25 @@ fn disabled(style: Style) -> Style {
         ..style
     }
 }
+
+
+
+lazy_static!(
+    pub static ref NEON_BUTTON_CONTAINER: container::Style = container::Style {
+        text_color: None,
+        background: Some(
+            Background::Gradient(
+                Gradient::Linear(
+                    gradient::Linear::new(45)
+                        .add_stop(0.0, color!(0x00d4ff))
+                        .add_stop(0.25, color!(0x3f3fb9))
+                        .add_stop(0.5, color!(0x020024))
+                        .add_stop(0.75, color!(0x3f3fb9))
+                        .add_stop(1.0, color!(0x00d4ff))
+                )
+            )
+        ),
+        border: Border::default().rounded(5),
+        ..container::Style::default()
+    };
+);

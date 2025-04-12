@@ -8,7 +8,7 @@ use chrono::Local;
 use crossbeam_queue::ArrayQueue;
 use rusqlite::Connection;
 use iced::window::Id;
-use crate::runtime::{AppState, GLOBAL_STATE};
+use crate::runtime::{state::AppState, GLOBAL_STATE};
 use crate::runtime::workers::{Job, JobType};
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;

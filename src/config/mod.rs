@@ -4,7 +4,10 @@ use std::path::PathBuf;
 use serde_derive::{Deserialize, Serialize};
 use crate::consts::APP_NAME;
 
+
 pub mod performance;
+
+pub mod appearance;
 
 pub type ConfigResult = Result<(), ConfigurationError>;
 
@@ -22,7 +25,8 @@ pub enum ConfigurationError {
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Config {
     pub workspace_directory: PathBuf,
-    pub performance: performance::PerformanceConfiguration
+    pub performance: performance::PerformanceConfiguration,
+    pub appearance: appearance::AppearanceSettings
 }
 
 
@@ -38,7 +42,8 @@ impl Default for Config {
 
         Config {
             workspace_directory,
-            performance: Default::default()
+            performance: Default::default(),
+            appearance: Default::default(),
         }
     }
 }

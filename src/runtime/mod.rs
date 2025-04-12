@@ -17,6 +17,7 @@ use crate::storage::process::ProcessStorageManager;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::hotkey::Keybind;
+use crate::runtime::state::AppState;
 use crate::runtime::workers::Job;
 use crate::storage::workspace::WorkspaceManager;
 
@@ -28,6 +29,9 @@ pub mod windows;
 
 /// Holds the definitions for the worker thread management system
 pub mod workers;
+
+/// Holds the definitions for the global app state
+pub mod state;
 
 /// Globally used alias for this applications task type.
 pub type Task = iced::Task<Message>;
@@ -68,41 +72,6 @@ impl RuntimeState {
     fn new() -> RuntimeState {
         RuntimeState { windows: Default::default() }
     }
-}
-
-/// A global runtime state that can be modified by anyone with a copy of it at any time.
-#[derive(Debug)]
-pub struct AppState {
-    /// The configuration data as it has been loaded from the disk.
-    /// > :warning: Caution: This is currently loaded via `Default::default()` and is not persisted to disk.
-    pub config: Config,
-
-    /// The storage manager for the current application. Manages the information within the main database file.
-    pub store: ProcessStorageManager,
-
-    /// A map of the available workspaces (as found by the `ProcessStoreManager`),
-    /// this contains the ID of the workspace as its key, and stores a
-    /// partial workspace entry for referencing in the GUI.
-    pub workspaces: BTreeMap<String, Workspace>,
-
-    /// Whether IPC is running. (always false at this time)
-    pub run_ipc: bool,
-
-    /// The current process ID. (as assigned by the OS)
-    /// This is used alongside the IPC subsystem to route messages.
-    pub pid: u32,
-
-    /// The workspace ID that should be opened when a new editor is called.
-    pub open_workspace: Option<String>,
-
-    /// A mirror value of the CLI argument
-    pub skip_splash: bool,
-
-    /// A mirror value of the CLI argument
-    pub load_workspace: Option<String>,
-
-    /// Job queue
-    pub queue: Arc<ArrayQueue<Job>>,
 }
 
 /// The application and its primary runtime.
@@ -217,11 +186,12 @@ impl Application {
 
                 if let Some(window) = reference {
                     info!("Attempting to close window with ID: {}", id);
-                    let task = window.close();
-
+                    let mut task = window.close();
+                    let run_daemon_mode: Setting<()> = GLOBAL_STATE.lock().unwrap().store.get_setting("runtime.daemon.enable").unwrap();
                     self.rt.windows.remove(&id);
 
-                    if self.rt.windows.len() == 0 {
+                    if self.rt.windows.len() == 0 && run_daemon_mode.enabled {
+
                         warn!("Window count is 0, showing daemon notification");
                         Notification::new()
                             .summary("Background Mode")
@@ -229,6 +199,9 @@ impl Application {
                             .appname(APP_NAME)
                             .timeout(Timeout::Default)
                             .show().unwrap();
+                    } else if self.rt.windows.len() == 0 && !run_daemon_mode.enabled {
+                        warn!("Window count is 0, daemon mode disabled in config, quitting");
+                        task = task.chain(exit().into())
                     }
 
                     task

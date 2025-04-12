@@ -14,6 +14,7 @@ pub const APP_BUILD: &str = git_version!(
 pub const APP_VERSION: &str = "0.1.0";
 
 
+
 // Fonts
 pub const FONT_NAME: &str = "Roboto";
 pub const FONT_NAME_MONO: &str = "Roboto Mono";
