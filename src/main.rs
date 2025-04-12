@@ -42,9 +42,9 @@ pub fn main() -> iced::Result {
 
     args.process();
 
-    if args.load_workspace.is_some() {
-        args.skip_splash = true;
-    }
+    // if args.load_workspace.is_some() {
+        args.skip_splash = true; // Disable the splash screen for now.
+    // }
 
     GLOBAL_STATE.lock().unwrap().skip_splash = args.skip_splash;
     GLOBAL_STATE.lock().unwrap().load_workspace = args.load_workspace;
