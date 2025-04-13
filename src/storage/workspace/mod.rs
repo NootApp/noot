@@ -187,7 +187,7 @@ impl WorkspaceManager {
     pub fn preload(&mut self) -> WorkspaceResult<()> {
 
         // TODO: Implement file indexing
-        self.queue.push(Job::new(JobType::BuildTree(PathBuf::from(&self.source.disk_path), self.source_window.unwrap(), true))).unwrap();
+        self.queue.push(Job::new(JobType::BuildTree(self.source.id.to_string(), PathBuf::from(&self.source.disk_path), self.source_window.unwrap(), true))).unwrap();
 
 
         // TODO: Implement asset caching on workspace open
@@ -229,7 +229,7 @@ impl WorkspaceManager {
     }
 
     fn open_buffer_from_bytes(&self, bytes: &[u8], url: String, name: String) -> WorkspaceResult<Buffer> {
-        let b = Buffer::from_md(name, url, String::from_utf8_lossy(bytes).to_string());
+        let b = Buffer::from_md(name, self.source.id.clone(), url, String::from_utf8_lossy(bytes).to_string());
 
         Ok(b)
     }

@@ -3,7 +3,7 @@ use walkdir::WalkDir;
 use iced::window::Id;
 use crate::runtime::workers::{Job, JobList, JobType, Worker};
 
-pub async fn build_tree(_job: Job, worker: &mut Worker, window: Id, path: PathBuf, pre_render: bool) -> Option<JobList> {
+pub async fn build_tree(_job: Job, worker: &mut Worker, window: Id, workspace: String, path: PathBuf, pre_render: bool) -> Option<JobList> {
     let mut jobs = JobList::new();
 
     // Build a file tree from the given path
@@ -16,7 +16,7 @@ pub async fn build_tree(_job: Job, worker: &mut Worker, window: Id, path: PathBu
                 if name.ends_with("md") {
                     if pre_render {
                         worker.info(format!("Queuing job to render file {}", path.display()));
-                        jobs.push(Job::new(JobType::PreRender(e.path().to_path_buf(), window)))
+                        jobs.push(Job::new(JobType::PreRender(workspace.clone(), e.path().to_path_buf(), window)))
                     }
                 } else {
                     // File is not markdown, we probably shouldn't try to pre-render it.

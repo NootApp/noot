@@ -6,12 +6,13 @@ use pulldown_cmark::{Parser, Options, Event};
 use iced::{color, Border, Length, Padding};
 use iced::border::Radius;
 use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area};
-use iced::widget::text::Span;
+use iced::widget::text::{Rich, Span};
 use iced_aw::{grid, grid_row};
 use iced_core::alignment::Horizontal;
+use iced_core::Text;
 use crate::consts::*;
 use crate::utils::components::widgets::rich_text;
-use crate::runtime::Element;
+use crate::runtime::{Element, GLOBAL_STATE};
 use crate::runtime::Message;
 use crate::runtime::messaging::MessageKind;
 use crate::utils::cryptography::hashing::hash_str;
@@ -31,14 +32,9 @@ pub enum Image {
     Other(Vec<u8>)
 }
 
-impl From<PathBuf> for Buffer {
-    fn from(p: PathBuf) -> Buffer {
-        Buffer::new("".into(), p.to_str().unwrap(), "".into())
-    }
-}
 
 impl Buffer {
-    pub fn new<U: Into<String> + Clone + std::fmt::Debug>(name: String, url: U, content: String) -> Self {
+    pub fn new<U: Into<String> + Clone + std::fmt::Debug>(name: String, workspace: String, url: U, content: String) -> Self {
         let dom = Dom::parse(&content).unwrap();
         let mut els = vec![];
         let mut root_dir = PathBuf::from(url.clone().into());
@@ -47,8 +43,8 @@ impl Buffer {
         for element in dom.children {
             match element {
                 Node::Comment(_) => continue,
-                Node::Text(_) => els.push(ElWrapper::new(element, root_dir.clone())),
-                Node::Element(_) => els.push(ElWrapper::new(element, root_dir.clone()))
+                Node::Text(_) => els.push(ElWrapper::new(element, workspace.clone())),
+                Node::Element(_) => els.push(ElWrapper::new(element, workspace.clone()))
             }
         }
 
@@ -64,7 +60,7 @@ impl Buffer {
         }
     }
 
-    pub fn from_md<U: Into<String> + std::fmt::Debug + std::clone::Clone>(name: String, url: U, content: String) -> Self {
+    pub fn from_md<U: Into<String> + std::fmt::Debug + Clone>(name: String, workspace: String, url: U, content: String) -> Self {
         let mut options = Options::empty();
 
         options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -106,7 +102,7 @@ impl Buffer {
 
         pulldown_cmark::html::push_html(&mut html_output, highlighted.into_iter());
 
-        Self::new(name, url, html_output)
+        Self::new(name, workspace, url, html_output)
     }
 
     pub fn view(&self) -> Element {
@@ -147,8 +143,8 @@ pub enum Render<'a> {
 
 
 impl ElWrapper {
-    pub fn new(el: Node, rd: PathBuf) -> Self {
-        let mut root_dir = rd.clone();
+    pub fn new(el: Node, workspace: String) -> Self {
+
         match el {
             Node::Text(content) => {
                 Self {
@@ -164,7 +160,7 @@ impl ElWrapper {
                 let mut children = vec![];
 
                 for child in element.children {
-                    children.push(Self::new(child, rd.clone()))
+                    children.push(Self::new(child, workspace.clone()))
                 }
 
                 let mut s = Self {
@@ -179,9 +175,8 @@ impl ElWrapper {
                 if s.name == "img" {
                     let src = s.attributes.get("src").unwrap().clone().unwrap();
                     let hash = hash_str(src);
-                    root_dir.push(".assets");
-                    root_dir.push(hash);
-                    s.attributes.insert("cached-src".to_string(), Some(root_dir.to_str().unwrap().to_string()));
+                    let uri = Url::parse(&format!("noot://{}/assets/{}", workspace, hash)).unwrap();
+                    s.attributes.insert("cached-src".to_string(), Some(uri.to_string()));
                 }
 
                 s
@@ -583,4 +578,16 @@ fn heading<'a>(text: String, size: f32, tts: String) -> Render<'a> {
         // ).width(Length::Fill).into(),
         false
     )
+}
+
+
+fn a11_text<'a, T: Into<String>>(t: T) -> Rich<'a, Message> {
+    let mut font = FONT_MEDIUM.clone();
+    if GLOBAL_STATE.lock().unwrap().store.get_setting("appearance.font.dyslexic.enable").unwrap().value == true {
+        font.family = iced::font::Family::Name(FONT_NAME);
+    }
+
+    rich_text(
+        t.into()
+    ).into()
 }

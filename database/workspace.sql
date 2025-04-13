@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS _noot (
     schema_version text unique not null primary_key,
     initialized integer unique,
-)
+);
 
 CREATE TABLE IF NOT EXISTS metadata (
     field text unique not null primary key,
@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS plugins (
 
 CREATE TABLE IF NOT EXISTS settings (
     id text unique not null primary key,
-    value blob default null,
-    enabled integer default false
+    value blob default null
 );
 
 CREATE TABLE IF NOT EXISTS assets (
@@ -32,5 +31,6 @@ CREATE TABLE IF NOT EXISTS files (
     path text unique not null primary key,
     checksum text unique not null,
     size integer not null,
-    ephemeral integer not null default false
+    ephemeral integer not null default false,
+    buffer blob default null
 );

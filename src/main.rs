@@ -95,18 +95,10 @@ pub fn main() -> iced::Result {
     let config_locale = GLOBAL_STATE.lock().unwrap().store.get_setting::<String>("language.locale");
 
     if let Some(user_locale) = config_locale {
-        if user_locale.value.is_some() {
-            let upl = user_locale.value.clone().unwrap();
-            info!("User requested locale: {}", upl);
-            info!("Updating locale");
-            set_locale(&upl);
-        } else {
-            GLOBAL_STATE.lock().unwrap().store.set_setting("language.locale", locale.clone(), true);
-
-            info!("User locale is nullified - using system default");
-            set_locale(&locale);
-            info!("Setting default locale");
-        }
+        let upl = user_locale.value.clone();
+        info!("User requested locale: {}", upl);
+        info!("Updating locale");
+        set_locale(&upl);
     } else {
         info!("User locale not configured - using system default");
         set_locale(&locale);

@@ -27,6 +27,7 @@ pub struct EditorWindow {
     pub id: Id,
     state: Arc<Mutex<AppState>>,
     pub mgr: WorkspaceManager,
+    ticker: u8,
     pub settings: EditorSettings,
     pub widgets: Vec<Box<dyn StatusBarWidget>>,
     pub buffers: Vec<String>,
@@ -48,6 +49,7 @@ impl EditorWindow {
             id,
             state: GLOBAL_STATE.clone(),
             mgr,
+            ticker: 0,
             settings: EditorSettings::new(),
             widgets: vec![],
             buffers,
@@ -126,6 +128,14 @@ impl DesktopWindow<EditorWindow, EditorMessage, Message> for EditorWindow {
             EditorMessageKind::BufferRendered(buffer) => {
                 info!("Adding buffer to list: {}", buffer.id);
                 self.mgr.buffers.insert(buffer.id.clone(), buffer);
+                Task::none()
+            },
+            EditorMessageKind::Tick => {
+                if self.ticker == 255 {
+                    self.ticker = 0;
+                } else {
+                    self.ticker += 1;
+                }
                 Task::none()
             }
             _ => Task::none()

@@ -7,7 +7,8 @@ use crate::storage::workspace::buffer::Buffer;
 pub enum EditorMessageKind {
     Tick,
     FileChanged(PathBuf),
-    BufferRendered(Buffer)
+    BufferRendered(Buffer),
+    LoadAsset,
 }
 
 #[derive(Clone, Debug)]

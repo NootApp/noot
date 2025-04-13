@@ -45,33 +45,29 @@ impl ProcessStorageManager {
         let current_locale = rust_i18n::locale().to_string();
 
         // Extra settings which require runtime configuration....
-        let settings = [
-            ("runtime.daemon.enable", None, true),
-            ("workspace.load_last", None, false),
-            ("rpc.enabled", None, true),
-            ("rpc.client_id", Some(bincode::encode_to_vec("", bincode::config::standard()).unwrap()), true),
-            ("rpc.enable_idle", None, true),
-            ("rpc.show_current_workspace", None, true),
-            ("rpc.show_current_file", None, true),
-            ("language.locale", Some(bincode::encode_to_vec(&current_locale, bincode::config::standard()).unwrap()), true),
-            ("appearance.font.primary", Some(bincode::encode_to_vec("Roboto", bincode::config::standard()).unwrap()), true),
-            ("appearance.font.monospace", Some(bincode::encode_to_vec("Roboto Mono", bincode::config::standard()).unwrap()), true),
-            ("appearance.font.dyslexic.enable", None, false),
-            ("appearance.font.dyslexic.primary", Some(bincode::encode_to_vec("OpenDyslexic", bincode::config::standard()).unwrap()), true),
-            ("appearance.font.dyslexic.monospace", Some(bincode::encode_to_vec("OpenDyslexic Mono", bincode::config::standard()).unwrap()), true),
-            ("appearance.theme.name", Some(bincode::encode_to_vec("Noot", bincode::config::standard()).unwrap()), true),
-            ("appearance.theme.variant", Some(bincode::encode_to_vec(choose_day_night(), bincode::config::standard()).unwrap()), true),
-            ("appearance.theme.adaptive_variance", None, false),
-            ("appearance.theme.adaptive_variant_day", Some(bincode::encode_to_vec("light", bincode::config::standard()).unwrap()), false),
-            ("appearance.tts.enable", None, true),
-            ("appearance.tts.provider", Some(bincode::encode_to_vec("google", bincode::config::standard()).unwrap()), true)
-        ];
-        for setting in settings.iter() {
-            pm.db.execute("INSERT OR IGNORE INTO settings (id, value, enabled) VALUES (?, ?, ?) ", (setting.0, setting.1.clone(), setting.2)).unwrap();
-        }
-
+        let _ = pm.set_setting("runtime.daemon.enable", true);
+        let _ = pm.set_setting("workspace.load_last", false);
+        let _ = pm.set_setting("rpc.enabled", true);
+        let _ = pm.set_setting("rpc.client_id", "".to_string());
+        let _ = pm.set_setting("rpc.enable_idle", true);
+        let _ = pm.set_setting("rpc.show_current_workspace", true);
+        let _ = pm.set_setting("rpc.show_current_file", true);
+        let _ = pm.set_setting("language.locale", current_locale);
+        let _ = pm.set_setting("appearance.font.primary", "Roboto".to_string());
+        let _ = pm.set_setting("appearance.font.monospace", "Roboto Mono".to_string());
+        let _ = pm.set_setting("appearance.font.dyslexic.enable", false);
+        let _ = pm.set_setting("appearance.font.dyslexic.primary", "OpenDyslexic".to_string());
+        let _ = pm.set_setting("appearance.font.dyslexic.monospace", "OpenDyslexic Mono".to_string());
+        let _ = pm.set_setting("appearance.theme.name", "Noot".to_string());
+        let _ = pm.set_setting("appearance.theme.variant", choose_day_night());
+        let _ = pm.set_setting("appearance.theme.adaptive_variance", false);
+        let _ = pm.set_setting("appearance.theme.adaptive_variant_day", "light".to_string());
+        let _ = pm.set_setting("appearance.tts.enable", true);
+        let _ = pm.set_setting("appearance.tts.provider", "google".to_string());
+        let _ = pm.set_setting("workspace.load_last", false);
         pm
     }
+
 
     pub fn list_workspaces(&self) -> Vec<Workspace> {
         let mut workspaces: Vec<Workspace> = Vec::new();
@@ -110,19 +106,19 @@ impl ProcessStorageManager {
         }
     }
 
-    pub fn set_setting<T: Encode + Decode<()> + Debug>(&mut self, key: impl Into<String>, value: T, enabled: bool) {
+    pub fn set_setting<T: Encode + Decode<()> + Debug>(&mut self, key: impl Into<String>, value: T) {
         let k = key.into();
         let v = bincode::encode_to_vec(value, bincode::config::standard()).unwrap();
-        let mut stmt = self.db.prepare("UPDATE settings SET value = ?, enabled = ? WHERE id = ?").unwrap();
-        stmt.execute((v, enabled, k)).unwrap();
+        let mut stmt = self.db.prepare("INSERT INTO settings (id, value) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET value = ? WHERE id = ?").unwrap();
+        stmt.execute((k.clone(), v.clone(), v, k)).unwrap();
     }
 }
 
 
-fn choose_day_night() -> &'static str {
+fn choose_day_night() -> String {
     match dark_light::detect().unwrap() {
-        Mode::Dark => "dark",
-        Mode::Light => "light",
-        Mode::Unspecified => "light"
+        Mode::Dark => "dark".to_string(),
+        Mode::Light => "light".to_string(),
+        Mode::Unspecified => "light".to_string()
     }
 }

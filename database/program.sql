@@ -8,6 +8,5 @@ CREATE TABLE IF NOT EXISTS workspaces (
 
 CREATE TABLE IF NOT EXISTS settings (
     id text unique not null primary key,
-    value blob default null,
-    enabled integer default false
+    value blob not null
 );

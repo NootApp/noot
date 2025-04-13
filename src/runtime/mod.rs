@@ -10,6 +10,7 @@ use iced::futures::StreamExt;
 use natural_tts::{Model, NaturalTtsBuilder};
 use natural_tts::models::NaturalModelTrait;
 use natural_tts::models::tts_rs::TtsModel;
+use rusqlite::fallible_iterator::FallibleIterator;
 use tokio::sync::mpsc::{channel, Sender};
 use tokio::time::Instant;
 use crate::config::Config;
@@ -215,6 +216,12 @@ impl Application {
                         let workspaces = self.state.lock().unwrap().store.list_workspaces();
                         let last_workspace = workspaces.first().unwrap();
                         Task::done(Message::open_workspace(last_workspace.id.clone()))
+                    },
+                    Keybind::ToggleDyslexia => {
+                        let mut dyslexia: Setting<bool> = self.state.lock().unwrap().store.get_setting("appearance.font.dyslexic.enable").unwrap();
+                        dyslexia.value = !dyslexia.value;
+                        self.state.lock().unwrap().store.set_setting(dyslexia.key, dyslexia.value).unwrap();
+                        Task::none()
                     }
                 }
             }
@@ -225,10 +232,10 @@ impl Application {
                 if let Some(window) = reference {
                     info!("Attempting to close window with ID: {}", id);
                     let mut task = window.close();
-                    let run_daemon_mode: Setting<()> = GLOBAL_STATE.lock().unwrap().store.get_setting("runtime.daemon.enable").unwrap();
+                    let run_daemon_mode: Setting<bool> = GLOBAL_STATE.lock().unwrap().store.get_setting("runtime.daemon.enable").unwrap();
                     self.rt.windows.remove(&id);
 
-                    if self.rt.windows.len() == 0 && run_daemon_mode.enabled {
+                    if self.rt.windows.len() == 0 && run_daemon_mode.value {
 
                         warn!("Window count is 0, showing daemon notification");
                         Notification::new()
@@ -237,7 +244,7 @@ impl Application {
                             .appname(APP_NAME)
                             .timeout(Timeout::Default)
                             .show().unwrap();
-                    } else if self.rt.windows.len() == 0 && !run_daemon_mode.enabled {
+                    } else if self.rt.windows.len() == 0 && !run_daemon_mode.value {
                         warn!("Window count is 0, daemon mode disabled in config, quitting");
                         task = task.chain(exit().into())
                     }
@@ -303,7 +310,7 @@ impl Application {
             state.workspaces.insert(workspace.id.clone(), workspace.clone());
         }
 
-        let load_last_used = state.store.get_setting::<String>("workspace.load_last").unwrap_or(Setting{key: "workspace.load_last".to_string(), value:None, enabled:false});
+        let load_last_used: Setting<bool> = state.store.get_setting("workspace.load_last").unwrap_or(Setting{key: "workspace.load_last".to_string(), value:false});
 
         if let Some(wsp) = state.load_workspace.clone() {
             let sources: Vec<&Workspace> = workspaces.iter().filter(|w| w.id == wsp).collect();
@@ -324,7 +331,7 @@ impl Application {
                 error!("Invalid workspace ID");
                 exit()
             }
-        } else if load_last_used.enabled {
+        } else if load_last_used.value {
             let last_used = workspaces.last().unwrap();
             return Message::open_workspace(last_used.id.clone()).into();
         } else {

@@ -60,9 +60,9 @@ impl Worker {
 
     pub async fn handle_job(&mut self, job: Job) {
         let maybe_jobs = match job.clone().kind {
-            JobType::BuildTree(path, source, pre_render) => build_tree(job, self, source, path, pre_render).await,
-            JobType::PreRender(path, source) => pre_render(job, self, source, path).await,
-            JobType::CacheAsset(path, url, source, buffer) => cache_assets(job, self, source, path, url, buffer).await,
+            JobType::BuildTree(workspace, path, source, pre_render) => build_tree(job, self, source, workspace, path, pre_render).await,
+            JobType::PreRender(workspace, path, source) => pre_render(job, self, workspace, source, path).await,
+            JobType::CacheAsset(workspace, path, url, source, buffer) => cache_assets(job, self, source, workspace, path, url, buffer).await,
         };
 
         if let Some(jobs) = maybe_jobs {
@@ -102,27 +102,30 @@ pub enum JobType {
     /// Requests a worker to walk a directory and build a tree of all the files it finds
     /// Note: This also triggers pre-rendering of any markdown files it locates within the directory.
     /// **Params**
+    /// - String -> The workspace ID being worked on.
     /// - PathBuf -> The path to use as the root of the tree.
     /// - Id -> The window ID that the tree should be broadcast to when completed.
     /// - bool -> Whether to allow the worker to queue pre-render jobs when indexing.
-    BuildTree(PathBuf, Id, bool),
+    BuildTree(String, PathBuf, Id, bool),
 
     /// Requests that a worker attempt to preprocess the markdown file into a buffer,
     /// allowing us to manage asset caching transparently in the background
     /// of the application, before we even try to render a source.
     /// **Params**
+    /// - String -> The workspace ID being worked on.
     /// - PathBuf -> The path of the file we want to pre-render.
     /// - Id -> The window ID that the buffer should be broadcast to when completed.
-    PreRender(PathBuf, Id),
+    PreRender(String, PathBuf, Id),
 
     /// Requests that a worker attempt to cache an asset from a file
     /// **Params**
+    /// - String -> The workspace ID being worked on.
     /// - PathBuf -> The path of the workspace root.
     /// - Url -> The url to use when locating the asset. This allows for local files, cloud files, and internal assets too
     /// - Id -> The window ID that the asset should be broadcast to when completed
     /// - String -> A formatted string containing the buffer ID this asset should be assigned to.
     /// > Note: The assets assigned to a specific buffer ID are not accessible to plugins or other buffers, this is called "enclaving"
-    CacheAsset(PathBuf, Url, Id, String),
+    CacheAsset(String, PathBuf, Url, Id, String),
 }
 
 #[derive(Debug, Clone)]
