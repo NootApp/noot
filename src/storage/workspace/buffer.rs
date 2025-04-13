@@ -1,26 +1,19 @@
-use std::borrow::Cow;
 use std::path::PathBuf;
 use std::collections::HashMap;
-use std::fmt::format;
 use url::Url;
 use html_parser::{Dom, Node};
 use pulldown_cmark::{Parser, Options, Event};
 use iced::{color, Border, Length, Padding};
 use iced::border::Radius;
-use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area, Svg, stack, horizontal_space, tooltip, Tooltip};
+use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area};
 use iced::widget::text::Span;
-use iced::advanced::svg::Handle;
-use iced::widget::tooltip::Position;
 use iced_aw::{grid, grid_row};
 use iced_core::alignment::Horizontal;
-use material_icons::Icon;
-use stringcase::Caser;
 use crate::consts::*;
 use crate::utils::components::widgets::rich_text;
 use crate::runtime::Element;
 use crate::runtime::Message;
 use crate::runtime::messaging::MessageKind;
-use crate::utils::components::buttons::RichButton;
 use crate::utils::cryptography::hashing::hash_str;
 
 #[derive(Debug, Clone)]
