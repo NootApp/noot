@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
 use iced::{window, Size, Task as IcedTask, Theme};
@@ -7,7 +8,7 @@ use iced::window::{Id, Position, Settings};
 use iced::{Length, color, Padding};
 use iced::Subscription;
 use rust_i18n::t;
-
+use url::Url;
 use crate::consts::{APP_ICON, APP_NAME};
 use crate::runtime::{AppState, Element, Task, GLOBAL_STATE};
 use crate::runtime::messaging::Message;
@@ -42,22 +43,30 @@ impl Debug for EditorWindow {
 impl EditorWindow {
     pub fn new(mgr: WorkspaceManager) -> (Self, IcedTask<Id>) {
         let (id, task) = window::open(Self::settings());
+        let buffers = mgr.buffers.values().cloned().map(|b| b.id).collect();
         let mut window = Self {
             id,
             state: GLOBAL_STATE.clone(),
             mgr,
             settings: EditorSettings::new(),
             widgets: vec![],
-            buffers: vec![
-                "noot://internal/test".to_string(),
-            ],
+            buffers,
             current_buffer: "internal/test".to_string()
         };
+
+        if window.buffers.len() == 0 {
+            window.buffers.push("noot://internal/test".to_string());
+        }
 
         window.mgr.set_window_id(id);
         window.mgr.preload().unwrap();
 
-        window.mgr.open_buffer(window.buffers[0].clone()).unwrap();
+        let outcome = window.mgr.open_buffer(Url::from_str(&window.buffers[0].clone()).unwrap());
+
+        if let Err(outcome) = outcome {
+            error!("{:?}", outcome);
+            panic!();
+        }
 
         (
             window,

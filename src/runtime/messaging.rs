@@ -20,6 +20,7 @@ pub enum MessageKind {
     LinkOpened(Option<String>),
     Queue(Vec<Job>),
     SysInfo(system::Information),
+    Say(String),
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,10 @@ impl Message {
             kind,
             source_id,
         }
+    }
+
+    pub fn say(text: impl Into<String>) -> Self {
+        Self::new(MessageKind::Say(text.into()), None)
     }
 
     pub fn tick() -> Self {

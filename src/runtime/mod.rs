@@ -6,6 +6,16 @@ use iced::window::Id;
 use notify_rust::{Notification, Timeout};
 use lazy_static::lazy_static;
 use crossbeam_queue::ArrayQueue;
+use iced::futures::StreamExt;
+use natural_tts::{Model, NaturalTtsBuilder};
+use natural_tts::models::gtts::GttsModel;
+use natural_tts::models::meta::MetaModel;
+use natural_tts::models::msedge::MSEdgeModel;
+use natural_tts::models::NaturalModelTrait;
+use natural_tts::models::parler::ParlerModel;
+use natural_tts::models::tts_rs::TtsModel;
+use tokio::sync::mpsc::{channel, Sender};
+use tokio::time::Instant;
 use crate::config::Config;
 use crate::consts::APP_NAME;
 pub(crate) use crate::runtime::messaging::{Message, MessageKind};
@@ -63,13 +73,17 @@ lazy_static!(
 /// logic and managing of windows and how they are rendered.
 pub struct RuntimeState {
     /// A `BTreeMap` containing each window and their respective identifiers for use when rendering or updating.
-    pub windows: BTreeMap<Id, AppWindow>
+    pub windows: BTreeMap<Id, AppWindow>,
+    pub tts: Sender<String>
 }
 
 impl RuntimeState {
     /// Builds a new `RuntimeState` instance.
-    fn new() -> RuntimeState {
-        RuntimeState { windows: Default::default() }
+    fn new(tts: Sender<String>) -> RuntimeState {
+        RuntimeState {
+            windows: Default::default(),
+            tts
+        }
     }
 }
 
@@ -90,16 +104,48 @@ pub struct Application {
 impl Application {
     /// Spawn a new Application runtime, returns a trigger task and an instance of the application to run the daemon with.
     pub fn new() -> (Application, Task) {
+        let (tx, mut rx) = channel(1);
+
+        std::thread::spawn(move || {
+            let start = Instant::now();
+            info!("Spawning TTS handling thread");
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let model = TtsModel::default();
+            let voices = model.0.voices().unwrap();
+
+            info!("Below are available Microsoft voices:");
+            for voice in voices {
+                info!("- {:?}", voice.name());
+            }
+
+            let mut tts = NaturalTtsBuilder::default()
+                .default_model(Model::TTS)
+                .tts_model(TtsModel::default())
+                .build()
+                .unwrap();
+
+            rt.block_on(async move {
+                info!("TTS thread is ready...");
+                let diff = Instant::now() - start;
+                info!("Started in {}ms", diff.as_millis());
+                while let Some(text) = rx.recv().await {
+                    info!("TTS message: '{}'", text);
+                    let x = tts.say(text);
+                    if x.is_err() {
+                        error!("{}", x.unwrap_err());
+                    }
+                }
+            });
+        });
+
         let mut task = system::fetch_information().map(|i| Message::new(MessageKind::SysInfo(i), None)).chain(Task::done(Message::tick()));
         let skip_splash = GLOBAL_STATE.lock().unwrap().skip_splash;
 
         let mut app = Application {
-            rt: RuntimeState::new(),
+            rt: RuntimeState::new(tx),
             state: GLOBAL_STATE.clone(),
             splash_window: None,
         };
-
-
 
         if !skip_splash {
             let splash = SplashWindow::new();
@@ -108,9 +154,6 @@ impl Application {
             app.splash_window = Some(splash_window.id.clone());
             app.rt.windows.insert(splash_window.id, AppWindow::SplashWindow(splash_window));
         }
-
-        
-
 
         (app, task)
     }
@@ -143,10 +186,10 @@ impl Application {
                 info!("System Information");
                 info!("Name: {}", i.system_name.unwrap_or_default());
                 info!("Kernel: {}", i.system_kernel.unwrap_or_default());
-                info!("Version: {}", i.system_version.unwrap_or_default());
+                info!("Version: {}", i.system_version.clone().unwrap_or_default());
                 info!("Short Version: {}", i.system_short_version.unwrap_or_default());
 
-                Task::none()
+                Task::none() //done(Message::new(MessageKind::Say(format!("This computer is running on {}", i.system_version.unwrap_or("an unknown operating system".to_string()))), None))
             }
             MessageKind::Tick => self.tick(),
             MessageKind::WindowOpen(name) => self.open_window(name),
@@ -220,6 +263,16 @@ impl Application {
                 let queue = GLOBAL_STATE.lock().unwrap().queue.clone();
                 for job in jobs {
                     queue.push(job).unwrap();
+                }
+                Task::none()
+            }
+            MessageKind::Say(message) => {
+                warn!("Saying '{}'", message);
+                let outcome = tokio::runtime::Builder::new_current_thread().build().unwrap().block_on(async {
+                    self.rt.tts.send(message).await
+                });
+                if outcome.is_err() {
+                    error!("{}", outcome.unwrap_err());
                 }
                 Task::none()
             }

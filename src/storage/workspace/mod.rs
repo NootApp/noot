@@ -2,12 +2,15 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::{Arc, MutexGuard};
 use bincode::{config, encode_to_vec, Decode, Encode};
 use chrono::Local;
 use crossbeam_queue::ArrayQueue;
 use rusqlite::Connection;
 use iced::window::Id;
+use rusqlite::fallible_iterator::FallibleIterator;
+use url::Url;
 use crate::runtime::{state::AppState, GLOBAL_STATE};
 use crate::runtime::workers::{Job, JobType};
 use crate::storage::process::structs::setting::Setting;
@@ -199,23 +202,29 @@ impl WorkspaceManager {
         self.source_window = Some(id);
     }
 
-    pub fn open_buffer(&mut self, id: String) -> WorkspaceResult<()> {
-       if id.contains("noot://internal/") {
-           let internal_id = id.split("noot://internal/").collect::<Vec<&str>>().pop().unwrap();
+    pub fn open_buffer(&mut self, id: Url) -> WorkspaceResult<()> {
+        info!("{}",&id);
+        info!("Is Internal? {}", id.scheme() == "noot" && id.host_str().unwrap() == "internal");
+       if id.scheme() == "noot" && id.host_str().unwrap() == "internal" {
+           let internal_id = id.path();
            info!("Opening internal buffer '{}'", id);
            let maybe_buffer = match internal_id {
-               "test" => self.open_buffer_from_bytes(include_bytes!("../../../static/experiences/test.md"), id.clone(), id.clone()),
-               _ => Err(WorkspaceError::BufferNotFound(id.clone()))
+               "/test" => self.open_buffer_from_bytes(include_bytes!("../../../static/experiences/test.md"), id.to_string(), id.to_string()),
+               _ => Err(WorkspaceError::BufferNotFound(id.to_string()))
            };
 
            if let Ok(buffer) = maybe_buffer {
-               self.buffers.insert(id.clone(), buffer);
+               self.buffers.insert(id.to_string(), buffer);
                Ok(())
            } else {
-               Err(WorkspaceError::BufferNotFound(id))
+               Err(WorkspaceError::BufferNotFound(id.to_string()))
            }
+       } else if let None = self.buffers.get(&id.to_string()) {
+           let b = self.open_buffer_from_bytes(&std::fs::read(id.to_file_path().unwrap()).unwrap(), "test.md".to_string(), id.to_string())?;
+           self.buffers.insert(id.to_string(), b);
+           Ok(())
        } else {
-           Err(WorkspaceError::BufferNotFound(id))
+           Err(WorkspaceError::BufferNotFound(id.to_string()))
        }
 
     }

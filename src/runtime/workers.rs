@@ -11,6 +11,7 @@ use iced_core::window::Id;
 use url::Url;
 use crate::runtime::{Message, GLOBAL_STATE};
 use crate::runtime::workers::jobs::build_tree::build_tree;
+use crate::runtime::workers::jobs::cache_assets::cache_assets;
 use crate::runtime::workers::jobs::pre_render::pre_render;
 
 pub type JobResult<T> = Result<T, JobError>;
@@ -61,7 +62,7 @@ impl Worker {
         let maybe_jobs = match job.clone().kind {
             JobType::BuildTree(path, source, pre_render) => build_tree(job, self, source, path, pre_render).await,
             JobType::PreRender(path, source) => pre_render(job, self, source, path).await,
-            JobType::CacheAsset(_url, _source, _buffer) => None, // TODO: Implement this
+            JobType::CacheAsset(path, url, source, buffer) => cache_assets(job, self, source, path, url, buffer).await,
         };
 
         if let Some(jobs) = maybe_jobs {
@@ -116,11 +117,12 @@ pub enum JobType {
 
     /// Requests that a worker attempt to cache an asset from a file
     /// **Params**
+    /// - PathBuf -> The path of the workspace root.
     /// - Url -> The url to use when locating the asset. This allows for local files, cloud files, and internal assets too
     /// - Id -> The window ID that the asset should be broadcast to when completed
     /// - String -> A formatted string containing the buffer ID this asset should be assigned to.
     /// > Note: The assets assigned to a specific buffer ID are not accessible to plugins or other buffers, this is called "enclaving"
-    CacheAsset(Url, Id, String),
+    CacheAsset(PathBuf, Url, Id, String),
 }
 
 #[derive(Debug, Clone)]

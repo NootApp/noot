@@ -1,21 +1,26 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use std::fmt::format;
 use url::Url;
 use html_parser::{Dom, Node};
 use pulldown_cmark::{Parser, Options, Event};
 use iced::{color, Border, Length, Padding};
 use iced::border::Radius;
-use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area, Svg};
+use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area, Svg, stack, horizontal_space, tooltip, Tooltip};
 use iced::widget::text::Span;
 use iced::advanced::svg::Handle;
+use iced::widget::tooltip::Position;
 use iced_aw::{grid, grid_row};
 use iced_core::alignment::Horizontal;
+use material_icons::Icon;
+use stringcase::Caser;
 use crate::consts::*;
 use crate::utils::components::widgets::rich_text;
 use crate::runtime::Element;
 use crate::runtime::Message;
 use crate::runtime::messaging::MessageKind;
+use crate::utils::components::buttons::RichButton;
 use crate::utils::cryptography::hashing::hash_str;
 
 #[derive(Debug, Clone)]
@@ -24,6 +29,7 @@ pub struct Buffer {
     pub name: String,
     pub url: Url,
     pub doc: Vec<ElWrapper>,
+    pub tts_segments: Vec<String>
     // assets: BTreeMap<String, Vec<u8>>
 }
 
@@ -39,22 +45,27 @@ impl From<PathBuf> for Buffer {
 }
 
 impl Buffer {
-    pub fn new<U: Into<String>>(name: String, url: U, content: String) -> Self {
+    pub fn new<U: Into<String> + Clone + std::fmt::Debug>(name: String, url: U, content: String) -> Self {
         let dom = Dom::parse(&content).unwrap();
         let mut els = vec![];
+        let mut root_dir = PathBuf::from(url.clone().into());
+        root_dir.pop();
 
         for element in dom.children {
             match element {
                 Node::Comment(_) => continue,
                 Node::Text(_) => els.push(ElWrapper::new(element)),
-                Node::Element(e) => {
+                Node::Element(mut e) => {
                     match e.name.as_str() {
                         "img" => {
-                            dbg!(&e);
-                            // let images = Vec<>
-                            // for child in e.children {
-                            //
-                            // }
+                            let src = e.attributes.get("src").unwrap().clone().unwrap();
+                            let hash = hash_str(src);
+                            root_dir.push(".assets");
+                            root_dir.push(hash);
+                            dbg!(&e.attributes);
+                            e.attributes.insert("cached-src".to_string(), Some(root_dir.to_str().unwrap().to_string()));
+                            dbg!(&e.attributes);
+
                             els.push(ElWrapper::new(Node::Element(e)));
                         },
                         _ => els.push(ElWrapper::new(Node::Element(e))),
@@ -70,11 +81,12 @@ impl Buffer {
             name,
             url: Url::parse(&url.into()).unwrap(),
             doc: els,
+            tts_segments: vec![]
             // assets: BTreeMap::new()
         }
     }
 
-    pub fn from_md<U: Into<String>>(name: String, url: U, content: String) -> Self {
+    pub fn from_md<U: Into<String> + std::fmt::Debug + std::clone::Clone>(name: String, url: U, content: String) -> Self {
         let mut options = Options::empty();
 
         options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -121,12 +133,10 @@ impl Buffer {
 
     pub fn view(&self) -> Element {
         let start = std::time::Instant::now();
-
-
-
+        let (v, _texts) = greedy_render(&self.doc);
 
         let view = container(
-            greedy_render(&self.doc)
+            v
         )
         .padding(Padding {top:5., right: 20., bottom: 5., left: 5.})
         .width(Length::Fill)
@@ -142,10 +152,10 @@ impl Buffer {
 #[derive(Debug, Clone)]
 pub struct ElWrapper {
     // id: Option<String>,
-    name: String,
-    attributes: HashMap<String, Option<String>>,
+    pub name: String,
+    pub attributes: HashMap<String, Option<String>>,
     // classes: Vec<String>,
-    children: Vec<ElWrapper>,
+    pub children: Vec<ElWrapper>,
     pub display_text: String
 }
 
@@ -200,47 +210,52 @@ impl ElWrapper {
         }
     }
 
-    pub fn view(&self) -> Render {
+    pub fn view(&self, section_text: Option<String>) -> (Render, String) {
         match self.name.as_str() {
             "TEXT" =>
-                Render::Span(span(unescape_html_text(self.display_text.as_str()))),
-            "hr" => Render::Element(horizontal_rule(2).into(), false),
-            "h1" => heading(greedy_text(&self.children), HEADER_SIZE_1),
-            "h2" => heading(greedy_text(&self.children), HEADER_SIZE_2),
-            "h3" => heading(greedy_text(&self.children), HEADER_SIZE_3),
-            "h4" => heading(greedy_text(&self.children), HEADER_SIZE_4),
-            "h5" => heading(greedy_text(&self.children), HEADER_SIZE_5),
+                (Render::Span(span(unescape_html_text(self.display_text.as_str()))), unescape_html_text(self.display_text.as_str())),
+            "hr" => (Render::Element(horizontal_rule(2).into(), false), "".to_string()),
+            "h1" => (heading(greedy_text(&self.children), HEADER_SIZE_1, section_text.clone().unwrap_or(greedy_text(&self.children))), section_text.unwrap_or(greedy_text(&self.children))),
+            "h2" => (heading(greedy_text(&self.children), HEADER_SIZE_2, greedy_text(&self.children)), greedy_text(&self.children)),
+            "h3" => (heading(greedy_text(&self.children), HEADER_SIZE_3, greedy_text(&self.children)), greedy_text(&self.children)),
+            "h4" => (heading(greedy_text(&self.children), HEADER_SIZE_4, greedy_text(&self.children)), greedy_text(&self.children)),
+            "h5" => (heading(greedy_text(&self.children), HEADER_SIZE_5, greedy_text(&self.children)), greedy_text(&self.children)),
             "p" => {
-                Render::Element(greedy_render(&self.children), false)
+                let (v, t) = greedy_render(&self.children);
+                (Render::Element(v, false), t.join(" "))
             }
             "div" => {
-                Render::Element(greedy_render(&self.children), false)
+                let (v, t) = greedy_render(&self.children);
+                (Render::Element(v, false), t.join(" "))
             },
             "pre" => {
-                Render::Element(
-                    container(
-                        rich_text(
-                            self.children[0].children.iter().map(|c| {
-                                span(unescape_html_text(c.display_text.as_str()))
-                                    .font(FONT_MONO)
-                            }).collect::<Vec<Span<Message>>>()
+                (
+                    Render::Element(
+                        container(
+                            rich_text(
+                                self.children[0].children.iter().map(|c| {
+                                    span(unescape_html_text(c.display_text.as_str()))
+                                        .font(FONT_MONO)
+                                }).collect::<Vec<Span<Message>>>()
+                            )
                         )
-                    )
-                    .padding(5)
-                    .width(Length::Fill)
-                    .style(|_| {
-                        container::Style {
-                            background: Some(iced::Background::Color(color!(0x1a1a1a))),
-                            border: iced::Border {
-                                color: color!(0x2a2a2a),
-                                width: 2.,
-                                radius: Radius::new(5)
-                            },
-                            .. Default::default()
-                        }
-                    })
-                    .into(),
-                    false
+                        .padding(5)
+                        .width(Length::Fill)
+                        .style(|_| {
+                            container::Style {
+                                background: Some(iced::Background::Color(color!(0x1a1a1a))),
+                                border: iced::Border {
+                                    color: color!(0x2a2a2a),
+                                    width: 2.,
+                                    radius: Radius::new(5)
+                                },
+                                .. Default::default()
+                            }
+                        })
+                        .into(),
+                        false
+                    ),
+                    greedy_text(&self.children)
                 )
 
             }
@@ -250,34 +265,43 @@ impl ElWrapper {
                 padding.right = 3.;
 
                 // All children should be text elements, so we can safely render as text
-                Render::Span(
-                    span(
-                        self.children.iter().map(|c| unescape_html_text(c.display_text.as_str()))
-                            .collect::<Vec<String>>()
-                            .join(" ")
-                    ).font(FONT_MONO)
-                        .background(color!(0x1a1a1a))
-                        .border(Border {
-                            color: color!(0x2a2a2a),
-                            width: 2.0,
-                            radius: Radius::new(5),
-                        })
-                        .padding(padding)
+                (
+                    Render::Span(
+                        span(
+                            self.children.iter().map(|c| unescape_html_text(c.display_text.as_str()))
+                                .collect::<Vec<String>>()
+                                .join(" ")
+                        ).font(FONT_MONO)
+                            .background(color!(0x1a1a1a))
+                            .border(Border {
+                                color: color!(0x2a2a2a),
+                                width: 2.0,
+                                radius: Radius::new(5),
+                            })
+                            .padding(padding)
+                    ),
+                    greedy_text(&self.children)
                 )
             },
             "li" => {
-                Render::Span(
-                    span(format!("- {}", greedy_text(&self.children)))
+                (
+                    Render::Span(
+                        span(format!("- {}", greedy_text(&self.children)))
+                    ),
+                    greedy_text(&self.children)
                 )
             },
             "ul" => {
-                Render::Element(
-                    column(
-                        self.children.iter().map(|c| {
-                            row!(text(format!("- {}", greedy_text(&c.children)))).wrap().into()
-                        })
-                    ).into(),
-                    false
+                (
+                    Render::Element(
+                        column(
+                            self.children.iter().map(|c| {
+                                row!(text(format!("- {}", greedy_text(&c.children)))).wrap().into()
+                            })
+                        ).into(),
+                        false
+                    ),
+                    greedy_text(&self.children)
                 )
             }
             "a" => {
@@ -291,18 +315,26 @@ impl ElWrapper {
                     }
                 }
                 if self.children[0].name != "TEXT" {
-                    Render::Element(
-                        mouse_area(greedy_render(&self.children))
-                            .on_release(Message::new(MessageKind::LinkOpened(url), None))
-                        .into(), true
+                    let (v, t) = greedy_render(&self.children);
+                    (
+                        Render::Element(
+                            mouse_area(v)
+                                .on_release(Message::new(MessageKind::LinkOpened(url), None))
+                            .into(), true
+                        ),
+                        t.join(" ")
                     )
                 } else {
-                    Render::Span(
-                        span(unescape_html_text(greedy_text(&self.children).as_str()))
-                            .link(Message::new(MessageKind::LinkOpened(url), None))
-                            .color(color!(0x0000fa))
+                    (
+                        Render::Span(
+                            span(unescape_html_text(greedy_text(&self.children).as_str()))
+                                .link(Message::new(MessageKind::LinkOpened(url), None))
+                                .color(color!(0x0000fa))
+                        ),
+                        greedy_text(&self.children)
                     )
                 }
+
 
                 // Render::Element(
                 //     mouse_area(
@@ -332,7 +364,7 @@ impl ElWrapper {
 
                             // Iterate through columns in the table head
                             for cell in &child.children[0].children {
-                                let output = cell.view();
+                                let output = cell.view(None).0;
                                 match output {
                                     Render::Element(e, _) => row.push(e),
                                     Render::Span(s) => row.push(rich_text([s]).into()),
@@ -346,7 +378,7 @@ impl ElWrapper {
                             let mut row = Vec::<Element>::new();
                             for trow in &child.children {
                                 for cell in &trow.children {
-                                    let output = cell.view();
+                                    let output = cell.view(None).0;
                                     match output {
                                         Render::Element(e, _) => row.push(e),
                                         Render::Span(s) => row.push(rich_text([s]).into()),
@@ -364,11 +396,14 @@ impl ElWrapper {
 
 
 
-                Render::Element(
-                    container(
-                        grid(rows)
-                    ).into(),
-                    false
+                (
+                    Render::Element(
+                        container(
+                            grid(rows)
+                        ).into(),
+                        false
+                    ),
+                    "Table containing content which is not supported for screen readers".to_string()
                 )
             }
             "th" | "td" => {
@@ -381,44 +416,56 @@ impl ElWrapper {
                         _ => {}
                     }
 
-                    Render::Element(greedy_render_aligned(&self.children, alignment), false)
+                    (
+                        Render::Element(greedy_render_aligned(&self.children, alignment).0, false),
+                        greedy_text(&self.children)
+                    )
                 } else {
-                    Render::Element(greedy_render(&self.children), false)
+                    let (v, t) = greedy_render(&self.children);
+                    (
+                        Render::Element(v, false),
+                        t.join(" ")
+                    )
                 }
             },
             "img" => {
-                let maybe_src = self.attributes.get("src").unwrap();
-                if let Some(src) = maybe_src {
-                    let hash = hash_str(src);
-                    warn!("Image handling support is experimental - Asset '{}' -> '{}'", src, hash);
-                    // let mut alt = self.attributes.get("alt").unwrap_or(&None).clone().unwrap_or("".to_string());
-                    // let asset = format!()
-                    // let can_render = std::fs::exists()
-
-
-                    // if alt.len() > 0 {
-                    //
-                    // } else {
-                    //
-                    // }
-
-                    let maybe_buffer = reqwest::blocking::get(src);
-
-                    if let Ok(response) = maybe_buffer {
-                        Render::Element(Svg::new(Handle::from_memory(Cow::Owned(response.bytes().unwrap().to_vec()))).height(Length::Shrink).width(Length::Shrink).into(), true)
-                    } else {
-                        Render::Span("Image not found".into())
-                    }
-
-
-
-                } else {
-                    Render::Span("Image not found".into())
-                }
+                dbg!(&self.attributes);
+                // let maybe_src = self.attributes.get("src").unwrap();
+            //     if let Some(src) = maybe_src {
+            //         // let hash = hash_str(src);
+            //         // warn!("Image handling support is experimental - Asset '{}' -> '{}'", src, hash);
+            //         // Render::Element(Svg::new(Handle::from_path().height(Length::Shrink).width(Length::Shrink).into(), true));
+            //         let mut alt = self.attributes.get("alt").unwrap_or(&None).clone().unwrap_or("".to_string());
+            //         // let asset = format!()
+            //         // let can_render = std::fs::exists()
+            //
+            //
+            //         // if alt.len() > 0 {
+            //         //
+            //         // } else {
+            //         //
+            //         // }
+            //
+            //         // let maybe_buffer = reqwest::blocking::get(src);
+            //
+            // //         if let Ok(response) = maybe_buffer {
+            // //             Render::Element(Svg::new(Handle::from_memory(Cow::Owned(response.bytes().unwrap().to_vec()))).height(Length::Shrink).width(Length::Shrink).into(), true)
+            // //         } else {
+            //             (Render::Span("Image not found".into()), alt)
+            // //         }
+            // //
+            // //
+            // //
+            //     } else {
+                    (Render::Span("Image not found".into()), "Image not found".into())
+                // }
             }
             _ => {
                 // dbg!(&self);
-                Render::Element(rich_text([span(format!("{} - Not Supported", self.name))]).into(), false)
+                (
+                    Render::Element(rich_text([span(format!("{} - Not Supported", self.name))]).into(), false),
+                    greedy_text(&self.children)
+                )
             }
         }
     }
@@ -431,13 +478,15 @@ fn unescape_html_text(src: &str) -> String {
 }
 
 
-fn greedy_render_aligned(elements: &[ElWrapper], align: iced::alignment::Horizontal) -> Element {
+fn greedy_render_aligned(elements: &[ElWrapper], align: Horizontal) -> (Element, Vec<String>) {
     let mut col = vec![];
     let mut spans = vec![];
     let mut inline_elems = vec![];
+    let mut text_elems = vec![];
 
     for element in elements {
-        match element.view() {
+        let (view, tts) = element.view(None);
+        match view {
             Render::Element(e, inline) => {
                 col.push(rich_text(spans).align_x(align).into());
                 spans = vec![];
@@ -451,23 +500,47 @@ fn greedy_render_aligned(elements: &[ElWrapper], align: iced::alignment::Horizon
             }
             Render::Span(s) => spans.push(s.into()),
         }
+        text_elems.push(tts);
     }
     col.push(rich_text(spans).align_x(align).into());
     col.push(row(inline_elems).width(Length::Shrink).wrap().into());
 
 
-    column(
-        col
-    ).into()
+
+    (
+        column(
+            col
+        ).into(),
+        text_elems
+    )
 }
 
-fn greedy_render(elements: &[ElWrapper]) -> Element {
+fn greedy_render(elements: &[ElWrapper]) -> (Element, Vec<String>) {
     let mut col = vec![];
     let mut spans = vec![];
     let mut inline_elems = vec![];
+    let mut text_elems = vec![];
+    let mut text_since_h1 = String::new();
+    let mut last_header_index = 0;
+    let mut index = 0;
 
     for element in elements {
-        match element.view() {
+        let (view, tts) = element.view(None);
+
+        if element.name == "h1" && col.len() > 0 {
+            let (v, _) = element.view(Some(text_since_h1));
+            col[last_header_index+1] = match v {
+                Render::Element(e, _) => e.into(),
+                _ => unreachable!(),
+            };
+            text_since_h1 = String::new();
+            last_header_index = index;
+        }
+
+        text_since_h1 = format!("{} {}", text_since_h1, tts);
+        text_elems.push(tts);
+
+        match view {
             Render::Element(e, inline) => {
                 col.push(rich_text(spans).into());
                 spans = vec![];
@@ -481,14 +554,19 @@ fn greedy_render(elements: &[ElWrapper]) -> Element {
             }
             Render::Span(s) => spans.push(s.into()),
         }
+        // dbg!(&text_since_h1, &last_header_index);
+        index +=1;
     }
     col.push(rich_text(spans).into());
     col.push(row(inline_elems).width(Length::Shrink).wrap().into());
 
 
-    column(
-        col
-    ).into()
+    (
+        column(
+            col
+        ).into(),
+        text_elems
+    )
 }
 
 fn greedy_text(elements: &[ElWrapper]) -> String {
@@ -498,14 +576,22 @@ fn greedy_text(elements: &[ElWrapper]) -> String {
 }
 
 
-fn heading<'a>(text: String, size: f32) -> Render<'a> {
+fn heading<'a>(text: String, size: f32, tts: String) -> Render<'a> {
+    // dbg!(&text, size, &tts);
     Render::Element(
-        rich_text([
-            span(text)
+        // row!(
+        //     tooltip(
+        //         RichButton::new_with_icon(Icon::PlayArrow, "").width(40.).on_press(Message::say(tts.clone())),
+        //         "Listen to this section",
+        //         Position::Top
+        //     ),
+        //     horizontal_space().width(10.),
+            rich_text([
+                span(text)
                 .font(FONT_BOLD)
                 .size(size)
-                .into(),
-        ]).into(),
+            ]).width(Length::Fill).into(),
+        // ).width(Length::Fill).into(),
         false
     )
 }

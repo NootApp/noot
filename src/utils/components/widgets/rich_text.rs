@@ -147,13 +147,13 @@ where
         self.style(move |_theme| Style { color })
     }
 
-    /// Sets the default style class of the [`Rich`] text.
-    #[cfg(feature = "advanced")]
-    #[must_use]
-    pub fn class(mut self, class: impl Into<Theme::Class<'a>>) -> Self {
-        self.class = class.into();
-        self
-    }
+    // /// Sets the default style class of the [`Rich`] text.
+    // #[cfg(feature = "advanced")]
+    // #[must_use]
+    // pub fn class(mut self, class: impl Into<Theme::Class<'a>>) -> Self {
+    //     self.class = class.into();
+    //     self
+    // }
 }
 
 impl<'a, Link, Theme, Renderer> Default for Rich<'a, Link, Theme, Renderer>

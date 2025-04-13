@@ -11,6 +11,7 @@ pub mod splash;
 pub mod workspace;
 pub mod editor;
 
+pub mod settings;
 
 /// An enum representing the different windows that the application may display
 #[derive(Debug)]
