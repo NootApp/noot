@@ -47,23 +47,8 @@ impl Buffer {
         for element in dom.children {
             match element {
                 Node::Comment(_) => continue,
-                Node::Text(_) => els.push(ElWrapper::new(element)),
-                Node::Element(mut e) => {
-                    match e.name.as_str() {
-                        "img" => {
-                            let src = e.attributes.get("src").unwrap().clone().unwrap();
-                            let hash = hash_str(src);
-                            root_dir.push(".assets");
-                            root_dir.push(hash);
-                            dbg!(&e.attributes);
-                            e.attributes.insert("cached-src".to_string(), Some(root_dir.to_str().unwrap().to_string()));
-                            dbg!(&e.attributes);
-
-                            els.push(ElWrapper::new(Node::Element(e)));
-                        },
-                        _ => els.push(ElWrapper::new(Node::Element(e))),
-                    }
-                }
+                Node::Text(_) => els.push(ElWrapper::new(element, root_dir.clone())),
+                Node::Element(_) => els.push(ElWrapper::new(element, root_dir.clone()))
             }
         }
 
@@ -162,7 +147,8 @@ pub enum Render<'a> {
 
 
 impl ElWrapper {
-    pub fn new(el: Node) -> Self {
+    pub fn new(el: Node, rd: PathBuf) -> Self {
+        let mut root_dir = rd.clone();
         match el {
             Node::Text(content) => {
                 Self {
@@ -178,17 +164,27 @@ impl ElWrapper {
                 let mut children = vec![];
 
                 for child in element.children {
-                    children.push(Self::new(child))
+                    children.push(Self::new(child, rd.clone()))
                 }
 
-                Self {
+                let mut s = Self {
                     // id: element.id.clone(),
                     name: element.name.clone(),
                     attributes: element.attributes.clone(),
                     // classes: element.classes.clone(),
                     children,
                     display_text: String::new(),
+                };
+
+                if s.name == "img" {
+                    let src = s.attributes.get("src").unwrap().clone().unwrap();
+                    let hash = hash_str(src);
+                    root_dir.push(".assets");
+                    root_dir.push(hash);
+                    s.attributes.insert("cached-src".to_string(), Some(root_dir.to_str().unwrap().to_string()));
                 }
+
+                s
             }
             _ => {
                 Self {
