@@ -220,7 +220,15 @@ impl Application {
                     Keybind::ToggleDyslexia => {
                         let mut dyslexia: Setting<bool> = self.state.lock().unwrap().store.get_setting("appearance.font.dyslexic.enable").unwrap();
                         dyslexia.value = !dyslexia.value;
-                        self.state.lock().unwrap().store.set_setting(dyslexia.key, dyslexia.value).unwrap();
+                        self.state.lock().unwrap().store.set_setting(dyslexia.key, dyslexia.value);
+                        if dyslexia.value {
+                            Notification::new()
+                                .summary("Dyslexia Mode")
+                                .body("Noot is running in Dyslexia Friendly Mode\nToggle this feature using alt + shift + d")
+                                .appname(APP_NAME)
+                                .timeout(Timeout::Default)
+                                .show().unwrap();
+                        }
                         Task::none()
                     }
                 }

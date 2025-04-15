@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS _noot (
-    schema_version text unique not null primary_key,
-    initialized integer unique,
+    schema_version text unique not null primary key,
+    initialized integer unique
 );
 
 CREATE TABLE IF NOT EXISTS metadata (

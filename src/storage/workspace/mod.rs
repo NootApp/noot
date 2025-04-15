@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
 use std::sync::{Arc, MutexGuard};
-use bincode::{config, encode_to_vec, Decode, Encode};
+use bincode::{Decode, Encode};
 use chrono::Local;
 use crossbeam_queue::ArrayQueue;
 use rusqlite::Connection;
@@ -174,10 +174,10 @@ impl WorkspaceManager {
 
         let mut mgr = WorkspaceManager::new(source, GLOBAL_STATE.lock().unwrap())?;
 
-        mgr.set_setting("plugins.enable", None::<()>, false)
-            .set_setting("plugins.allow-unpacked", None::<()>, false)
-            .set_setting("assets.cache-strategy", Some(AssetCachingStrategy::Blob), true)
-            .set_setting("assets.fetch-remote", Some(RemoteDataStrategy::All), false);
+        mgr.set_setting("plugins.enable", false)
+            .set_setting("plugins.allow-unpacked", false)
+            .set_setting("assets.cache-strategy", AssetCachingStrategy::Blob)
+            .set_setting("assets.fetch-remote", RemoteDataStrategy::All);
 
 
         Ok(mgr)
@@ -247,15 +247,10 @@ impl WorkspaceManager {
         }
     }
 
-    pub fn set_setting<T: Encode + Decode<()> + Debug>(&mut self, key: impl Into<String>, value: Option<T>, enabled: bool) -> &mut Self {
+    pub fn set_setting<T: Encode + Decode<()> + Debug>(&mut self, key: impl Into<String>, value: T) -> &mut Self {
         let k = key.into();
-        let mut v = None;
-        if let Some(value) = value {
-            v = Some(encode_to_vec(value, config::standard()).unwrap());
-        }
-        let mut stmt = self.db.prepare("UPDATE settings SET value = ?, enabled = ? WHERE id = ?").unwrap();
-        stmt.execute((v, enabled, k)).unwrap();
-        drop(stmt);
+        let setting = Setting::new(k, value);
+        setting.store(&mut self.db).unwrap();
         self
     }
 }

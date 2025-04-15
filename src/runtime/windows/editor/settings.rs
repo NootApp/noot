@@ -1,8 +1,5 @@
 use crate::storage::workspace::{AssetCachingStrategy, RemoteDataStrategy, WorkspaceManager};
 
-pub fn null() -> Option<()> {
-    None
-}
 
 #[derive(Debug)]
 pub struct EditorSettings {
@@ -40,15 +37,15 @@ impl EditorSettings {
 
 impl EditorPluginSettings {
     pub fn save(&self, mgr: &mut WorkspaceManager) {
-        mgr.set_setting("plugins.enable", null(), self.enable)
-            .set_setting("plugins.allow-unpacked", null(), self.allow_unpacked);
+        mgr.set_setting("plugins.enable", self.enable)
+            .set_setting("plugins.allow-unpacked", self.allow_unpacked);
     }
 }
 
 impl EditorAssetSettings {
     pub fn save(&self, mgr: &mut WorkspaceManager) {
-        mgr.set_setting("assets.cache-strategy", Some(self.cache_strategy), true)
-            .set_setting("assets.fetch-remote", Some(self.fetch_remote), true);
+        mgr.set_setting("assets.cache-strategy", self.cache_strategy)
+            .set_setting("assets.fetch-remote", self.fetch_remote);
     }
 }
 

@@ -105,18 +105,21 @@ pub fn main() -> iced::Result {
         info!("Setting default locale");
     }
 
-    daemon(
+    let mut proc = daemon(
         Application::title,
         Application::update,
         Application::view
     )
-        .font(FONT_MONOSPACE)
-        .font(FONT_REGULAR)
-        .font(FONT_MEDIUM_TTF)
-        .font(FONT_BOLD_TTF)
         .font(material_icons::FONT)
         .theme(Application::theme)
-        .subscription(Application::subscription)
+        .subscription(Application::subscription);
+
+    for font in FONTS.iter() {
+        info!("Registering font");
+        proc = proc.font(*font);
+    }
+
+    proc
         .run_with(Application::new)
 }
 

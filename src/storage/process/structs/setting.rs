@@ -17,14 +17,14 @@ impl <V:Encode + Decode<()> + Debug> Setting<V> {
     }
 
     pub fn store(&self, conn: &mut Connection) -> rusqlite::Result<usize> {
-        conn.execute("INSERT INTO settings (key, value) VALUES (?, ?)", (&self.key, bincode::encode_to_vec(&self.value, bincode::config::standard()).unwrap()))
+        conn.execute("INSERT INTO settings (id, value) VALUES (?, ?)", (&self.key, bincode::encode_to_vec(&self.value, bincode::config::standard()).unwrap()))
     }
 }
 
 impl <V: Encode + Decode<()> + Debug> From<&Row<'_>> for Setting<V> {
     fn from(row: &Row) -> Self {
         let value_bytes: Vec<u8>  = row.get(1).unwrap_or(vec![]);
-        let mut value: V;
+        let value: V;
 
         if value_bytes.len() > 0 {
             let (val, _bytes) = bincode::decode_from_slice(&value_bytes, bincode::config::standard()).unwrap();

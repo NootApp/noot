@@ -56,8 +56,8 @@ impl ProcessStorageManager {
         let _ = pm.set_setting("appearance.font.primary", "Roboto".to_string());
         let _ = pm.set_setting("appearance.font.monospace", "Roboto Mono".to_string());
         let _ = pm.set_setting("appearance.font.dyslexic.enable", false);
-        let _ = pm.set_setting("appearance.font.dyslexic.primary", "OpenDyslexic".to_string());
-        let _ = pm.set_setting("appearance.font.dyslexic.monospace", "OpenDyslexic Mono".to_string());
+        let _ = pm.set_setting("appearance.font.dyslexic.primary", "OpenDyslexic3".to_string());
+        let _ = pm.set_setting("appearance.font.dyslexic.monospace", "OpenDyslexicMono".to_string());
         let _ = pm.set_setting("appearance.theme.name", "Noot".to_string());
         let _ = pm.set_setting("appearance.theme.variant", choose_day_night());
         let _ = pm.set_setting("appearance.theme.adaptive_variance", false);

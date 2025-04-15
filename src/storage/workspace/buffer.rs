@@ -5,16 +5,19 @@ use html_parser::{Dom, Node};
 use pulldown_cmark::{Parser, Options, Event};
 use iced::{color, Border, Length, Padding};
 use iced::border::Radius;
-use iced::widget::{row, column, span, container, text, horizontal_rule, mouse_area};
-use iced::widget::text::{Rich, Span};
+use iced::widget::{row, column, span, container, horizontal_rule, mouse_area};
+use iced::widget::text::Span;
 use iced_aw::{grid, grid_row};
 use iced_core::alignment::Horizontal;
-use iced_core::Text;
+use iced_core::Font;
+use iced_core::font::{Family, Style, Weight};
+use iced_core::font::Weight::{Bold, Medium, Normal};
 use crate::consts::*;
 use crate::utils::components::widgets::rich_text;
 use crate::runtime::{Element, GLOBAL_STATE};
 use crate::runtime::Message;
 use crate::runtime::messaging::MessageKind;
+use crate::utils::components::widgets::rich_text::Rich;
 use crate::utils::cryptography::hashing::hash_str;
 
 #[derive(Debug, Clone)]
@@ -197,7 +200,7 @@ impl ElWrapper {
     pub fn view(&self, section_text: Option<String>) -> (Render, String) {
         match self.name.as_str() {
             "TEXT" =>
-                (Render::Span(span(unescape_html_text(self.display_text.as_str()))), unescape_html_text(self.display_text.as_str())),
+                (Render::Span(a11_span(unescape_html_text(self.display_text.as_str()))), unescape_html_text(self.display_text.as_str())),
             "hr" => (Render::Element(horizontal_rule(2).into(), false), "".to_string()),
             "h1" => (heading(greedy_text(&self.children), HEADER_SIZE_1, section_text.clone().unwrap_or(greedy_text(&self.children))), section_text.unwrap_or(greedy_text(&self.children))),
             "h2" => (heading(greedy_text(&self.children), HEADER_SIZE_2, greedy_text(&self.children)), greedy_text(&self.children)),
@@ -218,8 +221,7 @@ impl ElWrapper {
                         container(
                             rich_text(
                                 self.children[0].children.iter().map(|c| {
-                                    span(unescape_html_text(c.display_text.as_str()))
-                                        .font(FONT_MONO)
+                                    a11_mono(unescape_html_text(c.display_text.as_str()))
                                 }).collect::<Vec<Span<Message>>>()
                             )
                         )
@@ -251,11 +253,11 @@ impl ElWrapper {
                 // All children should be text elements, so we can safely render as text
                 (
                     Render::Span(
-                        span(
+                        a11_mono(
                             self.children.iter().map(|c| unescape_html_text(c.display_text.as_str()))
                                 .collect::<Vec<String>>()
                                 .join(" ")
-                        ).font(FONT_MONO)
+                        )
                             .background(color!(0x1a1a1a))
                             .border(Border {
                                 color: color!(0x2a2a2a),
@@ -270,7 +272,7 @@ impl ElWrapper {
             "li" => {
                 (
                     Render::Span(
-                        span(format!("- {}", greedy_text(&self.children)))
+                        a11_span(format!("- {}", greedy_text(&self.children)))
                     ),
                     greedy_text(&self.children)
                 )
@@ -280,7 +282,7 @@ impl ElWrapper {
                     Render::Element(
                         column(
                             self.children.iter().map(|c| {
-                                row!(text(format!("- {}", greedy_text(&c.children)))).wrap().into()
+                                row!(a11_text(format!("- {}", greedy_text(&c.children)))).wrap().into()
                             })
                         ).into(),
                         false
@@ -311,7 +313,7 @@ impl ElWrapper {
                 } else {
                     (
                         Render::Span(
-                            span(unescape_html_text(greedy_text(&self.children).as_str()))
+                            a11_span(unescape_html_text(greedy_text(&self.children).as_str()))
                                 .link(Message::new(MessageKind::LinkOpened(url), None))
                                 .color(color!(0x0000fa))
                         ),
@@ -435,13 +437,13 @@ impl ElWrapper {
             // //         if let Ok(response) = maybe_buffer {
             // //             Render::Element(Svg::new(Handle::from_memory(Cow::Owned(response.bytes().unwrap().to_vec()))).height(Length::Shrink).width(Length::Shrink).into(), true)
             // //         } else {
-            //             (Render::Span("Image not found".into()), alt)
+            //             (Render::Span(a11_span("Image not found")), alt)
             // //         }
             // //
             // //
             // //
             //     } else {
-                    (Render::Span("Image not found".into()), "Image not found".into())
+                    (Render::Span(a11_span("Image not found")), "Image not found".into())
                 // }
             }
             _ => {
@@ -570,24 +572,60 @@ fn heading<'a>(text: String, size: f32, tts: String) -> Render<'a> {
         //         Position::Top
         //     ),
         //     horizontal_space().width(10.),
-            rich_text([
-                span(text)
-                .font(FONT_BOLD)
-                .size(size)
-            ]).width(Length::Fill).into(),
+            a11_heading(text, size).width(Length::Fill).into(),
         // ).width(Length::Fill).into(),
         false
     )
 }
 
 
-fn a11_text<'a, T: Into<String>>(t: T) -> Rich<'a, Message> {
-    let mut font = FONT_MEDIUM.clone();
-    if GLOBAL_STATE.lock().unwrap().store.get_setting("appearance.font.dyslexic.enable").unwrap().value == true {
-        font.family = iced::font::Family::Name(FONT_NAME);
-    }
+fn a11_mono<'a, T: Into<String>>(t: T) -> Span<'a, Message> {
+    let font_name = get_a11_font();
 
-    rich_text(
-        t.into()
-    ).into()
+    span(t.into())
+        .font(build_font(font_name, Normal))
+}
+
+fn a11_span<'a, T: Into<String>>(t: T) -> Span<'a, Message> {
+    let font_name = get_a11_font();
+
+    span(t.into())
+        .font(build_font(font_name, Normal))
+}
+
+fn a11_text<'a, T: Into<String>>(t: T) -> Rich<'a, Message> {
+    let font_name = get_a11_font();
+
+    rich_text([
+        span(t.into())
+            .font(build_font(font_name, Normal))
+    ])
+}
+
+fn a11_heading<'a, T: Into<String>>(t: T, size: f32) -> Rich<'a, Message> {
+    let font_name = get_a11_font();
+
+    rich_text([
+        span(t.into())
+            .font(build_font(font_name, Bold))
+            .size(size)
+    ])
+}
+
+fn get_a11_font() -> String {
+    if GLOBAL_STATE.lock().unwrap().store.get_setting::<bool>("appearance.font.dyslexic.enable").unwrap().value == true {
+        GLOBAL_STATE.lock().unwrap().store.get_setting::<String>("appearance.font.dyslexic.primary").unwrap().value
+    } else {
+        GLOBAL_STATE.lock().unwrap().store.get_setting::<String>("appearance.font.primary").unwrap().value
+    }
+}
+
+fn build_font(name: String, weight: Weight) -> Font {
+    info!("Font name: {}", name);
+    Font {
+        family: Family::Name(name.leak()),
+        weight,
+        stretch: Default::default(),
+        style: Style::Normal,
+    }
 }
