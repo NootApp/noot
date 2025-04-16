@@ -1,0 +1,108 @@
+/* Noot Light Theme CSS */
+
+:root {
+    --noot-light-bg: #F9F9F9;
+    --noot-light-text: #222222;
+    --noot-light-accent: #007AFF;
+    --noot-light-accent-2: #28A;
+    --noot-light-accent-3: #287731;
+    --noot-light-divider: #E0E0E0;
+}
+
+body {
+    background-color: var(--noot-light-bg);
+    color: var(--noot-light-text);
+    font-family: sans-serif;
+    line-height: 1.6;
+}
+
+div {
+    background-color: var(--noot-light-bg);
+    color: var(--noot-light-text);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+a {
+    color: var(--noot-light-accent);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.span.linked-text {
+    color: var(--noot-light-accent);
+}
+
+span.highlighted-text {
+    background-color: var(--noot-light-accent);
+    color: var(--noot-light-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-2 {
+    color: var(--noot-light-accent-2);
+}
+
+span.highlighted-text-2 {
+    background-color: var(--noot-light-accent-2);
+    color: var(--noot-light-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-3 {
+    color: var(--noot-light-accent-3);
+}
+
+span.highlighted-text-3 {
+    background-color: var(--noot-light-accent-3);
+    color: var(--noot-light-bg);
+    padding: 2px 4px;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: var(--noot-light-divider);
+    margin: 20px 0;
+}
+
+/* Example styles for other elements */
+button {
+    background-color: var(--noot-light-accent);
+    color: var(--noot-light-bg);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0060E0; /* Slightly darker version of accent */
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+    background-color: #F0F0F0;
+    color: var(--noot-light-text);
+    border: 1px solid #D0D0D0;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+textarea:focus {
+    border-color: var(--noot-light-accent);
+    outline: none;
+}

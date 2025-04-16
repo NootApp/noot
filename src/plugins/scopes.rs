@@ -4,7 +4,6 @@ bitflags!(
     pub struct PluginScopes: u64 {
         const THEME = 1;
 
-
         /// Allows a plugin to see a list of the files in a workspace
         /// Scope name: `workspace.files.view`
         const SEE_WORKSPACE_FILES    = 2;
@@ -46,3 +45,4 @@ bitflags!(
         const AVOID_SANDBOXES        = 9_223_372_036_854_775_808;
     }
 );
+

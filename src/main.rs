@@ -54,7 +54,7 @@ pub fn main() -> iced::Result {
         env::var("NOOT_LOG").unwrap_or_else(|_| "info".to_uppercase());
 
     unsafe {
-        env::set_var("NOOT_LOG", format!("{},iced=off", log_level));
+        env::set_var("NOOT_LOG", format!("{},iced=warn,tts=warn,wgpu_hal=warn,wgpu_core=warn,iced_wgpu=warn", log_level));
     }
     
     pretty_env_logger::init_custom_env("NOOT_LOG");

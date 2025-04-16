@@ -15,15 +15,15 @@ nanoid = "0.4"
 log = "0.4.26"
 pretty_env_logger = "0.5.0"
 git-version = "0.3.9"
-hashbrown = { version = "0.15.2", features = ["serde"] }
-infer = "0.19"
-keyring = "4.0.0-rc.1"
-git2 = "0.20"
+#hashbrown = { version = "0.15.2", features = ["serde"] }
+#infer = "0.19"
+#keyring = "4.0.0-rc.1"
+#git2 = "0.20"
 num_cpus = "1.16"
-aead = "0.5.2"
-crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
+#aead = "0.5.2"
+#crypto = { package = "chacha20poly1305", version = "^0.10.1", default-features = false, features = ["rand_core"] }
 pulldown-cmark = "0.13.0"
-native-dialog = "0.7.0"
+#native-dialog = "0.7.0"
 rusqlite = { version = "0.34.0", features = ["bundled"] }
 sys-locale = "0.3.2"
 iced_gif = "0.13.0"
@@ -47,18 +47,20 @@ html_parser = "0.7.0"
 urls = "2.5.0"
 html-escape = "0.2.13"
 open = "5.3.2"
-syntect = "5.2.0"
+#syntect = "5.2.0"
 iced_core = "0.13.2"
 iced_aw = "0.12.2"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 crossbeam-queue = "0.3.12"
 walkdir = "2.5.0"
-csscolorparser = { version = "0.7.0", features = ["lab"] }
-iced_anim = "0.2.1"
-graft = "0.1.7"
+#csscolorparser = { version = "0.7.0", features = ["lab"] }
+#iced_anim = "0.2.1"
+#graft = "0.1.7"
 dark-light = "2.0.0"
 natural-tts = "0.2.0"
-font-loader = "0.11.0"
+lightningcss = "1.0.0-alpha.65"
+cssparser = "0.35.0"
+#font-loader = "0.11.0"
 
 [dev-dependencies]
 ctor = "0.4.0"

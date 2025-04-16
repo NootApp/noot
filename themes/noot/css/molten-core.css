@@ -1,0 +1,108 @@
+/* Molten Core Theme CSS */
+
+:root {
+    --molten-core-bg: #181818;
+    --molten-core-text: #F0F0F0;
+    --molten-core-accent: #FFA500; /* Consolidated link and highlight */
+    --molten-core-accent-2: #FF4500;
+    --molten-core-accent-3: #B22222;
+    --molten-core-divider: #303030;
+}
+
+body {
+    background-color: var(--molten-core-bg);
+    color: var(--molten-core-text);
+    font-family: sans-serif;
+    line-height: 1.6;
+}
+
+div {
+    background-color: var(--molten-core-bg);
+    color: var(--molten-core-text);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+a {
+    color: var(--molten-core-accent); /* Use consolidated accent variable */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.span.linked-text {
+    color: var(--molten-core-accent); /* Use consolidated accent variable */
+}
+
+span.highlighted-text {
+    background-color: var(--molten-core-accent); /* Use consolidated accent variable */
+    color: var(--molten-core-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-2 {
+    color: var(--molten-core-accent-2);
+}
+
+span.highlighted-text-2 {
+    background-color: var(--molten-core-accent-2);
+    color: var(--molten-core-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-3 {
+    color: var(--molten-core-accent-3);
+}
+
+span.highlighted-text-3 {
+    background-color: var(--molten-core-accent-3);
+    color: var(--molten-core-bg);
+    padding: 2px 4px;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: var(--molten-core-divider);
+    margin: 20px 0;
+}
+
+/* Example styles for other elements */
+button {
+    background-color: var(--molten-core-accent);
+    color: var(--molten-core-bg);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #FF8C00;
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+    background-color: #303030;
+    color: var(--molten-core-text);
+    border: 1px solid #505050;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+textarea:focus {
+    border-color: var(--molten-core-accent);
+    outline: none;
+}

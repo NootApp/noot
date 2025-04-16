@@ -3,6 +3,9 @@ use iced_core::widget::text::Catalog;
 pub mod status_bar;
 pub mod rich_text;
 
+// pub mod editor;
+
+
 pub fn rich_text<'a, Link, Theme, Renderer>(
     spans: impl AsRef<[iced_core::text::Span<'a, Link, Renderer::Font>]> + 'a,
 ) -> rich_text::Rich<'a, Link, Theme, Renderer>

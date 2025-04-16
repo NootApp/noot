@@ -10,7 +10,6 @@ use iced::futures::StreamExt;
 use natural_tts::{Model, NaturalTtsBuilder};
 use natural_tts::models::NaturalModelTrait;
 use natural_tts::models::tts_rs::TtsModel;
-use rusqlite::fallible_iterator::FallibleIterator;
 use tokio::sync::mpsc::{channel, Sender};
 use tokio::time::Instant;
 use crate::config::Config;
@@ -24,8 +23,10 @@ use crate::storage::process::ProcessStorageManager;
 use crate::storage::process::structs::setting::Setting;
 use crate::storage::process::structs::workspace::Workspace;
 use crate::hotkey::Keybind;
+use crate::plugins::PluginManager;
 use crate::runtime::state::AppState;
 use crate::storage::workspace::WorkspaceManager;
+use crate::ui::theme::{ThemeManager, THEMES};
 
 /// Holds all the message passing code for the base layer of the app. All roads lead to `crate::runtime::messaging`.
 pub mod messaging;
@@ -71,7 +72,12 @@ lazy_static!(
 pub struct RuntimeState {
     /// A `BTreeMap` containing each window and their respective identifiers for use when rendering or updating.
     pub windows: BTreeMap<Id, AppWindow>,
-    pub tts: Sender<String>
+
+    /// The TTS message to be played
+    pub tts: Sender<String>,
+
+    /// Global plugin manager (used for themes)
+    pub plugins: PluginManager,
 }
 
 impl RuntimeState {
@@ -79,7 +85,8 @@ impl RuntimeState {
     fn new(tts: Sender<String>) -> RuntimeState {
         RuntimeState {
             windows: Default::default(),
-            tts
+            tts,
+            plugins: PluginManager::new(),
         }
     }
 }
@@ -98,7 +105,7 @@ pub struct Application {
     pub splash_window: Option<Id>,
 }
 
-impl Application {
+impl  Application {
     /// Spawn a new Application runtime, returns a trigger task and an instance of the application to run the daemon with.
     pub fn new() -> (Application, Task) {
         let (tx, mut rx) = channel(1);
@@ -162,6 +169,12 @@ impl Application {
     }
 
     pub fn theme(&self, _id: Id) -> iced::Theme {
+        let mut binding = THEMES.lock().unwrap();
+        let active_theme = binding.active;
+        let theme = binding.themes.get_mut(active_theme).unwrap();
+
+        theme.evaluate(":root");
+
         iced::Theme::Dark
     }
 

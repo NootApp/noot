@@ -1,0 +1,108 @@
+/* Noot Dark Theme CSS with Simplified Variables */
+
+:root {
+    --noot-dark-bg: #3A3A3A;
+    --noot-dark-text: #E1E1E1;
+    --noot-dark-accent: #007AFF;
+    --noot-dark-accent-2: #28A;
+    --noot-dark-accent-3: #287731;
+    --noot-dark-divider: #393939;
+}
+
+body {
+    background-color: var(--noot-dark-bg);
+    color: var(--noot-dark-text);
+    font-family: sans-serif;
+    line-height: 1.6;
+}
+
+div {
+    background-color: var(--noot-dark-bg);
+    color: var(--noot-dark-text);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+a {
+    color: var(--noot-dark-accent);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.span.linked-text {
+    color: var(--noot-dark-accent);
+}
+
+span.highlighted-text {
+    background-color: var(--noot-dark-accent);
+    color: var(--noot-dark-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-2 {
+    color: var(--noot-dark-accent-2);
+}
+
+span.highlighted-text-2 {
+    background-color: var(--noot-dark-accent-2);
+    color: var(--noot-dark-bg);
+    padding: 2px 4px;
+}
+
+.span.linked-text-3 {
+    color: var(--noot-dark-accent-3);
+}
+
+span.highlighted-text-3 {
+    background-color: var(--noot-dark-accent-3);
+    color: var(--noot-dark-bg);
+    padding: 2px 4px;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-color: var(--noot-dark-divider);
+    margin: 20px 0;
+}
+
+/* Example styles for other elements */
+button {
+    background-color: var(--noot-dark-accent);
+    color: var(--noot-dark-bg);
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0060E0; /* Slightly darker version of accent */
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+    background-color: #4A4A4A;
+    color: var(--noot-dark-text);
+    border: 1px solid #5A5A5A;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+textarea:focus {
+    border-color: var(--noot-dark-accent);
+    outline: none;
+}

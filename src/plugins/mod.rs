@@ -16,8 +16,8 @@ pub enum PluginState {
 pub struct Plugin {
     pub state: PluginState,
     pub rt: Lua,
-    pub manifest: manifest::PluginManifest,
-    pub scope: scopes::PluginScopes
+    pub manifest: PluginManifest,
+    pub scope: PluginScopes
 }
 
 pub struct PluginManager {
@@ -33,7 +33,19 @@ impl PluginManager {
         }
     }
 
-    //pub fn load_plugins() {}
+    pub fn load_plugins(&mut self, path: &str) {
+        let entries = std::fs::read_dir(path).unwrap();
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_dir() {
+                    continue;
+                } else {
+
+                }
+            }
+        }
+    }
 }
 
 

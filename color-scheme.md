@@ -1,0 +1,610 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+    <title>Color Scheme</title>  
+</head>  
+<body>  
+<h1>Color Scheme</h1>  
+<p>This is the design doc for color scheme stuff in Noot</p>  
+<div style="background: #F9F9F9;color:#222222">  
+    Name: <strong>Noot Light</strong>  
+    <ul>  
+        <li>Background: <span style="background: #F9F9F9;color:#222222">#F9F9F9</span></li>  
+        <li>Text: <span style="background: #F9F9F9;color:#222222">#222222</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#f9f9f9;color:#222222">  
+               some  
+               <span style="color:#007AFF">linked text</span>,  
+               <span style="color:#f9f9f9;background:#007AFF">highlighted text</span>  
+               </span>
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#f9f9f9;color:#222222">  
+               some  
+               <span style="color:#28A">linked text</span>,  
+               <span style="background:#28A">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#f9f9f9;color:#222222">  
+               some  
+               <span style="color:#287731">linked text</span>,  
+               <span style="color:#f9f9f9;background:#287731">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #E0E0E0</li>  
+    </ul>  
+    <hr style="fill: #E0E0E0" />  
+</div>  
+<div style="background: #F8F8FF;color:#333333">  
+    Name: <strong>Sunny Meadow</strong>  
+    <ul>  
+        <li>Background: <span style="background: #F8F8FF;color:#333333">#F8F8FF</span></li>  
+        <li>Text: <span style="background: #F8F8FF;color:#333333">#333333</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#F8F8FF;color:#333333">  
+               some  
+               <span style="color:#228B22">linked text</span>,  
+               <span style="color:#F8F8FF;background:#228B22">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#F8F8FF;color:#333333">  
+               some  
+               <span style="color:#DAA520">linked text</span>,  
+               <span style="color:#F8F8FF;background:#DAA520">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#F8F8FF;color:#333333">  
+               some  
+               <span style="color:#6495ED">linked text</span>,  
+               <span style="color:#F8F8FF;background:#6495ED">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #E0E0E0</li>  
+    </ul>  
+    <hr style="fill: #E0E0E0" />  
+</div>  
+<div style="background: #F0FFFF;color:#444444">
+    Name: <strong>Morning Dew</strong>
+    <ul>
+        <li>Background: <span style="background: #F0FFFF;color:#333333">#F0FFFF</span></li>
+        <li>Text: <span style="background: #F0FFFF;color:#333333">#333333</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFFF;color:#333333">
+                some
+                <span style="color:#008080">linked text</span>,
+                <span style="color:#F0FFFF;background:#008080">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFFF;color:#333333">
+                some
+                <span style="color:#0077BE">linked text</span>,
+                <span style="color:#F0FFFF;background:#0077BE">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFFF;color:#333333">
+                some
+                <span style="color:#228B22">linked text</span>,
+                <span style="color:#F0FFFF;background:#228B22">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #D3D3D3</li>
+    </ul>
+    <hr style="fill: #D3D3D3" />
+</div>  
+<div style="background: #E8F5FF;color:#3A3A3A">
+    Name: <strong>Cloudy Sky</strong>
+    <ul>
+        <li>Background: <span style="background: #E8F5FF;color:#3A3A3A">#E8F5FF</span></li>
+        <li>Text: <span style="background: #E8F5FF;color:#3A3A3A">#3A3A3A</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#E8F5FF;color:#3A3A3A">
+                some
+                <span style="color:#1E90FF">linked text</span>,
+                <span style="color:#E8F5FF;background:#1E90FF">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#E8F5FF;color:#3A3A3A">
+                some
+                <span style="color:#00BFFF">linked text</span>,
+                <span style="color:#E8F5FF;background:#00BFFF">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#E8F5FF;color:#3A3A3A">
+                some
+                <span style="color:#4682B4">linked text</span>,
+                <span style="color:#E8F5FF;background:#4682B4">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #DCDCDC</li>
+    </ul>
+    <hr style="fill: #DCDCDC" />
+</div>
+<div style="background: #FFF8E1;color:#4A342A">
+    Name: <strong>Sandstone Dawn</strong>
+    <ul>
+        <li>Background: <span style="background: #FFF8E1;color:#4A342A">#FFF8E1</span></li>
+        <li>Text: <span style="background: #FFF8E1;color:#4A342A">#4A342A</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF8E1;color:#4A342A">
+                some
+                <span style="color:#D2691E">linked text</span>,
+                <span style="color:#FFF8E1;background:#D2691E">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF8E1;color:#4A342A">
+                some
+                <span style="color:#CD853F">linked text</span>,
+                <span style="color:#FFF8E1;background:#CD853F">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF8E1;color:#4A342A">
+                some
+                <span style="color:#BC8F8F">linked text</span>,
+                <span style="color:#FFF8E1;background:#BC8F8F">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #EEDFCC</li>
+    </ul>
+    <hr style="fill: #EEDFCC" />
+</div>
+<div style="background: #F0FFF0;color:#2E3440">
+    Name: <strong>Mint Breeze</strong>
+    <ul>
+        <li>Background: <span style="background: #F0FFF0;color:#2E3440">#F0FFF0</span></li>
+        <li>Text: <span style="background: #F0FFF0;color:#2E3440">#2E3440</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFF0;color:#2E3440">
+                some
+                <span style="color:#90EE90">linked text</span>,
+                <span style="color:#F0FFF0;background:#90EE90">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFF0;color:#2E3440">
+                some
+                <span style="color:#3CB371">linked text</span>,
+                <span style="color:#F0FFF0;background:#3CB371">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F0FFF0;color:#2E3440">
+                some
+                <span style="color:#8FBC8F">linked text</span>,
+                <span style="color:#F0FFF0;background:#8FBC8F">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #E0EEE0</li>
+    </ul>
+    <hr style="fill: #E0EEE0" />
+</div>
+<div style="background: #FFF0F5;color:#663399">
+    Name: <strong>Lavender Haze (High Contrast)</strong>
+    <ul>
+        <li>Background: <span style="background: #FFF0F5;color:#663399">#FFF0F5</span></li>
+        <li>Text: <span style="background: #FFF0F5;color:#663399">#663399</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF0F5;color:#663399">
+                some
+                <span style="color:#9370DB">linked text</span>,
+                <span style="color:#FFF0F5;background:#9370DB">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF0F5;color:#663399">
+                some
+                <span style="color:#8A2BE2">linked text</span>,
+                <span style="color:#FFF0F5;background:#8A2BE2">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFF0F5;color:#663399">
+                some
+                <span style="color:#BA55D3">linked text</span>,
+                <span style="color:#FFF0F5;background:#BA55D3">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #DDA0DD</li>
+    </ul>
+    <hr style="fill: #DDA0DD" />
+</div>
+<div style="background: #FAFAD2;color:#556B2F">
+    Name: <strong>Olive Grove</strong>
+    <ul>
+        <li>Background: <span style="background: #FAFAD2;color:#556B2F">#FAFAD2</span></li>
+        <li>Text: <span style="background: #FAFAD2;color:#556B2F">#556B2F</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FAFAD2;color:#556B2F">
+                some
+                <span style="color:#6B8E23">linked text</span>,
+                <span style="color:#FAFAD2;background:#6B8E23">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FAFAD2;color:#556B2F">
+                some
+                <span style="color:#9ACD32">linked text</span>,
+                <span style="color:#FAFAD2;background:#9ACD32">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FAFAD2;color:#556B2F">
+                some
+                <span style="color:#ADFF2F">linked text</span>,
+                <span style="color:#FAFAD2;background:#ADFF2F">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #F5F5DC</li>
+    </ul>
+    <hr style="fill: #F5F5DC" />
+</div>
+<div style="background: #F5FFFA;color:#2F4F4F">
+    Name: <strong>Aquamarine Sky</strong>
+    <ul>
+        <li>Background: <span style="background: #F5FFFA;color:#2F4F4F">#F5FFFA</span></li>
+        <li>Text: <span style="background: #F5FFFA;color:#2F4F4F">#2F4F4F</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F5FFFA;color:#2F4F4F">
+                some
+                <span style="color:#00CED1">linked text</span>,
+                <span style="color:#F5FFFA;background:#00CED1">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F5FFFA;color:#2F4F4F">
+                some
+                <span style="color:#48D1CC">linked text</span>,
+                <span style="color:#F5FFFA;background:#48D1CC">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#F5FFFA;color:#2F4F4F">
+                some
+                <span style="color:#20B2AA">linked text</span>,
+                <span style="color:#F5FFFA;background:#20B2AA">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #E0FFFF</li>
+    </ul>
+    <hr style="fill: #E0FFFF" />
+</div>
+<div style="background: #FFFACD;color:#333300">
+    Name: <strong>Lemon Chiffon</strong>
+    <ul>
+        <li>Background: <span style="background: #FFFACD;color:#333300">#FFFACD</span></li>
+        <li>Text: <span style="background: #FFFACD;color:#333300">#333300</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFFACD;color:#333300">
+                some
+                <span style="color:#FFC300">linked text</span>,
+                <span style="color:#FFFACD;background:#FFC300">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFFACD;color:#333300">
+                some
+                <span style="color:#FFA500">linked text</span>,
+                <span style="color:#FFFACD;background:#FFA500">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#FFFACD;color:#333300">
+                some
+                <span style="color:#FF8C00">linked text</span>,
+                <span style="color:#FFFACD;background:#FF8C00">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #EEE8AA</li>
+    </ul>
+    <hr style="fill: #EEE8AA" />
+</div>  
+<div style="background: #3A3A3A;color:#E1E1E1">  
+    Name: <strong>Noot Dark</strong>  
+    <ul>  
+        <li>Background: <span style="background: #3A3A3A;color:#E1E1E1">#3A3A3A</span></li>  
+        <li>Text: <span style="background: #3A3A3A;color:#E1E1E1">#E1E1E1</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#3A3A3A;color:#E1E1E1">  
+               some  
+               <span style="color:#007AFF">linked text</span>,  
+               <span style="color:#3A3A3A;background:#007AFF">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#3A3A3A;color:#E1E1E1">  
+               some  
+               <span style="color:#28A">linked text</span>,  
+               <span style="color:#3A3A3A;background:#28A">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#3A3A3A;color:#E1E1E1">  
+               some  
+               <span style="color:#287731">linked text</span>,  
+               <span style="color:#3A3A3A;background:#287731">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #393939</li>  
+    </ul>  
+    <hr style="fill: #393939" />  
+</div>    
+<div style="background: #282828;color:#DCDCDC">  
+    Name: <strong>Obsidian Night</strong>  
+    <ul>  
+        <li>Background: <span style="background: #282828;color:#DCDCDC">#282828</span></li>  
+        <li>Text: <span style="background: #282828;color:#DCDCDC">#DCDCDC</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#282828;color:#DCDCDC">  
+               some  
+               <span style="color:#A0522D">linked text</span>,  
+               <span style="color:#282828;background:#A0522D">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#282828;color:#DCDCDC">  
+               some  
+               <span style="color:#DA70D6">linked text</span>,  
+               <span style="color:#282828;background:#DA70D6">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#282828;color:#DCDCDC">  
+               some  
+               <span style="color:#20B2AA">linked text</span>,  
+               <span style="color:#282828;background:#20B2AA">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #333333</li>  
+    </ul>  
+    <hr style="fill: #333333" />  
+</div>    
+<div style="background: #1A1A2E;color:#E6E6FA">  
+    Name: <strong>Deep Space</strong>  
+    <ul>  
+        <li>Background: <span style="background: #1A1A2E;color:#E6E6FA">#1A1A2E</span></li>  
+        <li>Text: <span style="background: #1A1A2E;color:#E6E6FA">#E6E6FA</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#1A1A2E;color:#E6E6FA">  
+               some  
+               <span style="color:#87CEEB">linked text</span>,  
+               <span style="color:#1A1A2E;background:#87CEEB">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#1A1A2E;color:#E6E6FA">  
+               some  
+               <span style="color:#9370DB">linked text</span>,  
+               <span style="color:#1A1A2E;background:#9370DB">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#1A1A2E;color:#E6E6FA">  
+               some  
+               <span style="color:#00CED1">linked text</span>,  
+               <span style="color:#1A1A2E;background:#00CED1">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #2C2C3E</li>  
+    </ul>  
+    <hr style="fill: #2C2C3E" />  
+</div>    
+<div style="background: #2F4F4F;color:#F0F8FF">  
+    Name: <strong>Shadowed Steel</strong>  
+    <ul>  
+        <li>Background: <span style="background: #2F4F4F;color:#F0F8FF">#2F4F4F</span></li>  
+        <li>Text: <span style="background: #2F4F4F;color:#F0F8FF">#F0F8FF</span></li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#2F4F4F;color:#F0F8FF">  
+               some  
+               <span style="color:#8FBC8F">linked text</span>,  
+               <span style="color:#2F4F4F;background:#8FBC8F">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#2F4F4F;color:#F0F8FF">  
+               some  
+               <span style="color:#BDB76B">linked text</span>,  
+               <span style="color:#2F4F4F;background:#BDB76B">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Accent: (Links, Highlight) -  
+            <span style="background:#2F4F4F;color:#F0F8FF">  
+               some  
+               <span style="color:#E9967A">linked text</span>,  
+               <span style="color:#2F4F4F;background:#E9967A">highlighted text</span>  
+               </span>  
+        </li>  
+        <li>Divider/Border: #465F4F</li>  
+    </ul>  
+    <hr style="fill: #465F4F" />  
+</div>  
+<div style="background: #1C1C1C;color:#E0E0E0">
+    Name: <strong>Crimson Dusk</strong>
+    <ul>
+        <li>Background: <span style="background: #1C1C1C;color:#E0E0E0">#1C1C1C</span></li>
+        <li>Text: <span style="background: #1C1C1C;color:#E0E0E0">#E0E0E0</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1C1C1C;color:#E0E0E0">
+                some
+                <span style="color:#DC143C">linked text</span>,
+                <span style="color:#1C1C1C;background:#DC143C">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1C1C1C;color:#E0E0E0">
+                some
+                <span style="color:#FF6347">linked text</span>,
+                <span style="color:#1C1C1C;background:#FF6347">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1C1C1C;color:#E0E0E0">
+                some
+                <span style="color:#B22222">linked text</span>,
+                <span style="color:#1C1C1C;background:#B22222">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #333333</li>
+    </ul>
+    <hr style="fill: #333333" />
+</div>
+<div style="background: #222222;color:#DCDCDC">
+    Name: <strong>Electric Night</strong>
+    <ul>
+        <li>Background: <span style="background: #222222;color:#DCDCDC">#222222</span></li>
+        <li>Text: <span style="background: #222222;color:#DCDCDC">#DCDCDC</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#222222;color:#DCDCDC">
+                some
+                <span style="color:#9370DB">linked text</span>,
+                <span style="color:#222222;background:#9370DB">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#222222;color:#DCDCDC">
+                some
+                <span style="color:#8A2BE2">linked text</span>,
+                <span style="color:#222222;background:#8A2BE2">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#222222;color:#DCDCDC">
+                some
+                <span style="color:#BA55D3">linked text</span>,
+                <span style="color:#222222;background:#BA55D3">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #3A3A3A</li>
+    </ul>
+    <hr style="fill: #3A3A3A" />
+</div>
+<div style="background: #282828;color:#E8E8E8">
+    Name: <strong>Emerald Depths</strong>
+    <ul>
+        <li>Background: <span style="background: #282828;color:#E8E8E8">#282828</span></li>
+        <li>Text: <span style="background: #282828;color:#E8E8E8">#E8E8E8</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#282828;color:#E8E8E8">
+                some
+                <span style="color:#008000">linked text</span>,
+                <span style="color:#282828;background:#008000">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#282828;color:#E8E8E8">
+                some
+                <span style="color:#3CB371">linked text</span>,
+                <span style="color:#282828;background:#3CB371">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#282828;color:#E8E8E8">
+                some
+                <span style="color:#2E8B57">linked text</span>,
+                <span style="color:#282828;background:#2E8B57">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #404040</li>
+    </ul>
+    <hr style="fill: #404040" />
+</div>
+<div style="background: #1A1A1A;color:#F5F5F5">
+    Name: <strong>Cyber Punk</strong>
+    <ul>
+        <li>Background: <span style="background: #1A1A1A;color:#F5F5F5">#1A1A1A</span></li>
+        <li>Text: <span style="background: #1A1A1A;color:#F5F5F5">#F5F5F5</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1A1A1A;color:#F5F5F5">
+                some
+                <span style="color:#00FFFF">linked text</span>,
+                <span style="color:#1A1A1A;background:#00FFFF">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1A1A1A;color:#F5F5F5">
+                some
+                <span style="color:#FF00FF">linked text</span>,
+                <span style="color:#1A1A1A;background:#FF00FF">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#1A1A1A;color:#F5F5F5">
+                some
+                <span style="color:#00FF7F">linked text</span>,
+                <span style="color:#1A1A1A;background:#00FF7F">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #303030</li>
+    </ul>
+    <hr style="fill: #303030" />
+</div>
+<div style="background: #202020;color:#E0E0E0">
+    Name: <strong>Rosewood Night</strong>
+    <ul>
+        <li>Background: <span style="background: #202020;color:#E0E0E0">#202020</span></li>
+        <li>Text: <span style="background: #202020;color:#E0E0E0">#E0E0E0</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#202020;color:#E0E0E0">
+                some
+                <span style="color:#FF69B4">linked text</span>,
+                <span style="color:#202020;background:#FF69B4">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#202020;color:#E0E0E0">
+                some
+                <span style="color:#DB7093">linked text</span>,
+                <span style="color:#202020;background:#DB7093">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#202020;color:#E0E0E0">
+                some
+                <span style="color:#FF1493">linked text</span>,
+                <span style="color:#202020;background:#FF1493">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #383838</li>
+    </ul>
+    <hr style="fill: #383838" />
+</div>
+<div style="background: #181818;color:#F0F0F0">
+    Name: <strong>Molten Core</strong>
+    <ul>
+        <li>Background: <span style="background: #181818;color:#F0F0F0">#181818</span></li>
+        <li>Text: <span style="background: #181818;color:#F0F0F0">#F0F0F0</span></li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#181818;color:#F0F0F0">
+                some
+                <span style="color:#FFA500">linked text</span>,
+                <span style="color:#181818;background:#FFA500">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#181818;color:#F0F0F0">
+                some
+                <span style="color:#FF4500">linked text</span>,
+                <span style="color:#181818;background:#FF4500">highlighted text</span>
+            </span>
+        </li>
+        <li>Accent: (Links, Highlight) -
+            <span style="background:#181818;color:#F0F0F0">
+                some
+                <span style="color:#B22222">linked text</span>,
+                <span style="color:#181818;background:#B22222">highlighted text</span>
+            </span>
+        </li>
+        <li>Divider/Border: #303030</li>
+    </ul>
+    <hr style="fill: #303030" />
+</div>
+</body>  
+</html>
